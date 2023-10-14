@@ -10,8 +10,6 @@ internal class OperatorBuilder {
     readonly ParameterExpression _opParam = Expression.Parameter(typeof(OperatorBase), "op");
     readonly ParameterExpression _simuParam = Expression.Parameter(typeof(TimeDrivenSimulator), "simu");
 
-    Action<OperatorBase, TimeDrivenSimulator>? _resetActions;
-
     OperatorBuilder If(Expression<Func<OperatorBase, TimeDrivenSimulator, bool>> condition) {
         if (_resolveExpr == null) {
             _resolveExpr = Expression.Block(
@@ -48,9 +46,6 @@ internal class OperatorBuilder {
             ).Compile();
             op.OnResolve = simu => lambda(op, simu);
         }
-        if (_resetActions != null) {
-            op.OnReset = simu =>_resetActions(op, simu);
-        }
     }
 
     public OperatorBuilder RequiredUpgraded(int upgraded) {
@@ -67,7 +62,6 @@ internal class OperatorBuilder {
     }
     public OperatorBuilder SetGlobalValueIfGreater(string name, string tag, double value) {
         Do((op, simu) => simu.GetGlobalValue(name).SetIfGreater(tag, value));
-        _resetActions += (op, simu) => simu.GetGlobalValue(name).SetValue(tag, 0);
         return this;
     }
     public OperatorBuilder ModifyValue(

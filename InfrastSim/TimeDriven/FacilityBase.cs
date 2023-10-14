@@ -23,7 +23,6 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         }
         var index = Array.IndexOf(_operators, null);
         _operators[index] = op;
-        op.Reset(simu);
         op.Facility = this;
         return true;
     }
@@ -31,7 +30,6 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         var index = Array.IndexOf(_operators, op);
         if (index == -1) return false;
         _operators[index] = null;
-        op.Reset(simu);
         op.Facility = null;
         return true;
     }
@@ -40,6 +38,11 @@ internal abstract class FacilityBase : ITimeDrivenObject {
     public abstract double EffiencyModifier { get; }
     public double TotalEffiencyModifier => WorkingOperators.Sum(op => op.EffiencyModifier) + EffiencyModifier;
 
+    public virtual void Reset() {
+        foreach (var op in Operators) {
+            op.Reset();
+        }
+    }
     /// <summary>
     /// 该方法应该在派生类的方法开始前被调用。
     /// 默认会调用所有内部干员的Resolve方法，然后处理基建的心情调整值。

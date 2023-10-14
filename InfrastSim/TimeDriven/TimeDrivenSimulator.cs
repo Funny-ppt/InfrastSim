@@ -1,10 +1,15 @@
-using System;
 using System.Diagnostics;
 
 namespace InfrastSim.TimeDriven;
 internal class TimeDrivenSimulator : ISimulator {
     public DateTime Now { get; private set; }
     public void Simulate(TimeSpan span) {
+        foreach (var value in _globalValues.Values) {
+            value.Clear();
+        }
+        foreach (var facility in AllFacilities) {
+            facility.Reset();
+        }
         foreach (var facility in AllFacilities) {
             facility.Resolve(this);
         }
@@ -31,7 +36,7 @@ internal class TimeDrivenSimulator : ISimulator {
 
     double _drones;
     Dictionary<string, int> _materials = new();
-    Dictionary<string, AggregateValue> _globalStates = new();
+    Dictionary<string, AggregateValue> _globalValues = new();
 
     public int Drones {
         get => (int)Math.Floor(_drones);
@@ -45,10 +50,10 @@ internal class TimeDrivenSimulator : ISimulator {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
     }
     public AggregateValue GetGlobalValue(string name) {
-        if (!_globalStates.ContainsKey(name)) {
-            _globalStates.Add(name, new(min: 0.0));
+        if (!_globalValues.ContainsKey(name)) {
+            _globalValues.Add(name, new(min: 0.0));
         }
-        return _globalStates[name];
+        return _globalValues[name];
     }
 
     public AggregateValue SilverVine { get; } = new AggregateValue();

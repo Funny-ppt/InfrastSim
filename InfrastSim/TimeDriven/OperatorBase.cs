@@ -13,18 +13,13 @@ internal abstract class OperatorBase : ITimeDrivenObject {
     public AggregateValue MoodConsumeRate { get; } = new();
     public AggregateValue EffiencyModifier { get; } = new();
 
-    public virtual void Reset(TimeDrivenSimulator simu) {
+    public virtual void Reset() {
         MoodConsumeRate.Clear();
         EffiencyModifier.Clear();
-
-        OnReset?.Invoke(simu);
     }
 
     public virtual void Resolve(TimeDrivenSimulator simu) {
-        if (IsTired) {
-            Reset(simu);
-        }
-
+        Reset();
         OnResolve?.Invoke(simu);
     }
 
@@ -35,6 +30,5 @@ internal abstract class OperatorBase : ITimeDrivenObject {
         }
     }
 
-    public Action<TimeDrivenSimulator>? OnReset { get; set; }
     public Action<TimeDrivenSimulator>? OnResolve { get; set; }
 }

@@ -4,13 +4,6 @@ internal class KirinRYato : OperatorBase {
     static string[] _groups = { "怪物猎人小队" };
     public override string[] Groups => _groups;
 
-    public override void Reset(TimeDrivenSimulator simu) {
-        base.Reset(simu);
-
-        simu.SilverVine.Remove(Name);
-        simu.GlobalManufacturingEffiency.SetValue(0);
-    }
-
     public override void Resolve(TimeDrivenSimulator simu) {
         base.Resolve(simu);
 

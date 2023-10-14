@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace InfrastSim;
 
 internal class AggregateValue {
@@ -82,10 +84,12 @@ internal class AggregateValue {
         _additionValues.Remove(name);
     }
     public void Clear() {
+        _disables.Clear();
+        foreach (var key in _additionValues.Keys) {
+            _additionValues[key] = 0;
+        }
         _upToDate = true;
         _value = _baseValue;
-        _additionValues.Clear();
-        _disables.Clear();
     }
 
     public static implicit operator double(AggregateValue aggregateValue) {

@@ -2,15 +2,6 @@ namespace InfrastSim.TimeDriven.Operators;
 internal class Amiya : OperatorBase {
     public override string Name => "阿米娅";
 
-    public override void Reset(TimeDrivenSimulator simu) {
-        base.Reset(simu);
-
-        simu.GlobalTradingEffiency.SetValue(0);
-        if (Facility is Dormitory dorm) {
-            dorm.DormMoodModifier.SetValue(0);
-        }
-    }
-
     public override void Resolve(TimeDrivenSimulator simu) {
         base.Resolve(simu);
 
