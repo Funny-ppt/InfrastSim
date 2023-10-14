@@ -16,12 +16,16 @@ internal abstract class OperatorBase : ITimeDrivenObject {
     public virtual void Reset(TimeDrivenSimulator simu) {
         MoodConsumeRate.Clear();
         EffiencyModifier.Clear();
+
+        OnReset?.Invoke(simu);
     }
 
     public virtual void Resolve(TimeDrivenSimulator simu) {
         if (IsTired) {
             Reset(simu);
         }
+
+        OnResolve?.Invoke(simu);
     }
 
     public virtual void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
@@ -30,4 +34,7 @@ internal abstract class OperatorBase : ITimeDrivenObject {
             Mood = Math.Clamp(newMood, MinMood, MaxMood);
         }
     }
+
+    public Action<TimeDrivenSimulator>? OnReset { get; set; }
+    public Action<TimeDrivenSimulator>? OnResolve { get; set; }
 }

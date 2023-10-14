@@ -44,7 +44,7 @@ internal class TimeDrivenSimulator : ISimulator {
     public void ConsumeMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
     }
-    public AggregateValue GetGlobalState(string name) {
+    public AggregateValue GetGlobalValue(string name) {
         if (!_globalStates.ContainsKey(name)) {
             _globalStates.Add(name, new(min: 0.0));
         }

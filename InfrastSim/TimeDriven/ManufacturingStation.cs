@@ -49,7 +49,7 @@ internal class ManufacturingStation : FacilityBase {
 
     public override void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
-            var effiency = TotalEffiencyModifier + 1 + simu.GlobalManufacturingEffiency;
+            var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
             var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;

@@ -87,7 +87,7 @@ internal class TradingStation : FacilityBase {
             PendingNewOrder();
         }
         if (IsWorking) {
-            var effiency = TotalEffiencyModifier + 1 + simu.GlobalTradingEffiency;
+            var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
             var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;
