@@ -82,6 +82,11 @@ internal class TradingStation : FacilityBase {
     public override int AcceptOperatorNums => Level;
     public override bool IsWorking => CapacityN > OrderCount && CurrentOrder != null && Operators.Any();
 
+    public override void Reset() {
+        base.Reset();
+
+        Capacity.Clear();
+    }
     public override void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
         if (CurrentOrder == null) {
             PendingNewOrder();

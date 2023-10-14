@@ -23,6 +23,11 @@ internal class Dormitory : FacilityBase {
     public override double EffiencyModifier => 0.0;
     public int Atmosphere { get; set; } = 0;
 
+    public override void Reset() {
+        base.Reset();
+
+        DormMoodModifier.Clear();
+    }
     public override void Resolve(TimeDrivenSimulator simu) {
         base.Resolve(simu);
 

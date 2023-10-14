@@ -46,7 +46,11 @@ internal class ManufacturingStation : FacilityBase {
     public override int AcceptOperatorNums => Level;
     public override bool IsWorking => CanStoreMore && Operators.Any();
 
+    public override void Reset() {
+        base.Reset();
 
+        Capacity.Clear();
+    }
     public override void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
