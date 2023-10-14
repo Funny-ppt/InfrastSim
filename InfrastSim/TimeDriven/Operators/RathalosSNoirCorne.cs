@@ -1,0 +1,28 @@
+namespace InfrastSim.TimeDriven.Operators;
+internal class RathalosSNoirCorne : OperatorBase {
+    public override string Name => "火龙S黑角";
+    static string[] _groups = { "怪物猎人小队" };
+    public override string[] Groups => _groups;
+
+    public override void Reset(TimeDrivenSimulator simu) {
+        base.Reset(simu);
+
+        simu.SilverVine.Remove(Name);
+        simu.GlobalTradingEffiency.SetValue(0);
+    }
+
+    public override void Resolve(TimeDrivenSimulator simu) {
+        base.Resolve(simu);
+
+        if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {
+            var count = Facility.GroupMemberCount("怪物猎人小队");
+            simu.SilverVine.SetValue(Name, 2 * count);
+
+            if (Upgraded >= 2) {
+                if (Facility.HasGroupMember("怪物猎人小队")) {
+                    simu.GlobalTradingEffiency.SetIfGreater(0.07);
+                }
+            }
+        }
+    }
+}

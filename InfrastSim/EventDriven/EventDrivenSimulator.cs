@@ -1,5 +1,5 @@
-﻿namespace InfrastSim.EventDriven;
+namespace InfrastSim.EventDriven;
 
-internal class EventDrivenSimulator : ISimulator
-{
+internal class EventDrivenSimulator : ISimulator {
+    public DateTime Now { get; private set; }
 }

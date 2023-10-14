@@ -14,4 +14,5 @@ internal enum FacilityType {
     Office, // 办公室
     Reception, // 会客室
     Training, // 训练室
+    Crafting, // 加工站
 }

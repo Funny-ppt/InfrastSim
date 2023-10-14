@@ -11,7 +11,10 @@ internal record Product(string Name, int Volume, int RequiredLevel, TimeSpan Pro
             new[]{ new Material("龙门币", 1600),
                    new Material("固源岩", 2),}),
         new("源石碎片", 3, 3, TimeSpan.FromMinutes(60),
-            new[]{ new Material("龙门币", 1600),
-                   new Material("装置", 2),}),
+            new[]{ new Material("龙门币", 1000),
+                   new Material("装置", 1),}),
     };
+
+    public readonly Product[] AllProducts =
+        CombatRecords.Append(Gold).Concat(StoneFragment).ToArray();
 }

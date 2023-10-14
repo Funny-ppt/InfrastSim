@@ -1,0 +1,30 @@
+namespace InfrastSim.TimeDriven.Operators;
+internal class TerraResearchCommission : OperatorBase {
+    public override string Name => "泰拉大陆调查团";
+    static string[] _groups = { "怪物猎人小队" };
+    public override string[] Groups => _groups;
+
+    public override void Reset(TimeDrivenSimulator simu) {
+        base.Reset(simu);
+
+        if (Facility is ManufacturingStation manufacturing) {
+            manufacturing.Capacity.Remove(Name);
+        }
+        if (Facility is TradingStation trading) {
+            trading.Capacity.Remove(Name);
+        }
+    }
+
+    public override void Resolve(TimeDrivenSimulator simu) {
+        base.Resolve(simu);
+
+        if (Facility is ManufacturingStation manufacturing && !IsTired) {
+            manufacturing.Capacity.SetValue(Name, 8);
+            EffiencyModifier.SetValue(Name, 0.05 + simu.SilverVine * 0.01);
+        }
+        if (Facility is TradingStation trading && !IsTired) {
+            trading.Capacity.SetValue(Name, 2);
+            EffiencyModifier.SetValue(Name, 0.05 + simu.SilverVine * 0.03);
+        }
+    }
+}

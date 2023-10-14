@@ -1,29 +1,33 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace InfrastSim.TimeDriven; 
+namespace InfrastSim.TimeDriven;
 internal abstract class OperatorBase : ITimeDrivenObject {
-    public string Name { get; }
-    public FacilityBase? Facility { get; private set; } = null;
+    public abstract string Name { get; }
+    public virtual string[] Groups { get; } = Array.Empty<string>();
+    public FacilityBase? Facility { get; set; } = null;
 
     const double MinMood = 0.0;
     const double MaxMood = 24.0;
+    public int Upgraded { get; private set; } = 2;
     public double Mood { get; private set; } = 24.0;
-    public bool IsTired => Util.Equals(0.0, Mood);
-    public AggregateValue MoodConsumeRate { get; } = new(1.0);
-    public AggregateValue ManufacturingFactor { get; } = new(1.0);
-    public AggregateValue TradingFactor { get; } = new(1.0);
-    public AggregateValue RecuritFactor { get; } = new(1.0);
-    public AggregateValue IntelligenceFactor { get; } = new(1.0);
+    public bool IsTired => Util.Equals(MinMood, Mood);
+    public bool IsFullOfEnergy => Util.Equals(MaxMood, Mood);
+    public AggregateValue MoodConsumeRate { get; } = new();
+    public AggregateValue EffiencyModifier { get; } = new();
 
-    public void Update(TimeElapsedInfo info) {
-        if (Facility != null && Facility.IsWorking) {
-            var newMood = Mood + MoodConsumeRate * (info.TimeElapsed / TimeSpan.FromHours(1));
-            Mood = Math.Clamp(newMood, MinMood, MaxMood);
+    public virtual void Reset(TimeDrivenSimulator simu) {
+        MoodConsumeRate.Clear();
+        EffiencyModifier.Clear();
+    }
+
+    public virtual void Resolve(TimeDrivenSimulator simu) {
+        if (IsTired) {
+            Reset(simu);
         }
     }
 
+    public virtual void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
+        if (Facility != null && Facility.IsWorking) {
+            var newMood = Mood - MoodConsumeRate * (info.TimeElapsed / TimeSpan.FromHours(1));
+            Mood = Math.Clamp(newMood, MinMood, MaxMood);
+        }
+    }
 }
