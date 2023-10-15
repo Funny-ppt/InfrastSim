@@ -34,7 +34,6 @@ internal class Dormitory : FacilityBase {
         DormMoodModifier.SetValue("atomsphere", -0.0004 * Atmosphere);
         foreach (var op in Operators) {
             op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier);
-            op.MoodConsumeRate.Remove("dorm-vip");
             op.MoodConsumeRate.Disable("control-center-mod");
         }
     }

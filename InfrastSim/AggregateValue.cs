@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace InfrastSim;
 
 internal class AggregateValue {
@@ -29,8 +27,8 @@ internal class AggregateValue {
         }
     }
     public double BaseValue => _baseValue;
-    public double MinValue { get; }
-    public double MaxValue { get; }
+    public double MinValue { get; set; }
+    public double MaxValue { get; set; }
 
     public double GetValue(string name)
         => _additionValues.GetValueOrDefault(name);

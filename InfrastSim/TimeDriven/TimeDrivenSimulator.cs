@@ -13,6 +13,7 @@ internal class TimeDrivenSimulator : ISimulator {
         foreach (var facility in AllFacilities) {
             facility.Resolve(this);
         }
+        _delayActions?.Invoke(this);
         foreach (var facility in AllFacilities) {
             facility.Update(this, new TimeElapsedInfo(Now, Now + span, span));
         }
@@ -33,11 +34,16 @@ internal class TimeDrivenSimulator : ISimulator {
     public Crafting Crafting = new();
     public FacilityBase[] ModifiableFacilities { get; } = new FacilityBase[9];
     public FacilityBase[] AllFacilities { get; } = new FacilityBase[18];
+    public IEnumerable<OperatorBase> Operators => AllFacilities.SelectMany(fac => fac.Operators);
 
     double _drones;
     Dictionary<string, int> _materials = new();
     Dictionary<string, AggregateValue> _globalValues = new();
+    Action<TimeDrivenSimulator>? _delayActions = null;
 
+    public void DelayAction(Action<TimeDrivenSimulator> action) {
+        _delayActions += action;
+    }
     public int Drones {
         get => (int)Math.Floor(_drones);
         set {
@@ -56,7 +62,10 @@ internal class TimeDrivenSimulator : ISimulator {
         return _globalValues[name];
     }
 
-    public AggregateValue SilverVine { get; } = new AggregateValue();
-    public AggregateValue GlobalManufacturingEffiency { get; } = new AggregateValue();
-    public AggregateValue GlobalTradingEffiency { get; } = new AggregateValue();
+    public AggregateValue SilverVine => GetGlobalValue(nameof(SilverVine));
+    public AggregateValue Renjianyanhuo => GetGlobalValue(nameof(Renjianyanhuo));
+    public AggregateValue Ganzhixinxi => GetGlobalValue(nameof(Ganzhixinxi));
+    public AggregateValue ExtraGoldProductionLine => GetGlobalValue(nameof(ExtraGoldProductionLine));
+    public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
+    public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
 }

@@ -11,10 +11,8 @@ internal class RathalosSNoirCorne : OperatorBase {
             var count = Facility.GroupMemberCount("怪物猎人小队");
             simu.SilverVine.SetValue(Name, 2 * count);
 
-            if (Upgraded >= 2) {
-                if (Facility.HasGroupMember("怪物猎人小队")) {
-                    simu.GlobalTradingEffiency.SetIfGreater(0.07);
-                }
+            if (Upgraded >= 2 && Facility.HasGroupMember("怪物猎人小队")) {
+                simu.GlobalTradingEffiency.SetIfGreater(0.07);
             }
         }
     }

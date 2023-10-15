@@ -85,6 +85,8 @@ internal class TradingStation : FacilityBase {
     public override void Reset() {
         base.Reset();
 
+        PreGoldOrderPending = null;
+        OnPending = null;
         Capacity.Clear();
     }
     public override void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {

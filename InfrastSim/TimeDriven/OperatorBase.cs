@@ -10,8 +10,10 @@ internal abstract class OperatorBase : ITimeDrivenObject {
     public double Mood { get; private set; } = 24.0;
     public bool IsTired => Util.Equals(MinMood, Mood);
     public bool IsFullOfEnergy => Util.Equals(MaxMood, Mood);
+    public int DormVipPriority { get; set; } = 1;
     public AggregateValue MoodConsumeRate { get; } = new();
     public AggregateValue EffiencyModifier { get; } = new();
+    public TimeSpan WorkingTime { get; set; } = TimeSpan.Zero;
 
     public virtual void Reset() {
         MoodConsumeRate.Clear();
@@ -27,8 +29,11 @@ internal abstract class OperatorBase : ITimeDrivenObject {
         if (Facility != null && Facility.IsWorking) {
             var newMood = Mood - MoodConsumeRate * (info.TimeElapsed / TimeSpan.FromHours(1));
             Mood = Math.Clamp(newMood, MinMood, MaxMood);
+            WorkingTime += info.TimeElapsed;
         }
     }
 
     public Action<TimeDrivenSimulator>? OnResolve { get; set; }
+
+    // TODO: 添加技能标签，附带解锁精英化等级等信息
 }

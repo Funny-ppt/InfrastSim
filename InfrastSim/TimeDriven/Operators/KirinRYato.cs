@@ -16,8 +16,6 @@ internal class KirinRYato : OperatorBase {
                     simu.GlobalManufacturingEffiency.SetIfGreater(0.02);
                 }
             }
-        } else {
-            MoodConsumeRate.Remove(Name);
         }
     }
 }

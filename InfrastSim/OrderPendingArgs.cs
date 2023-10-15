@@ -5,5 +5,5 @@ internal class OrderPendingArgs {
     }
 
     public Order OriginOrder { get; }
-    public Order CurrentOrder { get; }
+    public Order CurrentOrder { get; set; }
 }

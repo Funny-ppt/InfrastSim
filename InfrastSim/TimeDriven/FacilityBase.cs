@@ -17,16 +17,17 @@ internal abstract class FacilityBase : ITimeDrivenObject {
     public IEnumerable<OperatorBase> WorkingOperators => Operators.Where(op => !op.IsTired);
     public int WorkingOperatorsCount => WorkingOperators.Count();
 
-    public bool Assign(OperatorBase op, TimeDrivenSimulator simu) {
+    public bool Assign(OperatorBase op) {
         if (Operators.Count() == AcceptOperatorNums || op.Facility != null) {
             return false;
         }
         var index = Array.IndexOf(_operators, null);
         _operators[index] = op;
         op.Facility = this;
+        op.WorkingTime = TimeSpan.Zero;
         return true;
     }
-    public bool Remove(OperatorBase op, TimeDrivenSimulator simu) {
+    public bool Remove(OperatorBase op) {
         var index = Array.IndexOf(_operators, op);
         if (index == -1) return false;
         _operators[index] = null;

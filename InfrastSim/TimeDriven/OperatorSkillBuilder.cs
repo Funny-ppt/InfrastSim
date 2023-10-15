@@ -3,14 +3,14 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 
 namespace InfrastSim.TimeDriven;
-internal class OperatorBuilder {
+internal class OperatorSkillBuilder {
 
     Expression? _resolveExpr;
     List<Expression<Action<OperatorBase, TimeDrivenSimulator>>> _actionGroup = new();
     readonly ParameterExpression _opParam = Expression.Parameter(typeof(OperatorBase), "op");
     readonly ParameterExpression _simuParam = Expression.Parameter(typeof(TimeDrivenSimulator), "simu");
 
-    OperatorBuilder If(Expression<Func<OperatorBase, TimeDrivenSimulator, bool>> condition) {
+    OperatorSkillBuilder If(Expression<Func<OperatorBase, TimeDrivenSimulator, bool>> condition) {
         if (_resolveExpr == null) {
             _resolveExpr = Expression.Block(
                 _actionGroup.AsEnumerable<Expression>().Append(
@@ -30,7 +30,7 @@ internal class OperatorBuilder {
         return this;
     }
 
-    OperatorBuilder Do(Expression<Action<OperatorBase, TimeDrivenSimulator>> action) {
+    OperatorSkillBuilder Do(Expression<Action<OperatorBase, TimeDrivenSimulator>> action) {
         _actionGroup.Add(action);
         return this;
     }
@@ -48,25 +48,32 @@ internal class OperatorBuilder {
         }
     }
 
-    public OperatorBuilder RequiredUpgraded(int upgraded) {
+    public OperatorSkillBuilder RequiredUpgraded(int upgraded) {
         If((op, simu) => op.Upgraded >= upgraded);
         return this;
     }
-    public OperatorBuilder In(FacilityType type) {
+    public OperatorSkillBuilder In(FacilityType type) {
         If((op, simu) => op.Facility != null && op.Facility.Type == type && !op.IsTired);
         return this;
     }
-    public OperatorBuilder WithGroupMemberInSameFacility(string group) {
+    public OperatorSkillBuilder WithGroupMemberInSameFacility(string group) {
         If((op, simu) => op.Facility != null && op.Facility.HasGroupMember(group));
         return this;
     }
-    public OperatorBuilder SetGlobalValueIfGreater(string name, string tag, double value) {
+    public OperatorSkillBuilder SetGlobalValueIfGreater(string name, string tag, double value) {
         Do((op, simu) => simu.GetGlobalValue(name).SetIfGreater(tag, value));
         return this;
     }
-    public OperatorBuilder ModifyValue(
-        Expression<Func<OperatorBase, TimeDrivenSimulator, AggregateValue>> valueSelector,
-        Expression<Action<AggregateValue>> valueHandler) {
+    public OperatorSkillBuilder SetValue(AggregateValue aggregateValue, string tag, double value) {
+        Do((op, simu) => aggregateValue.SetValue(tag, value));
+        return this;
+    }
+    public OperatorSkillBuilder SetValueIfGreater(AggregateValue aggregateValue, string tag, double value) {
+        Do((op, simu) => aggregateValue.SetIfGreater(tag, value));
+        return this;
+    }
+    public OperatorSkillBuilder SetValueIfLesser(AggregateValue aggregateValue, string tag, double value) {
+        Do((op, simu) => aggregateValue.SetIfLesser(tag, value));
         return this;
     }
 }
