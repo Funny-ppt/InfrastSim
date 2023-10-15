@@ -1,13 +1,47 @@
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace InfrastSim.TimeDriven;
 internal class TimeDrivenSimulator : ISimulator {
     public TimeDrivenSimulator() {
         Now = DateTime.Now;
+        AllFacilities[0] = ControlCenter = new();
+        AllFacilities[1] = Office = new();
+        AllFacilities[2] = Reception = new();
+        AllFacilities[3] = Training = new();
+        AllFacilities[4] = Crafting = new();
+    }
+
+    public TimeDrivenSimulator(JsonElement elem) {
+        Now = elem.GetProperty("time").GetDateTime();
+        _drones = elem.GetProperty("drones").GetDouble();
+
+        foreach (var prop in elem.GetProperty("materials").EnumerateObject()) {
+            _materials.Add(prop.Name, prop.Value.GetInt32());
+        }
+
+        AllFacilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center")) as ControlCenter;
+        AllFacilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office")) as Office;
+        AllFacilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception")) as Reception;
+        AllFacilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training")) as Training;
+        AllFacilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting")) as Crafting;
+        int i = 0, j = 5;
+        foreach (var dormElem in elem.GetProperty("dormitories").EnumerateArray()) {
+            var dorm = FacilityBase.FromJson(dormElem);
+            Dormitories[i++] = dorm as Dormitory;
+            AllFacilities[j++] = dorm;
+        }
+        i = 0;
+        foreach (var facElem in elem.GetProperty("facilities").EnumerateArray()) {
+            var fac = FacilityBase.FromJson(facElem);
+            ModifiableFacilities[i++] = fac;
+            AllFacilities[j++] = fac;
+        }
     }
 
     public DateTime Now { get; private set; }
-    public void Simulate(TimeSpan span) {
+    public void Resolve() {
         foreach (var value in _globalValues.Values) {
             value.Clear();
         }
@@ -18,6 +52,13 @@ internal class TimeDrivenSimulator : ISimulator {
             facility.Resolve(this);
         }
         _delayActions?.Invoke(this);
+        _delayActions = null;
+    }
+    public void Update(TimeElapsedInfo info) {
+        AddDrones((1 + GlobalDronesEffiency) * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
+    }
+    public void Simulate(TimeSpan span) {
+        Resolve();
         foreach (var facility in AllFacilities) {
             facility.Update(this, new TimeElapsedInfo(Now, Now + span, span));
         }
@@ -30,21 +71,40 @@ internal class TimeDrivenSimulator : ISimulator {
     }
 
 
-    public ControlCenter ControlCenter = new ();
-    public Dormitory[] Dormitories = Enumerable.Range(1, 4).Select(i => new Dormitory()).ToArray();
-    public Office Office = new();
-    public Reception Reception = new();
-    public Training Training = new();
-    public Crafting Crafting = new();
-    public FacilityBase[] ModifiableFacilities { get; } = new FacilityBase[9];
+    public ControlCenter ControlCenter;
+    public Office Office;
+    public Reception Reception;
+    public Training Training;
+    public Crafting Crafting;
+    public Dormitory?[] Dormitories = new Dormitory[4];
+    public FacilityBase?[] ModifiableFacilities { get; } = new FacilityBase?[9];
+    public FacilityBase?[] AllFacilities { get; } = new FacilityBase?[18];
     public IEnumerable<PowerStation> PowerStations
         => ModifiableFacilities.Select(fac => fac as PowerStation).Where(fac => fac != null);
     public IEnumerable<TradingStation> TradingStations
         => ModifiableFacilities.Select(fac => fac as TradingStation).Where(fac => fac != null);
     public IEnumerable<ManufacturingStation> ManufacturingStation
         => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
-    public FacilityBase[] AllFacilities { get; } = new FacilityBase[18];
-    public IEnumerable<OperatorBase> Operators => AllFacilities.SelectMany(fac => fac.Operators);
+    public IEnumerable<OperatorBase> Operators => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
+    public bool AddDormitory(Dormitory dorm) {
+        for (int i = 0; i < Dormitories.Length; ++i) {
+            if (Dormitories[i] == null) {
+                Dormitories[i] = dorm;
+                AllFacilities[5 + i] = dorm;
+            }
+        }
+        return false;
+    }
+    public bool AddFacility(FacilityBase facility) {
+        for (int i = 0; i < ModifiableFacilities.Length; ++i) {
+            if (ModifiableFacilities[i] == null) {
+                ModifiableFacilities[i] = facility;
+                AllFacilities[9 + i] = facility;
+            }
+        }
+        return false;
+    }
+
 
     double _drones;
     Dictionary<string, int> _materials = new();
@@ -79,4 +139,62 @@ internal class TimeDrivenSimulator : ISimulator {
     public AggregateValue ExtraPowerStation => GetGlobalValue(nameof(ExtraPowerStation));
     public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
     public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
+    public AggregateValue GlobalDronesEffiency => GetGlobalValue(nameof(GlobalDronesEffiency));
+
+    public string ToJson(bool detailed = false) {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        ToJson(writer, detailed);
+        return ms.ToString() ?? string.Empty;
+    }
+    public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
+        writer.WriteStartObject();
+
+        writer.WriteString("time", Now);
+        writer.WriteNumber("drones", _drones);
+
+        writer.WritePropertyName("materials");
+        writer.WriteStartObject();
+        foreach (var kvp in _materials) {
+            writer.WriteNumber(kvp.Key, kvp.Value);
+        }
+        writer.WriteEndObject();
+
+        writer.WritePropertyName("control-center");
+        ControlCenter.ToJson(writer, detailed);
+        writer.WritePropertyName("office");
+        Office.ToJson(writer, detailed);
+        writer.WritePropertyName("reception");
+        Reception.ToJson(writer, detailed);
+        writer.WritePropertyName("training");
+        Training.ToJson(writer, detailed);
+        writer.WritePropertyName("crafting");
+        Crafting.ToJson(writer, detailed);
+        writer.WritePropertyName("dormitories");
+        writer.WriteStartArray();
+        foreach (var fac in Dormitories) {
+            if (fac == null) {
+                writer.WriteNullValue();
+            } else {
+                fac.ToJson(writer, detailed);
+            }
+        }
+        writer.WriteEndArray();
+        writer.WritePropertyName("modifiable-facilities");
+        writer.WriteStartArray();
+        foreach (var fac in ModifiableFacilities) {
+            if (fac == null) {
+                writer.WriteNullValue();
+            } else {
+                fac.ToJson(writer, detailed);
+            }
+        }
+        writer.WriteEndArray();
+
+        if (detailed) {
+            // TODO
+        }
+
+        writer.WriteEndObject();
+    }
 }

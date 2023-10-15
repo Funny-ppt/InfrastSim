@@ -1,9 +1,10 @@
 namespace InfrastSim.TimeDriven.Operators;
 internal class Lancet_2 : OperatorBase {
-    public Lancet_2() { DormVipPriority = 0; }
+    public Lancet_2() { }
     public override string Name => "Lancet-2";
     static string[] _groups = { "作业平台" };
     public override string[] Groups => _groups;
+    public override int DormVipPriority => 0;
 
     public override void Resolve(TimeDrivenSimulator simu) {
         base.Resolve(simu);

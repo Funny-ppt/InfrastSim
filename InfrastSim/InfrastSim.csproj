@@ -1,11 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	<PublishAot>true</PublishAot>
-	<PublishTrimmed>true</PublishTrimmed>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PublishAot>true</PublishAot>
+		<PublishTrimmed>true</PublishTrimmed>
+		<EnforceExtendedAnaylzerRules>true</EnforceExtendedAnaylzerRules>
+	</PropertyGroup>
 
+	<ItemGroup>
+		<PackageReference Include="System.Text.Json" Version="8.0.0-rc.2.23479.6" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\InfrastSimSourceGenerator\InfrastSimSourceGenerator.csproj"
+						  OutputItemType="Analyzer"
+						  ReferenceOutputAssembly="false" />
+	</ItemGroup>
 </Project>

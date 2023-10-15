@@ -13,7 +13,7 @@ internal class PowerStation : FacilityBase {
     public override double EffiencyModifier => WorkingOperatorsCount * 0.05;
 
     public override void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
-        simu.AddDrones(TotalEffiencyModifier * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
+        simu.GlobalDronesEffiency.AddValue(TotalEffiencyModifier);
 
         base.Update(simu, info);
     }

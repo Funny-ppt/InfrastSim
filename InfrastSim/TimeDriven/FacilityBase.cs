@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Xml.Linq;
+
 namespace InfrastSim.TimeDriven;
 internal abstract class FacilityBase : ITimeDrivenObject {
     public abstract FacilityType Type { get; }
@@ -18,7 +21,7 @@ internal abstract class FacilityBase : ITimeDrivenObject {
     public int WorkingOperatorsCount => WorkingOperators.Count();
 
     public bool Assign(OperatorBase op) {
-        if (Operators.Count() == AcceptOperatorNums || op.Facility != null) {
+        if (op == null || Operators.Count() == AcceptOperatorNums || op.Facility != null) {
             return false;
         }
         var index = Array.IndexOf(_operators, null);
@@ -34,11 +37,11 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         op.Facility = null;
         return true;
     }
-    public bool Upgrade(int level) {
-        throw new NotImplementedException();
-    }
-    public bool Downgrade(int level) {
-        throw new NotImplementedException();
+    public void SetLevel(int level) {
+        foreach (var op in Operators) {
+            Remove(op);
+        }
+        Level = level;
     }
 
     public abstract double MoodConsumeModifier { get; }
@@ -75,5 +78,65 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         foreach (var op in Operators) {
             op.Update(simu, info);
         }
+    }
+
+    public string ToJson(bool detailed = false) {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        ToJson(writer, detailed);
+        return ms.ToString() ?? string.Empty;
+    }
+    public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
+        writer.WriteStartObject();
+        writer.WriteString("type", Type.ToString());
+        writer.WriteNumber("level", Level);
+
+        writer.WriteStartArray();
+        foreach(var op in Operators) {
+            op.ToJson(writer, detailed);
+        }
+        writer.WriteEndArray();
+
+        WriteDerivedContent(writer, detailed);
+
+        if (detailed) {
+            // TODO
+        }
+
+        writer.WriteEndObject();
+    }
+    public static FacilityBase? FromJson(JsonElement elem) {
+        if (!elem.TryGetProperty("type", out var type)) {
+            return null;
+        }
+        FacilityBase? fac = type.GetString() switch {
+            "ControlCenter" => new ControlCenter(),
+            "Office" => new Office(),
+            "Dormitory" => new Dormitory(),
+            "Crafting" => new Crafting(),
+            "Training" => new Training(),
+            "Trading" => new TradingStation(),
+            "Manufacturing" => new ManufacturingStation(),
+            "Power" => new PowerStation(),
+            "Reception" => new Reception(),
+            _ => null
+        };
+        if (fac == null) return null;
+
+
+        if (elem.TryGetProperty("level", out var level)) {
+            fac.Level = level.GetInt32();
+        }
+        if (elem.TryGetProperty("operators", out var operators) && operators.ValueKind == JsonValueKind.Array) {
+            foreach (var op_elem in operators.EnumerateArray()) {
+                fac.Assign(OperatorBase.FromJson(op_elem));
+            }
+        }
+        fac.ReadDerivedContent(elem);
+        return fac;
+    }
+    protected virtual void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
+    }
+    protected virtual void ReadDerivedContent(JsonElement elem) {
     }
 }

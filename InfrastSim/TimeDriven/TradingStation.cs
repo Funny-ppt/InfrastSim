@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
 internal class TradingStation : FacilityBase {
@@ -108,5 +109,37 @@ internal class TradingStation : FacilityBase {
         }
 
         base.Update(simu, info);
+    }
+
+
+    protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
+        if (CurrentOrder != null) {
+            writer.WritePropertyName("order");
+            writer.WriteStartObject();
+            writer.WriteNumber("produce-time", CurrentOrder.ProduceTime.Ticks);
+            writer.WriteString("consume", CurrentOrder.Consumes.Name);
+            writer.WriteNumber("consume-count", CurrentOrder.Consumes.Count);
+            writer.WriteString("earn", CurrentOrder.Earns.Name);
+            writer.WriteNumber("earn-count", CurrentOrder.Earns.Count);
+            writer.WriteEndObject();
+            writer.WriteNumber("progress", Progress);
+        }
+
+        if (detailed) {
+            //TODO
+        }
+    }
+    protected override void ReadDerivedContent(JsonElement elem) {
+        if (elem.TryGetProperty("progress", out var progress)) {
+            Progress = progress.GetDouble();
+        }
+        if (elem.TryGetProperty("order", out var order)) {
+            var produceTime = new TimeSpan(order.GetProperty("produce-time").GetInt64());
+            var consume = order.GetProperty("consume").GetString();
+            var consumeCount =order.GetProperty("consume-count").GetInt32();
+            var earn = order.GetProperty("earn").GetString();
+            var earnCount = order.GetProperty("earn-count").GetInt32();
+            CurrentOrder = new Order(0, produceTime, new(consume, consumeCount), new(earn, earnCount));
+        }
     }
 }

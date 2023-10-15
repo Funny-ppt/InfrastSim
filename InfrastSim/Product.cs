@@ -15,6 +15,6 @@ internal record Product(string Name, int Volume, int RequiredLevel, TimeSpan Pro
                    new Material("装置", 1),}),
     };
 
-    public readonly Product[] AllProducts =
+    public readonly static Product[] AllProducts =
         CombatRecords.Append(Gold).Concat(StoneFragment).ToArray();
 }

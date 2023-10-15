@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
 internal class ManufacturingStation : FacilityBase {
@@ -69,4 +70,24 @@ internal class ManufacturingStation : FacilityBase {
         base.Update(simu, info);
     }
 
+
+    protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
+        writer.WriteNumber("product-index", Array.IndexOf(Product.AllProducts, Product));
+        writer.WriteNumber("progress", Progress);
+
+        if (detailed) {
+            //TODO
+        }
+    }
+    protected override void ReadDerivedContent(JsonElement elem) {
+        if (elem.TryGetProperty("progress", out var progress)) {
+            Progress = progress.GetDouble();
+        }
+        if (elem.TryGetProperty("product-index", out var productIndex)) {
+            var index = productIndex.GetInt32();
+            if (index >= 0 && index < Product.AllProducts.Length) {
+                Product = Product.AllProducts[index];
+            }
+        }
+    }
 }

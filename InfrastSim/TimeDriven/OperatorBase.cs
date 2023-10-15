@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace InfrastSim.TimeDriven;
 internal abstract class OperatorBase : ITimeDrivenObject {
     public abstract string Name { get; }
@@ -10,9 +12,9 @@ internal abstract class OperatorBase : ITimeDrivenObject {
     public double Mood { get; private set; } = 24.0;
     public bool IsTired => Util.Equals(MinMood, Mood);
     public bool IsFullOfEnergy => Util.Equals(MaxMood, Mood);
-    public int DormVipPriority { get; set; } = 1;
-    public AggregateValue MoodConsumeRate { get; } = new();
-    public AggregateValue EffiencyModifier { get; } = new();
+    public virtual int DormVipPriority => 1;
+    public AggregateValue MoodConsumeRate { get; private set; } = new();
+    public AggregateValue EffiencyModifier { get; private set; } = new();
     public TimeSpan WorkingTime { get; set; } = TimeSpan.Zero;
 
     public virtual void Reset() {
@@ -36,4 +38,51 @@ internal abstract class OperatorBase : ITimeDrivenObject {
     public Action<TimeDrivenSimulator>? OnResolve { get; set; }
 
     // TODO: 添加技能标签，附带解锁精英化等级等信息
+
+    public string ToJson(bool detailed = false) {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        ToJson(writer, detailed);
+        return ms.ToString() ?? string.Empty;
+    }
+    public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
+        writer.WriteStartObject();
+        writer.WriteString("name", Name);
+        writer.WriteNumber("upgraded", Upgraded);
+        writer.WriteNumber("mood", Mood);
+        writer.WriteNumber("working-time", WorkingTime.Ticks);
+
+        if (detailed) {
+            // TODO
+        }
+
+        writer.WriteEndObject();
+    }
+    public static OperatorBase? FromJson(JsonElement elem) {
+        if (!elem.TryGetProperty("name", out var name)) {
+            return null;
+        }
+
+        var op = OperatorInstances.Operators.GetValueOrDefault(name.GetString());
+        if (op == null) return null;
+
+        op = op.Clone();
+        if (elem.TryGetProperty("upgraded", out var upgraded)) {
+            op.Upgraded = upgraded.GetInt32();
+        }
+        if (elem.TryGetProperty("mood", out var mood)) {
+            op.Mood = Math.Clamp(mood.GetDouble(), MinMood, MaxMood);
+        }
+        if (elem.TryGetProperty("working-time", out var workingTime)) {
+            op.WorkingTime = new TimeSpan(workingTime.GetInt64());
+        }
+        return op;
+    }
+    public OperatorBase Clone() {
+        var clone = (OperatorBase)MemberwiseClone();
+        clone.Facility = null;
+        clone.MoodConsumeRate = new();
+        clone.EffiencyModifier = new();
+        return clone;
+    }
 }
