@@ -1,9 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace InfrastSim.TimeDriven;
-internal class TimeDrivenSimulator : ISimulator {
+public class TimeDrivenSimulator : ISimulator {
     public TimeDrivenSimulator() {
         Now = DateTime.Now;
         AllFacilities[0] = ControlCenter = new();
@@ -54,14 +53,16 @@ internal class TimeDrivenSimulator : ISimulator {
         _delayActions?.Invoke(this);
         _delayActions = null;
     }
-    public void Update(TimeElapsedInfo info) {
+    void Update(TimeElapsedInfo info) {
         AddDrones((1 + GlobalDronesEffiency) * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
     }
     public void Simulate(TimeSpan span) {
         Resolve();
+        var info = new TimeElapsedInfo(Now, Now + span, span);
         foreach (var facility in AllFacilities) {
-            facility.Update(this, new TimeElapsedInfo(Now, Now + span, span));
+            facility.Update(this, info);
         }
+        Update(info);
         Now += span;
     }
     public void SimulateUntil(DateTime dateTime, TimeSpan interval) {
@@ -71,22 +72,22 @@ internal class TimeDrivenSimulator : ISimulator {
     }
 
 
-    public ControlCenter ControlCenter;
-    public Office Office;
-    public Reception Reception;
-    public Training Training;
-    public Crafting Crafting;
-    public Dormitory?[] Dormitories = new Dormitory[4];
-    public FacilityBase?[] ModifiableFacilities { get; } = new FacilityBase?[9];
-    public FacilityBase?[] AllFacilities { get; } = new FacilityBase?[18];
-    public IEnumerable<PowerStation> PowerStations
+    internal ControlCenter ControlCenter;
+    internal Office Office;
+    internal Reception Reception;
+    internal Training Training;
+    internal Crafting Crafting;
+    internal Dormitory?[] Dormitories = new Dormitory[4];
+    internal FacilityBase?[] ModifiableFacilities { get; } = new FacilityBase?[9];
+    internal FacilityBase?[] AllFacilities { get; } = new FacilityBase?[18];
+    internal IEnumerable<PowerStation> PowerStations
         => ModifiableFacilities.Select(fac => fac as PowerStation).Where(fac => fac != null);
-    public IEnumerable<TradingStation> TradingStations
+    internal IEnumerable<TradingStation> TradingStations
         => ModifiableFacilities.Select(fac => fac as TradingStation).Where(fac => fac != null);
-    public IEnumerable<ManufacturingStation> ManufacturingStation
+    internal IEnumerable<ManufacturingStation> ManufacturingStation
         => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
-    public IEnumerable<OperatorBase> Operators => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
-    public bool AddDormitory(Dormitory dorm) {
+    internal IEnumerable<OperatorBase> Operators => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
+    internal bool AddDormitory(Dormitory dorm) {
         for (int i = 0; i < Dormitories.Length; ++i) {
             if (Dormitories[i] == null) {
                 Dormitories[i] = dorm;
@@ -95,7 +96,7 @@ internal class TimeDrivenSimulator : ISimulator {
         }
         return false;
     }
-    public bool AddFacility(FacilityBase facility) {
+    internal bool AddFacility(FacilityBase facility) {
         for (int i = 0; i < ModifiableFacilities.Length; ++i) {
             if (ModifiableFacilities[i] == null) {
                 ModifiableFacilities[i] = facility;
@@ -122,7 +123,7 @@ internal class TimeDrivenSimulator : ISimulator {
         }
     }
     public void AddDrones(double amount) => _drones = Math.Min(200, _drones + amount);
-    public void ConsumeMaterial(Material mat) {
+    void ConsumeMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
     }
     public AggregateValue GetGlobalValue(string name) {

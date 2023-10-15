@@ -1,6 +1,6 @@
 namespace InfrastSim;
 
-internal class AggregateValue {
+public class AggregateValue {
     double _baseValue;
     double _value = new();
     readonly Dictionary<string, double> _additionValues = new();

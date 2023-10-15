@@ -1,5 +1,5 @@
 namespace InfrastSim;
-internal struct NamedValue {
+public struct NamedValue {
     public string Name;
     public double Value;
 
