@@ -2,6 +2,10 @@ using System.Diagnostics;
 
 namespace InfrastSim.TimeDriven;
 internal class TimeDrivenSimulator : ISimulator {
+    public TimeDrivenSimulator() {
+        Now = DateTime.Now;
+    }
+
     public DateTime Now { get; private set; }
     public void Simulate(TimeSpan span) {
         foreach (var value in _globalValues.Values) {
@@ -27,7 +31,7 @@ internal class TimeDrivenSimulator : ISimulator {
 
 
     public ControlCenter ControlCenter = new ();
-    public Dormitory[] Dormitories = new Dormitory[4];
+    public Dormitory[] Dormitories = Enumerable.Range(1, 4).Select(i => new Dormitory()).ToArray();
     public Office Office = new();
     public Reception Reception = new();
     public Training Training = new();

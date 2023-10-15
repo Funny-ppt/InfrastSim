@@ -34,6 +34,12 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         op.Facility = null;
         return true;
     }
+    public bool Upgrade(int level) {
+        throw new NotImplementedException();
+    }
+    public bool Downgrade(int level) {
+        throw new NotImplementedException();
+    }
 
     public abstract double MoodConsumeModifier { get; }
     public abstract double EffiencyModifier { get; }
