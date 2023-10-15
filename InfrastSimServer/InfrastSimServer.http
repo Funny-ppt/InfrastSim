@@ -1,0 +1,6 @@
+@InfrastSimServer_HostAddress = http://localhost:5063
+
+GET {{InfrastSimServer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -7,7 +7,7 @@ internal class Saileach : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.GetVip()?.MoodConsumeRate.SetIfGreater("dorm-vip", -0.7);
+            dorm.GetVip()?.MoodConsumeRate.SetIfLesser("dorm-vip", -0.7);
         }
     }
 }

@@ -33,6 +33,12 @@ internal class TimeDrivenSimulator : ISimulator {
     public Training Training = new();
     public Crafting Crafting = new();
     public FacilityBase[] ModifiableFacilities { get; } = new FacilityBase[9];
+    public IEnumerable<PowerStation> PowerStations
+        => ModifiableFacilities.Select(fac => fac as PowerStation).Where(fac => fac != null);
+    public IEnumerable<TradingStation> TradingStations
+        => ModifiableFacilities.Select(fac => fac as TradingStation).Where(fac => fac != null);
+    public IEnumerable<ManufacturingStation> ManufacturingStation
+        => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
     public FacilityBase[] AllFacilities { get; } = new FacilityBase[18];
     public IEnumerable<OperatorBase> Operators => AllFacilities.SelectMany(fac => fac.Operators);
 
@@ -66,6 +72,7 @@ internal class TimeDrivenSimulator : ISimulator {
     public AggregateValue Renjianyanhuo => GetGlobalValue(nameof(Renjianyanhuo));
     public AggregateValue Ganzhixinxi => GetGlobalValue(nameof(Ganzhixinxi));
     public AggregateValue ExtraGoldProductionLine => GetGlobalValue(nameof(ExtraGoldProductionLine));
+    public AggregateValue ExtraPowerStation => GetGlobalValue(nameof(ExtraPowerStation));
     public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
     public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
 }
