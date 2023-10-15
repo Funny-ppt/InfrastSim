@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
@@ -146,7 +147,8 @@ public class TimeDrivenSimulator : ISimulator {
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
         ToJson(writer, detailed);
-        return ms.ToString() ?? string.Empty;
+        writer.Flush();
+        return Encoding.UTF8.GetString(ms.ToArray()) ?? string.Empty;
     }
     public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
         writer.WriteStartObject();
@@ -171,6 +173,7 @@ public class TimeDrivenSimulator : ISimulator {
         Training.ToJson(writer, detailed);
         writer.WritePropertyName("crafting");
         Crafting.ToJson(writer, detailed);
+
         writer.WritePropertyName("dormitories");
         writer.WriteStartArray();
         foreach (var fac in Dormitories) {
@@ -181,6 +184,7 @@ public class TimeDrivenSimulator : ISimulator {
             }
         }
         writer.WriteEndArray();
+
         writer.WritePropertyName("modifiable-facilities");
         writer.WriteStartArray();
         foreach (var fac in ModifiableFacilities) {

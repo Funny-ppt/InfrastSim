@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
@@ -43,7 +44,8 @@ internal abstract class OperatorBase : ITimeDrivenObject {
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
         ToJson(writer, detailed);
-        return ms.ToString() ?? string.Empty;
+        writer.Flush();
+        return Encoding.UTF8.GetString(ms.ToArray()) ?? string.Empty;
     }
     public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
         writer.WriteStartObject();

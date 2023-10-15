@@ -5,14 +5,16 @@ VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastSim", "InfrastSim\InfrastSim.csproj", "{AC608921-3DF0-414A-AC6A-4674DB27230A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastSimServer", "InfrastSimServer\InfrastSimServer.csproj", "{C578F21D-92C9-4286-A4B8-166A08B18032}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastSimServer", "InfrastSimServer\InfrastSimServer.csproj", "{C578F21D-92C9-4286-A4B8-166A08B18032}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决方案项", "{2A891340-5F7B-45B6-9F9C-FD5B11B8868F}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastSimSourceGenerator", "InfrastSimSourceGenerator\InfrastSimSourceGenerator.csproj", "{C5A7C9D5-1F19-429F-8B17-DFE5B4810094}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastSimSourceGenerator", "InfrastSimSourceGenerator\InfrastSimSourceGenerator.csproj", "{C5A7C9D5-1F19-429F-8B17-DFE5B4810094}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastSimTest", "InfrastSimTest\InfrastSimTest.csproj", "{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +34,10 @@ Global
 		{C5A7C9D5-1F19-429F-8B17-DFE5B4810094}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5A7C9D5-1F19-429F-8B17-DFE5B4810094}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5A7C9D5-1F19-429F-8B17-DFE5B4810094}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

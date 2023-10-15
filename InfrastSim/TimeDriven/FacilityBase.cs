@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 
@@ -84,13 +85,15 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
         ToJson(writer, detailed);
-        return ms.ToString() ?? string.Empty;
+        writer.Flush();
+        return Encoding.UTF8.GetString(ms.ToArray()) ?? string.Empty;
     }
     public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
         writer.WriteStartObject();
         writer.WriteString("type", Type.ToString());
         writer.WriteNumber("level", Level);
 
+        writer.WritePropertyName("operators");
         writer.WriteStartArray();
         foreach(var op in Operators) {
             op.ToJson(writer, detailed);
