@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastSimSourceGenerator", "InfrastSimSourceGenerator\InfrastSimSourceGenerator.csproj", "{C5A7C9D5-1F19-429F-8B17-DFE5B4810094}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastSimTest", "InfrastSimTest\InfrastSimTest.csproj", "{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastSimTest", "InfrastSimTest\InfrastSimTest.csproj", "{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

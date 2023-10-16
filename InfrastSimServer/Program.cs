@@ -21,10 +21,11 @@ namespace InfrastSimServer {
 
             app.UseAuthorization();
 
+            var simulatorService = new SimulatorService();
             var summaries = new[]
             {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+            };
 
             app.MapGet("/weatherforecast", (HttpContext httpContext) => {
                 var forecast = Enumerable.Range(1, 5).Select(index =>
@@ -37,6 +38,14 @@ namespace InfrastSimServer {
                 return forecast;
             })
             .WithName("GetWeatherForecast")
+            .WithOpenApi();
+
+            app.MapGet("/simulator", simulatorService.Create)
+            .WithName("GetSimulator")
+            .WithOpenApi();
+
+            app.MapPost("/simulator", simulatorService.CreateWithData)
+            .WithName("GetSimulatorWithData")
             .WithOpenApi();
 
             app.Run();
