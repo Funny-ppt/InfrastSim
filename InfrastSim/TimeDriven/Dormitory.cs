@@ -28,7 +28,7 @@ internal class Dormitory : FacilityBase {
 
         DormMoodModifier.Clear();
     }
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         DormMoodModifier.SetValue("atomsphere", -0.0004 * Atmosphere);

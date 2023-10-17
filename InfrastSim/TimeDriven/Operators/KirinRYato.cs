@@ -4,7 +4,7 @@ internal class KirinRYato : OperatorBase {
     static string[] _groups = { "怪物猎人小队" };
     public override string[] Groups => _groups;
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {

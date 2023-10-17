@@ -2,7 +2,7 @@ namespace InfrastSim.TimeDriven.Operators;
 internal class Proviso : OperatorBase {
     public override string Name => "但书";
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {

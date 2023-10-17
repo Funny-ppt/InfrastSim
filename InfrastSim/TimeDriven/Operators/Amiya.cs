@@ -2,7 +2,7 @@ namespace InfrastSim.TimeDriven.Operators;
 internal class Amiya : OperatorBase {
     public override string Name => "阿米娅";
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {

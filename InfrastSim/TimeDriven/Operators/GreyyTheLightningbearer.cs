@@ -3,7 +3,7 @@ namespace InfrastSim.TimeDriven.Operators;
 internal class GreyyTheLightningbearer : OperatorBase {
     public override string Name => "承曦格雷伊";
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is PowerStation power && !IsTired) {

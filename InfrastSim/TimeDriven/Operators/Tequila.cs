@@ -2,7 +2,7 @@ namespace InfrastSim.TimeDriven.Operators;
 internal class Tequila : OperatorBase {
     public override string Name => "龙舌兰";
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {

@@ -4,7 +4,7 @@ internal class Saileach : OperatorBase {
     public override string Name => "琴柳";
     public override int DormVipPriority => 0;
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {

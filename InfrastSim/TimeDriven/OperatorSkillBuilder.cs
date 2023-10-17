@@ -5,11 +5,11 @@ namespace InfrastSim.TimeDriven;
 internal class OperatorSkillBuilder {
 
     Expression? _resolveExpr;
-    List<Expression<Action<OperatorBase, TimeDrivenSimulator>>> _actionGroup = new();
+    List<Expression<Action<OperatorBase, Simulator>>> _actionGroup = new();
     readonly ParameterExpression _opParam = Expression.Parameter(typeof(OperatorBase), "op");
-    readonly ParameterExpression _simuParam = Expression.Parameter(typeof(TimeDrivenSimulator), "simu");
+    readonly ParameterExpression _simuParam = Expression.Parameter(typeof(Simulator), "simu");
 
-    OperatorSkillBuilder If(Expression<Func<OperatorBase, TimeDrivenSimulator, bool>> condition) {
+    OperatorSkillBuilder If(Expression<Func<OperatorBase, Simulator, bool>> condition) {
         if (_resolveExpr == null) {
             _resolveExpr = Expression.Block(
                 _actionGroup.AsEnumerable<Expression>().Append(
@@ -29,7 +29,7 @@ internal class OperatorSkillBuilder {
         return this;
     }
 
-    OperatorSkillBuilder Do(Expression<Action<OperatorBase, TimeDrivenSimulator>> action) {
+    OperatorSkillBuilder Do(Expression<Action<OperatorBase, Simulator>> action) {
         _actionGroup.Add(action);
         return this;
     }
@@ -40,7 +40,7 @@ internal class OperatorSkillBuilder {
             var expr = new ReplaceVisitor(block).Visit(_resolveExpr);
 
             Debug.Assert(expr != null);
-            var lambda = Expression.Lambda<Action<OperatorBase, TimeDrivenSimulator>>(
+            var lambda = Expression.Lambda<Action<OperatorBase, Simulator>>(
                 expr, _opParam, _simuParam
             ).Compile();
             op.OnResolve = simu => lambda(op, simu);

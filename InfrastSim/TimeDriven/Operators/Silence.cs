@@ -5,7 +5,7 @@ internal class Silence : OperatorBase {
     static string[] _groups = { "莱茵科技制造" };
     public override string[] Groups => _groups;
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {

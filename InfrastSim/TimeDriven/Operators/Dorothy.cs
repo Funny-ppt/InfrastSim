@@ -4,7 +4,7 @@ internal class Dorothy : OperatorBase {
     static string[] _groups = { "莱茵科技制造" };
     public override string[] Groups => _groups;
 
-    public override void Resolve(TimeDrivenSimulator simu) { // FIXME: 在技能非精英0解锁时叠加本不应叠加的效率
+    public override void Resolve(Simulator simu) { // FIXME: 在技能非精英0解锁时叠加本不应叠加的效率
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {

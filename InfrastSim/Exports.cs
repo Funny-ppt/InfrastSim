@@ -8,7 +8,7 @@ public static class Exports {
     [UnmanagedCallersOnly(EntryPoint = "CreateTimeDrivenSimulator")]
     public static int CreateTimeDrivenSimulator() {
         var id = Interlocked.Increment(ref _cnt);
-        _map[id] = new TimeDriven.TimeDrivenSimulator();
+        _map[id] = new TimeDriven.Simulator();
         return id;
     }
 

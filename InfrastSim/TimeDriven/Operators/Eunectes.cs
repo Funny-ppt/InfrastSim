@@ -4,7 +4,7 @@ internal class Eunectes : OperatorBase {
     static string[] _groups = { "依赖设施数量" };
     public override string[] Groups => _groups;
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired && Upgraded >= 2) {

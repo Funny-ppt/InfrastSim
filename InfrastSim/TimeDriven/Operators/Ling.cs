@@ -4,7 +4,7 @@ internal class Ling : OperatorBase {
     static string[] _groups = { "岁" };
     public override string[] Groups => _groups;
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is ControlCenter center && !IsTired) {

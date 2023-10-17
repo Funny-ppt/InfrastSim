@@ -1,9 +1,10 @@
+using System;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
 
 namespace InfrastSim.TimeDriven;
-internal abstract class FacilityBase : ITimeDrivenObject {
+internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     public abstract FacilityType Type { get; }
     public int Level { get; internal set; }
     public virtual int PowerConsumes => Level switch {
@@ -21,27 +22,38 @@ internal abstract class FacilityBase : ITimeDrivenObject {
     public IEnumerable<OperatorBase> WorkingOperators => Operators.Where(op => !op.IsTired);
     public int WorkingOperatorsCount => WorkingOperators.Count();
 
-    public bool Assign(OperatorBase op) {
-        if (op == null || Operators.Count() == AcceptOperatorNums || op.Facility != null) {
+    public bool Assign(OperatorBase? op) {
+        if (op == null || Operators.Count() == AcceptOperatorNums) {
             return false;
         }
+        op.Facility?.Remove(op);
+
         var index = Array.IndexOf(_operators, null);
         _operators[index] = op;
         op.Facility = this;
         op.WorkingTime = TimeSpan.Zero;
         return true;
     }
-    public bool Remove(OperatorBase op) {
+    public bool Remove(OperatorBase? op) {
+        if (op == null || op.Facility == null) {
+            return false;
+        }
         var index = Array.IndexOf(_operators, op);
         if (index == -1) return false;
         _operators[index] = null;
         op.Facility = null;
         return true;
     }
-    public void SetLevel(int level) {
-        foreach (var op in Operators) {
-            Remove(op);
+    public void RemoveAll() {
+        for (int i = 0; i < AcceptOperatorNums; i++) {
+            if (_operators[i] != null) {
+                _operators[i]!.Facility = null;
+                _operators[i] = null;
+            }
         }
+    }
+    public void SetLevel(int level) {
+        RemoveAll();
         Level = level;
     }
 
@@ -58,7 +70,7 @@ internal abstract class FacilityBase : ITimeDrivenObject {
     /// 该方法应该在派生类的方法开始前被调用。
     /// 默认会调用所有内部干员的Resolve方法，然后处理基建的心情调整值。
     /// </summary>
-    public virtual void Resolve(TimeDrivenSimulator simu) {
+    public virtual void Resolve(Simulator simu) {
         foreach (var op in Operators) {
             op.Resolve(simu);
         }
@@ -75,7 +87,7 @@ internal abstract class FacilityBase : ITimeDrivenObject {
     /// 该方法应该在派生类的方法结束前被调用。
     /// 默认会调用所有内部干员的Update方法。
     /// </summary>
-    public virtual void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
+    public virtual void Update(Simulator simu, TimeElapsedInfo info) {
         foreach (var op in Operators) {
             op.Update(simu, info);
         }
@@ -103,12 +115,13 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         WriteDerivedContent(writer, detailed);
 
         if (detailed) {
-            // TODO
+            writer.WriteNumber("base-effiency", 1 + EffiencyModifier);
+            writer.WriteNumber("operators-effiency", WorkingOperators.Sum(op => op.EffiencyModifier));
         }
 
         writer.WriteEndObject();
     }
-    public static FacilityBase? FromJson(JsonElement elem) {
+    public static FacilityBase? FromJson(JsonElement elem, Simulator simu) {
         if (!elem.TryGetProperty("type", out var type)) {
             return null;
         }
@@ -132,7 +145,8 @@ internal abstract class FacilityBase : ITimeDrivenObject {
         }
         if (elem.TryGetProperty("operators", out var operators) && operators.ValueKind == JsonValueKind.Array) {
             foreach (var op_elem in operators.EnumerateArray()) {
-                fac.Assign(OperatorBase.FromJson(op_elem));
+                var name = op_elem.GetProperty("name").GetString();
+                fac.Assign(simu.GetOperator(name ?? string.Empty));
             }
         }
         fac.ReadDerivedContent(elem);

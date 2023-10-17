@@ -1,8 +1,9 @@
 using System.Diagnostics;
+using System.Net.Http;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
-internal class TradingStation : FacilityBase {
+internal class TradingStation : FacilityBase, IApplyDrones {
     public override FacilityType Type => FacilityType.Trading;
     public int BaseCapacity => Level switch {
         1 => 6,
@@ -14,7 +15,8 @@ internal class TradingStation : FacilityBase {
     public int CapacityN => (int)Capacity;
 
     Order?[] _orders = new Order[64];
-    public int OrderCount => _orders.Where(o => o != null).Count();
+    public IEnumerable<Order> Orders => _orders.Where(o => o != null);
+    public int OrderCount => Orders.Count();
     public enum OrderStrategy {
         Gold,
         OriginStone,
@@ -62,10 +64,14 @@ internal class TradingStation : FacilityBase {
         CurrentOrder = null;
     }
     public bool RemoveOrder(Order order) {
+        if (order == null) return false;
         var index = Array.IndexOf(_orders, order);
         if (index == -1) return false;
         _orders[index] = null;
         return true;
+    }
+    public void RemoveAllOrder() {
+        Array.Fill(_orders, null);
     }
 
 
@@ -81,7 +87,7 @@ internal class TradingStation : FacilityBase {
     }
 
     public override int AcceptOperatorNums => Level;
-    public override bool IsWorking => CapacityN > OrderCount && CurrentOrder != null && Operators.Any();
+    public override bool IsWorking => CapacityN > OrderCount && Operators.Any();
 
     public override void Reset() {
         base.Reset();
@@ -90,13 +96,13 @@ internal class TradingStation : FacilityBase {
         OnPending = null;
         Capacity.Clear();
     }
-    public override void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
-        if (CurrentOrder == null) {
-            PendingNewOrder();
-        }
+    void MakeProgress(Simulator simu, TimeSpan timeElapsed) {
         if (IsWorking) {
+            if (CurrentOrder == null) {
+                PendingNewOrder();
+            }
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
-            var equivTime = info.TimeElapsed * effiency;
+            var equivTime = timeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;
 
@@ -107,39 +113,59 @@ internal class TradingStation : FacilityBase {
                 }
             }
         }
+    }
+
+    public override void Update(Simulator simu, TimeElapsedInfo info) {
+        MakeProgress(simu, info.TimeElapsed);
 
         base.Update(simu, info);
+    }
+
+    public void ApplyDrones(Simulator simu, int amount) {
+        amount = Math.Max(amount, simu.Drones);
+        MakeProgress(simu, TimeSpan.FromMinutes(3 * amount));
+        simu.RemoveDrones(amount);
     }
 
 
     protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
         if (CurrentOrder != null) {
-            writer.WritePropertyName("order");
-            writer.WriteStartObject();
-            writer.WriteNumber("produce-time", CurrentOrder.ProduceTime.Ticks);
-            writer.WriteString("consume", CurrentOrder.Consumes.Name);
-            writer.WriteNumber("consume-count", CurrentOrder.Consumes.Count);
-            writer.WriteString("earn", CurrentOrder.Earns.Name);
-            writer.WriteNumber("earn-count", CurrentOrder.Earns.Count);
-            writer.WriteEndObject();
+            writer.WriteItem("current-order", CurrentOrder, detailed);
             writer.WriteNumber("progress", Progress);
+
+            writer.WritePropertyName("orders");
+            writer.WriteStartArray();
+            foreach (var order in Orders) {
+                writer.WriteItemValue(order, detailed);
+            }
+            writer.WriteEndArray();
         }
 
         if (detailed) {
-            //TODO
+            writer.WriteNumber("remains", RemainsTime.TotalSeconds);
+            writer.WriteNumber("base-capacity", BaseCapacity);
+            writer.WriteNumber("capacity", CapacityN);
+            var args = Level switch {
+                1 => new GoldOrderPendingArgs(new(1), new(max: 0), new(max: 0)),
+                2 => new GoldOrderPendingArgs(new(0.6), new(0.4), new(max: 0)),
+                3 => new GoldOrderPendingArgs(new(0.3), new(0.5), new(0.2)),
+                _ => throw new NotImplementedException()
+            };
+            PreGoldOrderPending?.Invoke(args);
+            writer.WritePropertyName("order-chance");
+            writer.WriteStartArray();
+            writer.WriteNumber("2", args.Priority2Gold);
+            writer.WriteNumber("3", args.Priority3Gold);
+            writer.WriteNumber("4", args.Priority4Gold);
+            writer.WriteEndArray();
         }
     }
     protected override void ReadDerivedContent(JsonElement elem) {
         if (elem.TryGetProperty("progress", out var progress)) {
             Progress = progress.GetDouble();
         }
-        if (elem.TryGetProperty("order", out var order)) {
-            var produceTime = new TimeSpan(order.GetProperty("produce-time").GetInt64());
-            var consume = order.GetProperty("consume").GetString();
-            var consumeCount =order.GetProperty("consume-count").GetInt32();
-            var earn = order.GetProperty("earn").GetString();
-            var earnCount = order.GetProperty("earn-count").GetInt32();
-            CurrentOrder = new Order(0, produceTime, new(consume, consumeCount), new(earn, earnCount));
+        if (elem.TryGetProperty("current-order", out var order)) {
+            CurrentOrder = Order.FromJson(order);
         }
     }
 }

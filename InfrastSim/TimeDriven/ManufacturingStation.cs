@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
-internal class ManufacturingStation : FacilityBase {
+internal class ManufacturingStation : FacilityBase, IApplyDrones {
     public override FacilityType Type => FacilityType.Manufacturing;
 
     public int BaseCapacity => Level switch {
@@ -14,7 +14,7 @@ internal class ManufacturingStation : FacilityBase {
     public AggregateValue Capacity { get; private set; } = new AggregateValue(0, 1, 1000);
     public int CapacityN => (int)Capacity;
     public int CapacityOccupied => Product == null ? 0 : ProductCount * Product.Volume;
-    public int ProductCount { get; private set; } = 0;
+    public int ProductCount { get; internal set; } = 0;
     public bool CanStoreMore => Product != null && CapacityN - CapacityOccupied >= Product.Volume;
     public Product? Product { get; private set; }
     public double Progress { get; private set; }
@@ -52,10 +52,10 @@ internal class ManufacturingStation : FacilityBase {
 
         Capacity.Clear();
     }
-    public override void Update(TimeDrivenSimulator simu, TimeElapsedInfo info) {
+    void MakeProgress(Simulator simu, TimeSpan timeElapsed) {
         if (IsWorking) {
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
-            var equivTime = info.TimeElapsed * effiency;
+            var equivTime = timeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;
 
@@ -66,17 +66,29 @@ internal class ManufacturingStation : FacilityBase {
                 }
             }
         }
-
+    }
+    public override void Update(Simulator simu, TimeElapsedInfo info) {
+        MakeProgress(simu, info.TimeElapsed);
         base.Update(simu, info);
+    }
+
+    public void ApplyDrones(Simulator simu, int amount) {
+        amount = Math.Max(amount, simu.Drones);
+        MakeProgress(simu, TimeSpan.FromMinutes(3 * amount));
+        simu.RemoveDrones(amount);
     }
 
 
     protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
         writer.WriteNumber("product-index", Array.IndexOf(Product.AllProducts, Product));
         writer.WriteNumber("progress", Progress);
+        writer.WriteNumber("product-count", ProductCount);
 
         if (detailed) {
-            //TODO
+            writer.WriteString("product", Product!.Name);
+            writer.WriteNumber("remains", RemainsTime.TotalSeconds);
+            writer.WriteNumber("base-capacity", BaseCapacity);
+            writer.WriteNumber("capacity", CapacityN);
         }
     }
     protected override void ReadDerivedContent(JsonElement elem) {
@@ -88,6 +100,9 @@ internal class ManufacturingStation : FacilityBase {
             if (index >= 0 && index < Product.AllProducts.Length) {
                 Product = Product.AllProducts[index];
             }
+        }
+        if (elem.TryGetProperty("product-count", out var productCount)) {
+            ProductCount = productCount.GetInt32();
         }
     }
 }

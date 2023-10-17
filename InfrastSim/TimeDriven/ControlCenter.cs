@@ -13,7 +13,7 @@ internal class ControlCenter : FacilityBase {
 
         ExtraMoodModifier.Clear();
     }
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         foreach (var op in Operators) {

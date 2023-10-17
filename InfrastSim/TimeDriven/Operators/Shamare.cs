@@ -4,7 +4,7 @@ internal class Shamare : OperatorBase {
     public Shamare() { OnResolve += simu => Skills.裁缝Alpha(this, simu); }
     public override string Name => "巫恋";
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 2) {

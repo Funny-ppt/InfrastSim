@@ -3,17 +3,19 @@ using System.Text;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
-public class TimeDrivenSimulator : ISimulator {
-    public TimeDrivenSimulator() {
+public class Simulator : ISimulator, IJsonSerializable {
+    public Simulator() {
         Now = DateTime.Now;
         AllFacilities[0] = ControlCenter = new();
         AllFacilities[1] = Office = new();
         AllFacilities[2] = Reception = new();
         AllFacilities[3] = Training = new();
         AllFacilities[4] = Crafting = new();
+
+        Operators = OperatorInstances.Operators.ToDictionary(kvp =>  kvp.Key, kvp => kvp.Value.Clone());
     }
 
-    public TimeDrivenSimulator(JsonElement elem) {
+    public Simulator(JsonElement elem) {
         Now = elem.GetProperty("time").GetDateTime();
         _drones = elem.GetProperty("drones").GetDouble();
 
@@ -21,20 +23,25 @@ public class TimeDrivenSimulator : ISimulator {
             _materials.Add(prop.Name, prop.Value.GetInt32());
         }
 
-        AllFacilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center")) as ControlCenter;
-        AllFacilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office")) as Office;
-        AllFacilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception")) as Reception;
-        AllFacilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training")) as Training;
-        AllFacilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting")) as Crafting;
+        foreach (var op_elem in elem.GetProperty("operators").EnumerateArray()) {
+            var name = op_elem.GetProperty("name").GetString();
+            Operators[name] = OperatorBase.FromJson(op_elem);
+        }
+
+        AllFacilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center"), this) as ControlCenter;
+        AllFacilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office"), this) as Office;
+        AllFacilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception"), this) as Reception;
+        AllFacilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training"), this) as Training;
+        AllFacilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting"), this) as Crafting;
         int i = 0, j = 5;
         foreach (var dormElem in elem.GetProperty("dormitories").EnumerateArray()) {
-            var dorm = FacilityBase.FromJson(dormElem);
+            var dorm = FacilityBase.FromJson(dormElem, this);
             Dormitories[i++] = dorm as Dormitory;
             AllFacilities[j++] = dorm;
         }
         i = 0;
         foreach (var facElem in elem.GetProperty("facilities").EnumerateArray()) {
-            var fac = FacilityBase.FromJson(facElem);
+            var fac = FacilityBase.FromJson(facElem, this);
             ModifiableFacilities[i++] = fac;
             AllFacilities[j++] = fac;
         }
@@ -46,10 +53,10 @@ public class TimeDrivenSimulator : ISimulator {
             value.Clear();
         }
         foreach (var facility in AllFacilities) {
-            facility.Reset();
+            facility?.Reset();
         }
         foreach (var facility in AllFacilities) {
-            facility.Resolve(this);
+            facility?.Resolve(this);
         }
         _delayActions?.Invoke(this);
         _delayActions = null;
@@ -61,7 +68,7 @@ public class TimeDrivenSimulator : ISimulator {
         Resolve();
         var info = new TimeElapsedInfo(Now, Now + span, span);
         foreach (var facility in AllFacilities) {
-            facility.Update(this, info);
+            facility?.Update(this, info);
         }
         Update(info);
         Now += span;
@@ -72,12 +79,16 @@ public class TimeDrivenSimulator : ISimulator {
         }
     }
 
+    internal Dictionary<string, OperatorBase> Operators;
+    internal OperatorBase? GetOperator(string name) {
+        return Operators.GetValueOrDefault(name);
+    }
 
-    internal ControlCenter ControlCenter;
-    internal Office Office;
-    internal Reception Reception;
-    internal Training Training;
-    internal Crafting Crafting;
+    internal ControlCenter ControlCenter { get; set; }
+    internal Office Office { get; set; }
+    internal Reception Reception { get; set; }
+    internal Training Training { get; set; }
+    internal Crafting Crafting { get; set; }
     internal Dormitory?[] Dormitories = new Dormitory[4];
     internal FacilityBase?[] ModifiableFacilities { get; } = new FacilityBase?[9];
     internal FacilityBase?[] AllFacilities { get; } = new FacilityBase?[18];
@@ -87,7 +98,7 @@ public class TimeDrivenSimulator : ISimulator {
         => ModifiableFacilities.Select(fac => fac as TradingStation).Where(fac => fac != null);
     internal IEnumerable<ManufacturingStation> ManufacturingStation
         => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
-    internal IEnumerable<OperatorBase> Operators => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
+    internal IEnumerable<OperatorBase> OperatorsInFacility => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
     internal bool AddDormitory(Dormitory dorm) {
         for (int i = 0; i < Dormitories.Length; ++i) {
             if (Dormitories[i] == null) {
@@ -108,24 +119,37 @@ public class TimeDrivenSimulator : ISimulator {
     }
 
 
+    public int TotalPowerConsume =>
+        AllFacilities
+        .Where(fac => fac != null && fac is not PowerStation)
+        .Sum(fac => fac!.PowerConsumes);
+
+    public int TotalPowerProduce =>
+        ModifiableFacilities
+        .Where(fac => fac is PowerStation)
+        .Sum(fac => -fac!.PowerConsumes);
+    public double NextDroneTimeInSeconds =>
+        (Math.Ceiling(_drones) - _drones) * 360 / (1 + GlobalDronesEffiency);
+
     double _drones;
     Dictionary<string, int> _materials = new();
     Dictionary<string, AggregateValue> _globalValues = new();
-    Action<TimeDrivenSimulator>? _delayActions = null;
+    Action<Simulator>? _delayActions = null;
 
-    public void DelayAction(Action<TimeDrivenSimulator> action) {
+    public void DelayAction(Action<Simulator> action) {
         _delayActions += action;
     }
-    public int Drones {
-        get => (int)Math.Floor(_drones);
-        set {
-            Debug.Assert(value >= 0 && value <= Drones);
-            _drones -= Drones - value;
-        }
-    }
+    public int Drones => (int)Math.Floor(_drones);
     public void AddDrones(double amount) => _drones = Math.Min(200, _drones + amount);
-    void ConsumeMaterial(Material mat) {
+    internal void RemoveDrones(int amount) => _drones -= Math.Max(Drones, amount);
+    internal void RemoveMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
+    }
+    internal void AddMaterial(Material mat) {
+        _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) + mat.Count;
+    }
+    internal void AddMaterial(string name, int amount) {
+        _materials[name] = _materials.GetValueOrDefault(name) + amount;
     }
     public AggregateValue GetGlobalValue(string name) {
         if (!_globalValues.ContainsKey(name)) {
@@ -134,11 +158,13 @@ public class TimeDrivenSimulator : ISimulator {
         return _globalValues[name];
     }
 
-    public AggregateValue SilverVine => GetGlobalValue(nameof(SilverVine));
-    public AggregateValue Renjianyanhuo => GetGlobalValue(nameof(Renjianyanhuo));
-    public AggregateValue Ganzhixinxi => GetGlobalValue(nameof(Ganzhixinxi));
-    public AggregateValue ExtraGoldProductionLine => GetGlobalValue(nameof(ExtraGoldProductionLine));
-    public AggregateValue ExtraPowerStation => GetGlobalValue(nameof(ExtraPowerStation));
+    public IEnumerable<(string, double)> GlobalValues
+        => _globalValues.Select(kvp => (kvp.Key, (double)kvp.Value));
+    public AggregateValue SilverVine => GetGlobalValue("木天蓼");
+    public AggregateValue Renjianyanhuo => GetGlobalValue("人间烟火");
+    public AggregateValue Ganzhixinxi => GetGlobalValue("感知信息");
+    public AggregateValue ExtraGoldProductionLine => GetGlobalValue("虚拟赤金线");
+    public AggregateValue ExtraPowerStation => GetGlobalValue("虚拟发电站");
     public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
     public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
     public AggregateValue GlobalDronesEffiency => GetGlobalValue(nameof(GlobalDronesEffiency));
@@ -156,6 +182,13 @@ public class TimeDrivenSimulator : ISimulator {
         writer.WriteString("time", Now);
         writer.WriteNumber("drones", _drones);
 
+        writer.WritePropertyName("operators");
+        writer.WriteStartArray();
+        foreach (var op in Operators.Values) {
+            writer.WriteItemValue(op, detailed);
+        }
+        writer.WriteEndArray();
+
         writer.WritePropertyName("materials");
         writer.WriteStartObject();
         foreach (var kvp in _materials) {
@@ -163,16 +196,11 @@ public class TimeDrivenSimulator : ISimulator {
         }
         writer.WriteEndObject();
 
-        writer.WritePropertyName("control-center");
-        ControlCenter.ToJson(writer, detailed);
-        writer.WritePropertyName("office");
-        Office.ToJson(writer, detailed);
-        writer.WritePropertyName("reception");
-        Reception.ToJson(writer, detailed);
-        writer.WritePropertyName("training");
-        Training.ToJson(writer, detailed);
-        writer.WritePropertyName("crafting");
-        Crafting.ToJson(writer, detailed);
+        writer.WriteItem("control-center", ControlCenter, detailed);
+        writer.WriteItem("office", Office, detailed);
+        writer.WriteItem("reception", Reception, detailed);
+        writer.WriteItem("training", Training, detailed);
+        writer.WriteItem("crafting", Crafting, detailed);
 
         writer.WritePropertyName("dormitories");
         writer.WriteStartArray();
@@ -180,7 +208,7 @@ public class TimeDrivenSimulator : ISimulator {
             if (fac == null) {
                 writer.WriteNullValue();
             } else {
-                fac.ToJson(writer, detailed);
+                writer.WriteItemValue(fac, detailed);
             }
         }
         writer.WriteEndArray();
@@ -191,14 +219,10 @@ public class TimeDrivenSimulator : ISimulator {
             if (fac == null) {
                 writer.WriteNullValue();
             } else {
-                fac.ToJson(writer, detailed);
+                writer.WriteItemValue(fac, detailed);
             }
         }
         writer.WriteEndArray();
-
-        if (detailed) {
-            // TODO
-        }
 
         writer.WriteEndObject();
     }

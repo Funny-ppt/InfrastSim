@@ -2,7 +2,7 @@ namespace InfrastSim.TimeDriven.Operators;
 
 internal class Tuye : OperatorBase {
     public override string Name => "图耶";
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {

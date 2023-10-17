@@ -6,7 +6,7 @@ internal class Lancet_2 : OperatorBase {
     public override string[] Groups => _groups;
     public override int DormVipPriority => 0;
 
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {

@@ -2,7 +2,7 @@ namespace InfrastSim.TimeDriven.Operators;
 
 internal class Kirara : OperatorBase {
     public override string Name => "绮良";
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {

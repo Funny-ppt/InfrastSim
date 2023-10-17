@@ -2,7 +2,7 @@ namespace InfrastSim.TimeDriven.Operators;
 
 internal class Позёмка : OperatorBase {
     public override string Name => "鸿雪";
-    public override void Resolve(TimeDrivenSimulator simu) {
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
@@ -12,7 +12,7 @@ internal class Позёмка : OperatorBase {
 
             if (Upgraded >= 2) {
                 simu.ExtraGoldProductionLine.SetValue(Name,
-                    Math.Min(4, simu.Operators.Where(op => op.Groups.Contains("杜林")).Count()));
+                    Math.Min(4, simu.OperatorsInFacility.Where(op => op.Groups.Contains("杜林")).Count()));
             }
         }
     }
