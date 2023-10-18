@@ -38,7 +38,7 @@ public class SimulatorService {
         writer.Flush();
     }
 
-    public void GetData(HttpContext httpContext, int id, bool detailed = false) {
+    public void GetData(HttpContext httpContext, int id, bool detailed = true) {
         if (!_simus.TryGetValue(id, out var simu)) {
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             return;

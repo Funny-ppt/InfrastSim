@@ -57,31 +57,41 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
 
         base.Resolve(simu);
     }
-    void MakeProgress(Simulator simu, TimeSpan timeElapsed) {
+    public override void Update(Simulator simu, TimeElapsedInfo info) {
+
         if (IsWorking) {
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
-            var equivTime = timeElapsed * effiency;
+            var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;
 
                 ProductCount += 1;
                 if (CanStoreMore) {
                     Debug.Assert(Product != null);
-                    Progress += remains / Product.ProduceTime;
+                    Progress = remains / Product.ProduceTime;
                 }
             } else {
                 Progress += equivTime / Product!.ProduceTime;
             }
         }
-    }
-    public override void Update(Simulator simu, TimeElapsedInfo info) {
-        MakeProgress(simu, info.TimeElapsed);
         base.Update(simu, info);
     }
 
     public void ApplyDrones(Simulator simu, int amount) {
-        amount = Math.Max(amount, simu.Drones);
-        MakeProgress(simu, TimeSpan.FromMinutes(3 * amount));
+        amount = Math.Min(amount, simu.Drones);
+        var time = TimeSpan.FromMinutes(3 * amount);
+
+        while (CanStoreMore && time >= RemainsTime) {
+            time -= RemainsTime;
+            ProductCount += 1;
+        }
+
+        if (CanStoreMore) {
+            Progress += time / Product.ProduceTime;
+        } else {
+            var remains = (int)Math.Floor(time / TimeSpan.FromMinutes(3));
+            amount -= remains;
+        }
         simu.RemoveDrones(amount);
     }
 

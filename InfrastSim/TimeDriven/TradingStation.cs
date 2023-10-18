@@ -101,13 +101,14 @@ internal class TradingStation : FacilityBase, IApplyDrones {
 
         base.Resolve(simu);
     }
-    void MakeProgress(Simulator simu, TimeSpan timeElapsed) {
+
+    public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
             if (CurrentOrder == null) {
                 PendingNewOrder();
             }
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
-            var equivTime = timeElapsed * effiency;
+            var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;
 
@@ -120,17 +121,21 @@ internal class TradingStation : FacilityBase, IApplyDrones {
                 Progress += equivTime / CurrentOrder.ProduceTime;
             }
         }
-    }
-
-    public override void Update(Simulator simu, TimeElapsedInfo info) {
-        MakeProgress(simu, info.TimeElapsed);
 
         base.Update(simu, info);
     }
 
     public void ApplyDrones(Simulator simu, int amount) {
-        amount = Math.Max(amount, simu.Drones);
-        MakeProgress(simu, TimeSpan.FromMinutes(3 * amount));
+        int max = (int)Math.Ceiling(RemainsTime / TimeSpan.FromMinutes(3));
+        amount = Math.Min(amount, Math.Min(simu.Drones, max));
+        var time = TimeSpan.FromMinutes(3 * amount);
+
+        if (time >= RemainsTime) {
+            InsertCurrentOrder();
+            PendingNewOrder();
+        } else {
+            Progress += time / CurrentOrder.ProduceTime;
+        }
         simu.RemoveDrones(amount);
     }
 
