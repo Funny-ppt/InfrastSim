@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -58,8 +57,10 @@ public class Simulator : ISimulator, IJsonSerializable {
         foreach (var facility in AllFacilities) {
             facility?.Resolve(this);
         }
-        _delayActions?.Invoke(this);
-        _delayActions = null;
+        foreach (var actions in _delayActions.Values) {
+            actions(this);
+        }
+        _delayActions.Clear();
     }
     void Update(TimeElapsedInfo info) {
         AddDrones((1 + GlobalDronesEffiency) * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
@@ -134,10 +135,14 @@ public class Simulator : ISimulator, IJsonSerializable {
     double _drones;
     Dictionary<string, int> _materials = new();
     Dictionary<string, AggregateValue> _globalValues = new();
-    Action<Simulator>? _delayActions = null;
+    SortedDictionary<int, Action<Simulator>> _delayActions = new();
 
-    public void DelayAction(Action<Simulator> action) {
-        _delayActions += action;
+    public void DelayAction(Action<Simulator> action, int priority = 100) {
+        if (_delayActions.ContainsKey(priority)) {
+            _delayActions[priority] += action;
+        } else {
+            _delayActions[priority] = action;
+        }
     }
     public int Drones => (int)Math.Floor(_drones);
     public void AddDrones(double amount) => _drones = Math.Min(200, _drones + amount);

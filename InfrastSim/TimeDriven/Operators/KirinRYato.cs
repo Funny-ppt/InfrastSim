@@ -1,7 +1,7 @@
 namespace InfrastSim.TimeDriven.Operators;
 internal class KirinRYato : OperatorBase {
     public override string Name => "麒麟R夜刀";
-    static string[] _groups = { "怪物猎人小队" };
+    static string[] _groups = { "怪物猎人小队", "异格" };
     public override string[] Groups => _groups;
 
     public override void Resolve(Simulator simu) {

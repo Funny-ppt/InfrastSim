@@ -1,6 +1,120 @@
-@InfrastSimServer_HostAddress = http://localhost:5063
+@host = http://localhost:5063
+@id = 1
 
-GET {{InfrastSimServer_HostAddress}}/weatherforecast/
+GET {{host}}/simulator
+Accept: application/json
+# 创建模拟器，并返回当前状态
+#
+# 返回: Json对象，包含当前模拟器id和内容
+# {
+#    "id": 15,
+#    "data": { # 模拟器序列化结果
+#       # ...
+#    }
+# }
+###
+
+POST {{host}}/simulator
 Accept: application/json
 
+# 使用给定的数据反序列化模拟器
+#
+# 输入: JSON序列化的模拟器
+#
+# 返回: Json对象，包含当前模拟器id和内容
+# {
+#    "id": 15,
+#    "data": { # 模拟器序列化结果
+#       # ...
+#    }
+# }
+###
+
+GET {{host}}/simulator/{{id}}?detailed=false
+Accept: application/json
+# 计算模拟结果，并返回序列化后的数据
+#
+# 返回: Json对象，包含当前模拟器内容
+# {  # 模拟器序列化结果
+#    # ...
+# }
+###
+
+GET {{host}}/simulator/{{id}}/mowerdata
+Accept: application/json
+# 计算模拟结果，并返回序列化后的数据
+# PS: 在操作完毕需要刷新数据时，调用该方法，**其他操作方法目前不会返回操作结果等信息**
+#
+# 返回: Json对象，包含当前模拟器内容
+# {  # 模拟器序列化结果和额外信息, 大致可参考群内 基建数据.json 文件
+#    # ...
+# }
+###
+
+
+GET {{host}}/simulator/{{id}}/simulate
+# 运行模拟器1分钟
+###
+
+GET {{host}}/simulator/{{id}}/simulate/{until}
+# 运行模拟器，以1分钟为时间粒度，直到模拟器内部时间为until
+###
+
+GET {{host}}/simulator/{{id}}/operators
+Accept: application/json
+# 获取所有干员的状态（精英化等级、心情等）
+# 
+# 返回：Json对象，包含全部干员信息
+#{
+#   "name": "巫恋", # 干员中文名
+#   "upgraded": 1,  # int, 干员精英化等级
+#   "mood": 18.145, # double, 干员情绪值；这个api是使用序列化直接生成的，没有经过覆写，和mowerdata接口有不一致的问题
+#   "working-time-seconds": 7024, # int, 以秒计算的干员工作时间
+#   "mood-consume-rate": 0.7 # double, 干员心情消耗速率，负表示增长速率，**该值不代表干员一定在消耗心情**
+#}
+###
+
+POST {{host}}/simulator/{{id}}/{facility}
+
+# 使用给定的数据快速设置设施状态
+#
+# 输入: JSON序列化的设施（新建设施必须采用该方法；输入数据可参考Get）；或者，一些表示操作的数据
+#       facility路径参数例子: dormitory_1
+#           设施门牌号BXXX用于左侧建筑 所有'_'和'-'会被替换为' ', 并且无视大小写
+#           其他可选的设施为 control center, reception, training, crafting, office
+# { # 下方是制造站序列化内容
+#    "type": "Manufacturing",
+#    "level": 3,
+#    "operators": [
+#       {"name": "鸿雪"}, # 实际序列化出来的代码是有干员详细信息的，但创建时只用给名字就行
+#       {"name": "琦良"}
+#    ]
+# }
+# { # 设施存在时，下方数据是快速操作的内容
+#    "level": 1, # 可选，变更设施等级，注意，这不会验证电量、无人机等是否充足
+#    "strategy": "gold", # 可选，仅用于贸易站，更改后续订单类型
+#    "product": "中级作战记录", # 可选，仅用于制造站，变更生产物品
+#    "operators": ["鸿雪", "琦良"], # 可选，变更设施内人员为该名单人员
+#    "drone": 120 # 可选，仅用于制造站和贸易站，使用无人机加速生产
+# }
+###
+
+DELETE /simulator/{{id}}/{facility}/operators
+# 撤出某设施的全部干员
+###
+
+DELETE /simulator/{{id}}/{facility}/operators/{idx}
+# 撤出某设施的第idx位干员（从1开始计数）
+###
+
+GET {{host}}/simulator/{{id}}/B101/collect/{idx?}
+# 收获某设施的全部产出、交付所有订单。对于贸易站，指定idx为非0值时代表仅收取第i个订单
+###
+
+GET {{host}}/simulator/{{id}}/collectAll
+# 收获基建的全部产出、交付所有订单
+###
+
+GET {{host}}/simulator/{{id}}/sanity?amount=10
+# （代表源石刷无人机）无人机增长amount值的数量，不会超过上限
 ###

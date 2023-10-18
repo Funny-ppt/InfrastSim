@@ -2,6 +2,8 @@ namespace InfrastSim.TimeDriven.Operators;
 
 internal class GreyyTheLightningbearer : OperatorBase {
     public override string Name => "承曦格雷伊";
+    static string[] _groups = { "异格" };
+    public override string[] Groups => _groups;
 
     public override void Resolve(Simulator simu) {
         base.Resolve(simu);

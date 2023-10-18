@@ -5,6 +5,7 @@ namespace InfrastSim.TimeDriven;
 internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public abstract string Name { get; }
     public virtual string[] Groups { get; } = Array.Empty<string>();
+    public bool HasGroup(string group) => Groups.Contains(group);
     public FacilityBase? Facility { get; set; } = null;
 
     const double MinMood = 0.0;

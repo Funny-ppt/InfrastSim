@@ -30,6 +30,11 @@ public class AggregateValue {
     public double MinValue { get; set; }
     public double MaxValue { get; set; }
 
+    public IEnumerable<KeyValuePair<string, double>> EnumerateValues() {
+        return _additionValues
+            .ExceptBy(_disables, p => p.Key);
+    }
+
     public double GetValue(string name)
         => _additionValues.GetValueOrDefault(name);
     public double SetValue(string name, double value) {

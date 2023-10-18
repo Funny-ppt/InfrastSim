@@ -12,7 +12,9 @@ internal class Purestream : OperatorBase {
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.Product == Product.Gold) {
-                EfficiencyModifier.SetValue(Name, simu.GetPowerStations() * 0.2);
+                simu.DelayAction(simu => {
+                    EfficiencyModifier.SetValue(Name, simu.GetPowerStations() * 0.2);
+                });
             }
         }
     }

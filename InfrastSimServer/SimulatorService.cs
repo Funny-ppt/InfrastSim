@@ -3,7 +3,6 @@ using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InfrastSimServer; 
 public class SimulatorService {
