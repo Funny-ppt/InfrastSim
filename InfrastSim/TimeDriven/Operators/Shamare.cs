@@ -11,13 +11,15 @@ internal class Shamare : OperatorBase {
                 args.Priority4Gold.SetIfGreater(0.67 * Math.Min(1, WorkingTime / TimeSpan.FromHours(3)));
 
             if (Upgraded >= 2) {
-                foreach (var op in trading.Operators) {
-                    if (op != this) {
-                        op.EfficiencyModifier.MaxValue = 0;
+                simu.DelayAction(simu => {
+                    foreach (var op in trading.Operators) {
+                        if (op != this) {
+                            op.EfficiencyModifier.MaxValue = 0;
+                        }
+                        op.MoodConsumeRate.SetValue(Name, 0.25);
                     }
-                    op.MoodConsumeRate.SetValue(Name, 0.25);
-                }
-                EfficiencyModifier.SetValue(Name, (trading.Operators.Count() - 1) * 0.45);
+                    EfficiencyModifier.SetValue(Name, (trading.Operators.Count() - 1) * 0.45);
+                });
             }
         }
     }

@@ -26,6 +26,11 @@ public class Simulator : ISimulator, IJsonSerializable {
             var name = op_elem.GetProperty("name").GetString();
             Operators[name] = OperatorBase.FromJson(op_elem);
         }
+        var newops = OperatorInstances.Operators
+            .ExceptBy(Operators.Keys, kvp => kvp.Key);
+        foreach (var kvp in newops) {
+            Operators[kvp.Key] = kvp.Value.Clone();
+        }
 
         AllFacilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center"), this) as ControlCenter;
         AllFacilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office"), this) as Office;

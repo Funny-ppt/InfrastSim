@@ -25,6 +25,7 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     }
 
     public virtual void Resolve(Simulator simu) {
+        EfficiencyModifier.MaxValue = double.MaxValue;
         OnResolve?.Invoke(simu);
     }
 
