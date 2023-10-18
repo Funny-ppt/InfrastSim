@@ -70,6 +70,11 @@ namespace InfrastSimServer {
             .WithDescription("计算给定模拟器运行1分钟后的情况")
             .WithOpenApi();
 
+            app.MapPost("/simulator/{id}/simulate", simulatorService.SimulateP)
+            .WithName("SimulatePlus")
+            .WithDescription("以timespan为时间粒度，计算给定模拟器运行seconds秒后的情况")
+            .WithOpenApi();
+
             app.MapGet("/simulator/{id}/simulate/{until}", simulatorService.SimulateUntil)
             .WithName("SimulateUntil")
             .WithDescription("计算给定模拟器运行到指定之间后的情况")

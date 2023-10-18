@@ -60,6 +60,18 @@ public class SimulatorService {
         httpContext.Response.ContentType = "application/json";
     }
 
+    public void SimulateP(HttpContext httpContext, int id, SimulateData data) {
+        if (!_simus.TryGetValue(id, out var simu)) {
+            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
+
+        var time = new TimeSpan(data.Hours, data.Minutes, data.Seconds);
+        var span = TimeSpan.FromSeconds(data.TimeSpan);
+        simu.SimulateUntil(simu.Now + time, span);
+        httpContext.Response.ContentType = "application/json";
+    }
+
     public async Task SetFacilityState(HttpContext httpContext, int id, string facility) {
         if (!_simus.TryGetValue(id, out var simu)) {
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
