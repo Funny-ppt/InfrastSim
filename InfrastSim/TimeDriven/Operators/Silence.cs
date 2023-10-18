@@ -9,7 +9,7 @@ internal class Silence : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EffiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.25 : 0.15);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.25 : 0.15);
         }
     }
 }

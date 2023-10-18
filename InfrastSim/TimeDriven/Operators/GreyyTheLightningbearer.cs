@@ -7,7 +7,7 @@ internal class GreyyTheLightningbearer : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is PowerStation power && !IsTired) {
-            EffiencyModifier.SetValue(Name, 0.2); // FIXME: 无人机上限
+            EfficiencyModifier.SetValue(Name, 0.2); // FIXME: 无人机上限
             if (!simu.PowerStations.Any(
                 fac => fac.HasGroupMember("作业平台") && fac.WorkingOperatorsCount > 0)) {
                 simu.ExtraPowerStation.SetValue(Name, 1);

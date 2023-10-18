@@ -8,7 +8,9 @@ internal class Crafting : FacilityBase {
 
     public override int AcceptOperatorNums => 1;
 
-    public override double MoodConsumeModifier => throw new NotImplementedException();
+    public override bool IsWorking => false;
 
-    public override double EffiencyModifier => throw new NotImplementedException();
+    public override double MoodConsumeModifier => 0; // TODO
+
+    public override double EffiencyModifier => 0; // TODO
 }

@@ -100,7 +100,7 @@ namespace InfrastSimServer {
             .WithDescription("撤出某设施的第idx个干员(从1开始计数)")
             .WithOpenApi();
 
-            app.MapDelete("/simulator/{id}/{facility}/operators", simulatorService.RemoveOperator)
+            app.MapDelete("/simulator/{id}/{facility}/operators", simulatorService.RemoveOperators)
             .WithName("RemoveOperators")
             .WithDescription("撤出某设施的全部干员")
             .WithOpenApi();
@@ -110,14 +110,14 @@ namespace InfrastSimServer {
             .WithDescription("收获贸易站的全部产物；交付贸易站全部订单或交付贸易站第idx个订单(从1开始计数) 可选查询参数: idx")
             .WithOpenApi();
 
-            app.MapGet("/simulator/{id}/{facility}/collectAll", simulatorService.CollectAll)
+            app.MapGet("/simulator/{id}/collectAll", simulatorService.CollectAll)
             .WithName("CollectAll")
             .WithDescription("收获全部产物并交付所有订单")
             .WithOpenApi();
 
             app.MapGet("/simulator/{id}/sanity", simulatorService.Sanity)
             .WithName("Sanity")
-            .WithDescription("源石冲理智 必填查询参数: amount")
+            .WithDescription("源石冲无人机 必填查询参数: amount")
             .WithOpenApi();
 
             app.MapGet("/simulator/{id}/{facility}/use_drones", simulatorService.UseDrones)

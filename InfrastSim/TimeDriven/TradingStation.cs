@@ -96,6 +96,11 @@ internal class TradingStation : FacilityBase, IApplyDrones {
         OnPending = null;
         Capacity.Clear();
     }
+    public override void Resolve(Simulator simu) {
+        Capacity.SetValue("base", BaseCapacity);
+
+        base.Resolve(simu);
+    }
     void MakeProgress(Simulator simu, TimeSpan timeElapsed) {
         if (IsWorking) {
             if (CurrentOrder == null) {
@@ -111,6 +116,8 @@ internal class TradingStation : FacilityBase, IApplyDrones {
                     Debug.Assert(CurrentOrder != null);
                     Progress += remains / CurrentOrder.ProduceTime;
                 }
+            } else {
+                Progress += equivTime / CurrentOrder.ProduceTime;
             }
         }
     }
@@ -131,7 +138,8 @@ internal class TradingStation : FacilityBase, IApplyDrones {
     protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
         if (CurrentOrder != null) {
             writer.WriteItem("current-order", CurrentOrder, detailed);
-            writer.WriteNumber("progress", Progress);
+            writer.WriteNumber("progress", Progress); ;
+            writer.WriteString("strategy", Strategy.ToString());
 
             writer.WritePropertyName("orders");
             writer.WriteStartArray();
@@ -153,19 +161,34 @@ internal class TradingStation : FacilityBase, IApplyDrones {
             };
             PreGoldOrderPending?.Invoke(args);
             writer.WritePropertyName("order-chance");
-            writer.WriteStartArray();
+            writer.WriteStartObject();
             writer.WriteNumber("2", args.Priority2Gold);
             writer.WriteNumber("3", args.Priority3Gold);
             writer.WriteNumber("4", args.Priority4Gold);
-            writer.WriteEndArray();
+            writer.WriteEndObject();
         }
     }
     protected override void ReadDerivedContent(JsonElement elem) {
         if (elem.TryGetProperty("progress", out var progress)) {
             Progress = progress.GetDouble();
         }
-        if (elem.TryGetProperty("current-order", out var order)) {
-            CurrentOrder = Order.FromJson(order);
+        if (elem.TryGetProperty("strategy", out var strategy)) {
+            Strategy = strategy.GetString() switch {
+                "Gold" => OrderStrategy.Gold,
+                "OriginStone" => OrderStrategy.OriginStone,
+                _ => OrderStrategy.Gold
+            };
+        }
+        if (elem.TryGetProperty("current-order", out var currentOrder)) {
+            CurrentOrder = Order.FromJson(currentOrder);
+        }
+
+        if (elem.TryGetProperty("orders", out var orders)) {
+            foreach (var orderElem in orders.EnumerateArray()) {
+                var order = Order.FromJson(orderElem);
+                var index = Array.IndexOf(_orders, null);
+                _orders[index] = order;
+            }
         }
     }
 }

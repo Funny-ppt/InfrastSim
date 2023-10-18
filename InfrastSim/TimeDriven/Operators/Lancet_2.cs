@@ -13,7 +13,7 @@ internal class Lancet_2 : OperatorBase {
             dorm.GetVip()?.MoodConsumeRate.SetIfLesser("dorm-vip", -0.65);
         }
         if (Facility is PowerStation && !IsTired) {
-            EffiencyModifier.SetValue(Name, 0.1);
+            EfficiencyModifier.SetValue(Name, 0.1);
         }
     }
 }

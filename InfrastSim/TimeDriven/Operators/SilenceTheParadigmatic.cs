@@ -9,7 +9,7 @@ internal class SilenceTheParadigmatic : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 2) {
-            EffiencyModifier.SetValue(Name, 0.3);
+            EfficiencyModifier.SetValue(Name, 0.3);
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace InfrastSim.TimeDriven;
 public class Simulator : ISimulator, IJsonSerializable {
     public Simulator() {
-        Now = DateTime.Now;
+        Now = DateTime.UtcNow;
         AllFacilities[0] = ControlCenter = new();
         AllFacilities[1] = Office = new();
         AllFacilities[2] = Reception = new();
@@ -144,6 +144,9 @@ public class Simulator : ISimulator, IJsonSerializable {
     internal void RemoveDrones(int amount) => _drones -= Math.Max(Drones, amount);
     internal void RemoveMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
+    }
+    internal void RemoveMaterial(Material mat, int multiply) {
+        _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count * multiply;
     }
     internal void AddMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) + mat.Count;

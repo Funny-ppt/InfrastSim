@@ -52,6 +52,11 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
 
         Capacity.Clear();
     }
+    public override void Resolve(Simulator simu) {
+        Capacity.SetValue("base", BaseCapacity);
+
+        base.Resolve(simu);
+    }
     void MakeProgress(Simulator simu, TimeSpan timeElapsed) {
         if (IsWorking) {
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
@@ -64,6 +69,8 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
                     Debug.Assert(Product != null);
                     Progress += remains / Product.ProduceTime;
                 }
+            } else {
+                Progress += equivTime / Product!.ProduceTime;
             }
         }
     }

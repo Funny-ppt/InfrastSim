@@ -7,7 +7,7 @@ internal class Позёмка : OperatorBase {
 
         if (Facility is TradingStation trading && !IsTired) {
             simu.DelayAction(simu => {
-                EffiencyModifier.SetValue(Name, simu.GetGoldProductionLine() * 0.05);
+                EfficiencyModifier.SetValue(Name, simu.GetGoldProductionLine() * 0.05);
             });
 
             if (Upgraded >= 2) {

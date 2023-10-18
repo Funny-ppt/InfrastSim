@@ -6,7 +6,7 @@ internal class Kirara : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EffiencyModifier.SetValue(Name, 0.05);
+            EfficiencyModifier.SetValue(Name, 0.05);
             simu.ExtraGoldProductionLine.SetValue(
                 Name, simu.GetRealGoldProductionLine() / (Upgraded >= 2 ? 2 : 4) * 2);
         }

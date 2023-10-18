@@ -14,17 +14,16 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public bool IsTired => Util.Equals(MinMood, Mood);
     public bool IsFullOfEnergy => Util.Equals(MaxMood, Mood);
     public virtual int DormVipPriority => 1;
-    public AggregateValue MoodConsumeRate { get; private set; } = new();
-    public AggregateValue EffiencyModifier { get; private set; } = new();
+    public AggregateValue MoodConsumeRate { get; private set; } = new(1);
+    public AggregateValue EfficiencyModifier { get; private set; } = new();
     public TimeSpan WorkingTime { get; set; } = TimeSpan.Zero;
 
     public virtual void Reset() {
         MoodConsumeRate.Clear();
-        EffiencyModifier.Clear();
+        EfficiencyModifier.Clear();
     }
 
     public virtual void Resolve(Simulator simu) {
-        Reset();
         OnResolve?.Invoke(simu);
     }
 
@@ -57,7 +56,7 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
         if (detailed) {
             writer.WriteNumber("working-time-seconds", WorkingTime.TotalSeconds);
             writer.WriteNumber("mood-consume-rate", MoodConsumeRate);
-            writer.WriteNumber("effiency", EffiencyModifier);
+            writer.WriteNumber("efficiency", EfficiencyModifier);
         }
 
         writer.WriteEndObject();
@@ -85,8 +84,8 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public OperatorBase Clone() {
         var clone = (OperatorBase)MemberwiseClone();
         clone.Facility = null;
-        clone.MoodConsumeRate = new();
-        clone.EffiencyModifier = new();
+        clone.MoodConsumeRate = new(1); // Important: this must keep with the constructor
+        clone.EfficiencyModifier = new();
         return clone;
     }
 }

@@ -23,7 +23,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     public int WorkingOperatorsCount => WorkingOperators.Count();
 
     public bool Assign(OperatorBase? op) {
-        if (op == null || Operators.Count() == AcceptOperatorNums) {
+        if (op == null || Operators.Count() == AcceptOperatorNums || op.Facility == this) {
             return false;
         }
         op.Facility?.Remove(op);
@@ -59,7 +59,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
 
     public abstract double MoodConsumeModifier { get; }
     public abstract double EffiencyModifier { get; }
-    public double TotalEffiencyModifier => WorkingOperators.Sum(op => op.EffiencyModifier) + EffiencyModifier;
+    public double TotalEffiencyModifier => WorkingOperators.Sum(op => op.EfficiencyModifier) + EffiencyModifier;
 
     public virtual void Reset() {
         foreach (var op in Operators) {
@@ -76,7 +76,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         }
 
         foreach (var op in Operators) {
-            op.MoodConsumeRate.SetValue("control-center", simu.ControlCenter.EffiencyModifier);
+            op.MoodConsumeRate.SetValue("control-center", simu.ControlCenter.MoodConsumeModifier);
             if (Type != FacilityType.ControlCenter) {
                 op.MoodConsumeRate.SetValue("facility", MoodConsumeModifier);
             }
@@ -115,8 +115,8 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         WriteDerivedContent(writer, detailed);
 
         if (detailed) {
-            writer.WriteNumber("base-effiency", 1 + EffiencyModifier);
-            writer.WriteNumber("operators-effiency", WorkingOperators.Sum(op => op.EffiencyModifier));
+            writer.WriteNumber("base-efficiency", 1 + EffiencyModifier);
+            writer.WriteNumber("operators-efficiency", WorkingOperators.Sum(op => op.EfficiencyModifier));
         }
 
         writer.WriteEndObject();

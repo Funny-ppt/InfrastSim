@@ -39,7 +39,7 @@ public class SimulatorService {
         writer.Flush();
     }
 
-    public void GetData(HttpContext httpContext, int id, bool detailed) {
+    public void GetData(HttpContext httpContext, int id, bool detailed = false) {
         if (!_simus.TryGetValue(id, out var simu)) {
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
@@ -61,13 +61,13 @@ public class SimulatorService {
         httpContext.Response.ContentType = "application/json";
     }
 
-    public void SetFacilityState(HttpContext httpContext, int id, string facility) {
+    public async Task SetFacilityState(HttpContext httpContext, int id, string facility) {
         if (!_simus.TryGetValue(id, out var simu)) {
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
 
-        var doc = JsonDocument.Parse(httpContext.Request.Body);
+        var doc = await JsonDocument.ParseAsync(httpContext.Request.Body);
         simu.SetFacilityState(facility, doc.RootElement);
     }
 
@@ -168,7 +168,7 @@ public class SimulatorService {
         httpContext.Response.ContentType = "application/json";
     }
 
-    public void GetDataForMower(HttpContext httpContext, int id) {
+    public async Task GetDataForMower(HttpContext httpContext, int id) {
         if (!_simus.TryGetValue(id, out var simu)) {
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
@@ -180,8 +180,8 @@ public class SimulatorService {
         writer.WriteItemValue(simu, true);
         writer.Flush();
         ms.Position = 0;
-        var node = JsonNode.Parse(ms)!;
-        node["power_limit"] = simu.TotalPowerProduce;
+        var node = await JsonNode.ParseAsync(ms);
+        node!["power_limit"] = simu.TotalPowerProduce;
         node["power_usage"] = simu.TotalPowerConsume;
         node["drone_limit"] = 200;
         node["drone_count"] = simu.Drones;
@@ -226,6 +226,12 @@ public class SimulatorService {
             }
         }
         node["facilities"] = facilities;
+        var operators = new JsonArray();
+        foreach (var op in node["operators"]!.AsArray()) {
+            operators.Add(RewriteOperator(op));
+        }
+        node["operators-mower"] = operators;
+
 
         httpContext.Response.ContentType = "application/json";
         using var respWriter = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
@@ -255,7 +261,7 @@ public class SimulatorService {
         var newop = new JsonObject {
             ["name"] = op["name"]!.DeepClone(),
             ["morale"] = op["mood"]!.DeepClone(),
-            ["effiency"] = op["effiency"]!.DeepClone()
+            ["efficiency"] = op["efficiency"]!.DeepClone()
         };
 
         if (op["mood"]!.GetValue<double>() > 1e-9) {
@@ -281,7 +287,7 @@ public class SimulatorService {
         }
 
         var newfac = new JsonObject {
-            ["level"] = fac["level"],
+            ["level"] = fac["level"]!.DeepClone(),
             ["base_efficiency"] = fac["base-efficiency"]!.DeepClone(),
             ["operators_efficiency"] = fac["operators-efficiency"]!.DeepClone(),
             ["operators"] = ops,
@@ -344,7 +350,7 @@ public class SimulatorService {
             ["base_order_limit"] = fac["base-capacity"]!.DeepClone(),
             ["order_limit"] = fac["capacity"]!.DeepClone(),
             ["base_drone_efficiency"] = base_eff,
-            ["drone_efficiency"] = base_eff + fac["operators-effiency"]!.GetValue<double>(),
+            ["drone_efficiency"] = base_eff + fac["operators-efficiency"]!.GetValue<double>(),
             ["order_chance"] = fac["order-chance"]!.DeepClone(),
             ["operators"] = ops
         };

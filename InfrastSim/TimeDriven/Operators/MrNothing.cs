@@ -7,7 +7,7 @@ internal class MrNothing : OperatorBase {
 
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 2) {
             simu.DelayAction(simu => {
-                EffiencyModifier.SetValue(Name, simu.Renjianyanhuo * 0.01);
+                EfficiencyModifier.SetValue(Name, simu.Renjianyanhuo * 0.01);
             });
             simu.Renjianyanhuo.SetValue(Name,
                 simu.Dormitories.Sum(dorm => dorm == null ? 0 :dorm.Operators.Count()));

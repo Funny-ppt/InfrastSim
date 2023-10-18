@@ -18,18 +18,19 @@ public static partial class Helper {
     static Regex _roomLabelRegex = RoomLabelRegex();
     static Regex _roomNameRegex = RoomNameWithOptionalIndexRegex();
     static FacilityBase? GetFacilityByName(this Simulator simu, string fac) {
+        fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
         if (_roomLabelRegex.IsMatch(fac)) {
             var index = LabelToIndex(fac);
             return simu.ModifiableFacilities[index];
         }
-        var match = _roomLabelRegex.Match(fac);
-        var fac_name = match.Groups[1].Value.ToLower();
+        var match = _roomNameRegex.Match(fac);
+        var fac_name = match.Groups[1].Value;
         if (fac_name == "dormitory") {
             var index = int.Parse(match.Groups[2].Value);
             return index < 4 ? simu.Dormitories[index] : null;
         } else {
             return fac_name switch {
-                "control-center" => simu.ControlCenter,
+                "control center" => simu.ControlCenter,
                 "reception" => simu.Reception,
                 "crafting" => simu.Crafting,
                 "office" => simu.Office,
@@ -61,7 +62,13 @@ public static partial class Helper {
     }
     static void Collect(Simulator simu, FacilityBase? fac, int idx = 0) {
         if (fac is ManufacturingStation manufacturing && manufacturing.Product != null) {
-            simu.AddMaterial(manufacturing.Product.Name, manufacturing.ProductCount);
+            var product = manufacturing.Product;
+            simu.AddMaterial(product.Name, manufacturing.ProductCount);
+            if (product.Consumes != null) {
+                foreach (var mat in product.Consumes) {
+                    simu.RemoveMaterial(mat, manufacturing.ProductCount);
+                }
+            }
             manufacturing.ProductCount = 0;
         } else if (fac is TradingStation trading) {
             if (idx == 0) {
@@ -109,14 +116,31 @@ public static partial class Helper {
                 if (facility is ManufacturingStation manufacturing) {
                     var newProduct = Product.AllProducts.Where(p => p.Name == product).FirstOrDefault();
                     if (newProduct != null) {
+                        Collect(simu, manufacturing);
                         manufacturing.ChangeProduct(newProduct);
                     }
                 }
             }
+            if (elem.TryGetProperty("operators", out var ops)) {
+                var opNames = ops.EnumerateArray().Select(e => e.GetString());
+                foreach (var op in facility.Operators) {
+                    if (!opNames.Contains(op.Name)) {
+                        facility.Remove(op);
+                    }
+                }
+                foreach (var opName in opNames) {
+                    facility.Assign(simu.GetOperator(opName));
+                }
+            }
+            if (elem.TryGetProperty("drone", out var drone)) {
+                (facility as IApplyDrones)?.ApplyDrones(simu, drone.GetInt32());
+            }
         } else {
             if (_roomLabelRegex.IsMatch(fac)) {
                 var index = LabelToIndex(fac);
-                simu.ModifiableFacilities[index] = FacilityBase.FromJson(elem, simu);
+                facility = FacilityBase.FromJson(elem, simu);
+                simu.ModifiableFacilities[index] = facility;
+                simu.AllFacilities[index + 9] = facility;
             }
         }
     }
@@ -145,9 +169,9 @@ public static partial class Helper {
         return Encoding.UTF8.GetString(ms.ToArray()) ?? string.Empty;
     }
 
-    [GeneratedRegex(@"^B[1-3]0[1-3]$")]
+    [GeneratedRegex(@"^[bB][1-3]0[1-3]$")]
     private static partial Regex RoomLabelRegex();
 
-    [GeneratedRegex(@"^(\w+)(_\d)?$")]
+    [GeneratedRegex(@"^([\w ]+)( \d)?$")]
     private static partial Regex RoomNameWithOptionalIndexRegex();
 }

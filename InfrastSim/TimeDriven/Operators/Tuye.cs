@@ -7,7 +7,7 @@ internal class Tuye : OperatorBase {
 
         if (Facility is TradingStation trading && !IsTired) {
             simu.DelayAction(simu => {
-                EffiencyModifier.SetValue(
+                EfficiencyModifier.SetValue(
                     Name, simu.GetGoldProductionLine() / (Upgraded >= 2 ? 2 : 4) * 0.15 + 0.05);
             });
         }
