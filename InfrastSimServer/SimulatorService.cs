@@ -57,7 +57,6 @@ public class SimulatorService {
         }
 
         simu.Simulate(TimeSpan.FromMinutes(1));
-        httpContext.Response.ContentType = "application/json";
     }
 
     public void SimulateP(HttpContext httpContext, int id, SimulateData data) {
@@ -69,7 +68,6 @@ public class SimulatorService {
         var time = new TimeSpan(data.Hours, data.Minutes, data.Seconds);
         var span = TimeSpan.FromSeconds(data.TimeSpan);
         simu.SimulateUntil(simu.Now + time, span);
-        httpContext.Response.ContentType = "application/json";
     }
 
     public async Task SetFacilityState(HttpContext httpContext, int id, string facility) {

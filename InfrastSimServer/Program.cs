@@ -72,7 +72,7 @@ namespace InfrastSimServer {
 
             app.MapPost("/simulator/{id}/simulate", simulatorService.SimulateP)
             .WithName("SimulatePlus")
-            .WithDescription("以timespan为时间粒度，计算给定模拟器运行seconds秒后的情况")
+            .WithDescription("以timespan为时间粒度，计算给定模拟器运行给定时长后的情况")
             .WithOpenApi();
 
             app.MapGet("/simulator/{id}/simulate/{until}", simulatorService.SimulateUntil)
