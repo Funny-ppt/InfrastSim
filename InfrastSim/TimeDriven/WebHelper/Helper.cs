@@ -132,6 +132,10 @@ public static partial class Helper {
                     facility.Assign(simu.GetOperator(opName));
                 }
             }
+            if (elem.TryGetProperty("operators-force-replace", out var ops2)) {
+                var operators = ops2.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
+                facility.AssignMany(operators.Where(op => op != null));
+            }
             if (elem.TryGetProperty("drone", out var drone)) {
                 (facility as IApplyDrones)?.ApplyDrones(simu, drone.GetInt32());
             }
@@ -141,6 +145,25 @@ public static partial class Helper {
                 facility = FacilityBase.FromJson(elem, simu);
                 simu.ModifiableFacilities[index] = facility;
                 simu.AllFacilities[index + 9] = facility;
+            }
+
+            if (elem.TryGetProperty("strategy", out var strategy)) {
+                if (facility is TradingStation trading) {
+                    trading.Strategy = strategy.GetString().ToLower() switch {
+                        "gold" => TradingStation.OrderStrategy.Gold,
+                        "originium" => TradingStation.OrderStrategy.OriginStone,
+                        _ => TradingStation.OrderStrategy.Gold,
+                    };
+                }
+            }
+            if (elem.TryGetProperty("product", out var prod)) {
+                var product = prod.GetString();
+                if (facility is ManufacturingStation manufacturing) {
+                    var newProduct = Product.AllProducts.Where(p => p.Name == product).FirstOrDefault();
+                    if (newProduct != null) {
+                        manufacturing.ChangeProduct(newProduct);
+                    }
+                }
             }
         }
     }

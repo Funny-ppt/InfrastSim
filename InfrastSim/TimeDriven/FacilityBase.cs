@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -33,6 +34,15 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         op.Facility = this;
         op.WorkingTime = TimeSpan.Zero;
         return true;
+    }
+    public void AssignMany(IEnumerable<OperatorBase> ops) {
+        var iter = ops.GetEnumerator();
+        for (int i = 0; i < AcceptOperatorNums; ++i) {
+            if (iter.MoveNext() && iter.Current != _operators[i]) {
+                Remove(_operators[i]);
+                Assign(iter.Current);
+            }
+        }
     }
     public bool Remove(OperatorBase? op) {
         if (op == null || op.Facility == null) {
