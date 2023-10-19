@@ -22,6 +22,11 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public AggregateValue EfficiencyModifier { get; private set; } = new();
     public TimeSpan WorkingTime { get; set; } = TimeSpan.Zero;
 
+    public bool LeaveFacility() {
+        if (Facility == null) return false;
+        return Facility.Remove(this);
+    }
+
     public virtual void Reset() {
         MoodConsumeRate.Clear();
         EfficiencyModifier.Clear();

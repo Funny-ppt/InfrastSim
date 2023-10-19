@@ -27,7 +27,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         if (op == null || Operators.Count() == AcceptOperatorNums || op.Facility == this) {
             return false;
         }
-        op.Facility?.Remove(op);
+        op.LeaveFacility();
 
         var index = Array.IndexOf(_operators, null);
         _operators[index] = op;
@@ -39,13 +39,13 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         var iter = ops.GetEnumerator();
         for (int i = 0; i < AcceptOperatorNums; ++i) {
             if (iter.MoveNext() && iter.Current != _operators[i]) {
-                Remove(_operators[i]);
+                _operators[i]?.LeaveFacility();
                 Assign(iter.Current);
             }
         }
     }
     public bool Remove(OperatorBase? op) {
-        if (op == null || op.Facility == null) {
+        if (op == null || op.Facility != this) {
             return false;
         }
         var index = Array.IndexOf(_operators, op);
