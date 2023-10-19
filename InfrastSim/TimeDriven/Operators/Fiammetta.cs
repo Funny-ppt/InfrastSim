@@ -7,8 +7,8 @@ internal class Fiammetta : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            MoodConsumeRate.MinValue = 2;
-            MoodConsumeRate.MaxValue = 2;
+            MoodConsumeRate.MinValue = -2;
+            MoodConsumeRate.MaxValue = -2;
             if (IsFullOfEnergy) {
                 var arr = dorm.OrderByTime().ToArray();
                 var index = Array.IndexOf(arr, this);
