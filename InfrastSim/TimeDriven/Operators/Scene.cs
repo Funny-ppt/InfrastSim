@@ -12,7 +12,7 @@ internal class Scene : OperatorBase {
             EfficiencyModifier.SetValue(Name, 0.15 + time * 0.02);
 
             if (Upgraded >= 2) {
-                if (manufacturing.Product?.Name.Contains("记录") ?? false) {
+                if (manufacturing.IsProduceCombatRecord()) {
                     manufacturing.Capacity.SetValue(Name, 12);
                 }
             }

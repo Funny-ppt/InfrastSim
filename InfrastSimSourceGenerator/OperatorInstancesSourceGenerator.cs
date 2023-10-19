@@ -24,7 +24,7 @@ public class OperatorInstancesSourceGenerator : ISourceGenerator {
         sourceBuilder.AppendLine();
         sourceBuilder.AppendLine("    static OperatorInstances()");
         sourceBuilder.AppendLine("    {");
-        sourceBuilder.AppendLine($"        OperatorBase op;");
+        //sourceBuilder.AppendLine($"        OperatorBase op;");
 
 
         foreach (var model in semanticModels) {

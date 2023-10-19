@@ -62,8 +62,24 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
             }
         }
     }
+
+    class WorkingTimeComparer : IComparer<OperatorBase> {
+        FacilityBase fac;
+        public WorkingTimeComparer(FacilityBase fac) {
+            this.fac = fac;
+        }
+        public int Compare(OperatorBase? x, OperatorBase? y) {
+            if (x.WorkingTime != y.WorkingTime) {
+                return x.WorkingTime < y.WorkingTime ? -1 : 1;
+            }
+            return Array.IndexOf(fac._operators, x) < Array.IndexOf(fac._operators, y) ? -1 : 1;
+        }
+    }
+    public IEnumerable<OperatorBase> OrderByTime() {
+        return Operators.Order(new WorkingTimeComparer(this));
+    }
     public void SetLevel(int level) {
-        RemoveAll();
+        if (level != Level) RemoveAll();
         Level = level;
     }
 

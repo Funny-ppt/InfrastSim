@@ -33,6 +33,15 @@ internal static class Helper
             .OrderByDescending(op => op, new VipPriorityComparer())
             .FirstOrDefault();
     }
+    public static bool IsProduceGold(this ManufacturingStation manufacturing) {
+        return manufacturing.Product == Product.Gold;
+    }
+    public static bool IsProduceCombatRecord(this ManufacturingStation manufacturing) {
+        return Product.CombatRecords.Contains(manufacturing.Product);
+    }
+    public static bool IsProduceOriginStone(this ManufacturingStation manufacturing) {
+        return Product.StoneFragment.Contains(manufacturing.Product);
+    }
 
 
     public static void WriteItem(this Utf8JsonWriter writer, string propertyName, IJsonSerializable serializable, bool detailed = false) {

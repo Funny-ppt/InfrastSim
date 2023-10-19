@@ -12,6 +12,9 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     const double MaxMood = 24.0;
     public int Upgraded { get; set; } = 2;
     public double Mood { get; private set; } = 24.0;
+    public void SetMood(double mood) {
+        Mood = Math.Clamp(mood, MinMood, MaxMood);
+    }
     public bool IsTired => Util.Equals(MinMood, Mood);
     public bool IsFullOfEnergy => Util.Equals(MaxMood, Mood);
     public virtual int DormVipPriority => 1;
@@ -31,9 +34,11 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
 
     public virtual void Update(Simulator simu, TimeElapsedInfo info) {
         if (Facility != null && Facility.IsWorking) {
-            var newMood = Mood - MoodConsumeRate * (info.TimeElapsed / TimeSpan.FromHours(1));
-            Mood = Math.Clamp(newMood, MinMood, MaxMood);
+            SetMood(Mood - MoodConsumeRate * (info.TimeElapsed / TimeSpan.FromHours(1)));
             WorkingTime += info.TimeElapsed;
+        }
+        if (IsTired) {
+            WorkingTime = TimeSpan.Zero;
         }
     }
 
