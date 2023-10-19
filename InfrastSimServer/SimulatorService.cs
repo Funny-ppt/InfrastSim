@@ -5,15 +5,30 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace InfrastSimServer; 
-public class SimulatorService {
+public class SimulatorService : IDisposable {
     //public static readonly SimulatorService Instance = new(); 
 
+    private Timer? _timer;
     private int _simuId = 0;
     private ConcurrentDictionary<int, Simulator> _simus = new();
+    private ConcurrentDictionary<int, DateTime> _lastAccess = new();
+
+    public SimulatorService(bool cleanup = false) {
+        if (cleanup) _timer = new Timer(Cleanup, null, TimeSpan.Zero, TimeSpan.FromHours(1));
+    }
+
+    Simulator GetSimulator(int id) {
+        if (!_simus.TryGetValue(id, out var simulator)) {
+            throw new NotFoundException();
+        }
+        _lastAccess[id] = DateTime.Now;
+        return simulator;
+    }
 
     public void Create(HttpContext httpContext) {
         var id = Interlocked.Increment(ref _simuId);
-        var simu = _simus[_simuId] = new Simulator();
+        var simu = _simus[id] = new Simulator();
+        _lastAccess[id] = DateTime.Now;
 
         httpContext.Response.ContentType = "application/json";
         using var writer = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
@@ -27,7 +42,8 @@ public class SimulatorService {
     public void CreateWithData(HttpContext httpContext) {
         var doc = JsonDocument.Parse(httpContext.Request.Body);
         var id = Interlocked.Increment(ref _simuId);
-        var simu = _simus[_simuId] = new Simulator(doc.RootElement);
+        var simu = _simus[id] = new Simulator(doc.RootElement);
+        _lastAccess[id] = DateTime.Now;
 
         httpContext.Response.ContentType = "application/json";
         using var writer = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
@@ -38,11 +54,17 @@ public class SimulatorService {
         writer.Flush();
     }
 
-    public void GetData(HttpContext httpContext, int id, bool detailed = true) {
-        if (!_simus.TryGetValue(id, out var simu)) {
+    public void Destory(HttpContext httpContext, int id) {
+        if (!_simus.ContainsKey(id)) {
             httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
+
+        _simus.TryRemove(id, out _);
+        _lastAccess.TryRemove(id, out _);
+    }
+    public void GetData(HttpContext httpContext, int id, bool detailed = true) {
+        var simu = GetSimulator(id);
 
         simu.Resolve();
         httpContext.Response.ContentType = "application/json";
@@ -71,22 +93,13 @@ public class SimulatorService {
     }
 
     public async Task SetFacilityState(HttpContext httpContext, int id, string facility) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         var doc = await JsonDocument.ParseAsync(httpContext.Request.Body);
         simu.SetFacilityState(facility, doc.RootElement);
     }
 
     public void GetOperators(HttpContext httpContext, int id) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
-
+        var simu = GetSimulator(id);
         httpContext.Response.ContentType = "application/json";
         using var writer = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
         writer.WriteOperators(simu);
@@ -94,95 +107,55 @@ public class SimulatorService {
     }
 
     public void SetUpgraded(HttpContext httpContext, int id, Dictionary<string, int> ops) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         foreach (var kvp in ops) {
             simu.SetUpgraded(kvp.Key, kvp.Value);
         }
     }
 
     public void SelectOperators(HttpContext httpContext, int id, SelectOperatorsData data) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.SelectOperators(data.Facility, data.Operators);
     }
 
     public void RemoveOperator(HttpContext httpContext, int id, string facility, int idx) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.RemoveOperator(facility, idx);
     }
 
     public void RemoveOperators(HttpContext httpContext, int id, string facility) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.RemoveOperators(facility);
     }
 
     public void CollectAll(HttpContext httpContext, int id) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.CollectAll();
     }
 
     public void Collect(HttpContext httpContext, int id, string facility, int idx = 0) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.Collect(facility, idx);
     }
 
     public void UseDrones(HttpContext httpContext, int id, string facility, int amount) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.UseDrones(facility, amount);
     }
 
     public void Sanity(HttpContext httpContext, int id, int amount) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.AddDrones(amount);
     }
 
     public void SimulateUntil(HttpContext httpContext, int id, DateTime until) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.SimulateUntil(until, TimeSpan.FromMinutes(1));
         httpContext.Response.ContentType = "application/json";
     }
 
     public async Task GetDataForMower(HttpContext httpContext, int id) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
+        var simu = GetSimulator(id);
         simu.Resolve();
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
@@ -365,4 +338,22 @@ public class SimulatorService {
         };
         return newfac;
     }
+
+    void Cleanup(object? state) {
+        var simToCleanup = _lastAccess
+            .Where(kvp => DateTime.Now - kvp.Value > TimeSpan.FromDays(1))
+            .Select(kvp => kvp.Key);
+        foreach (var id in simToCleanup) {
+            _simus.TryRemove(id, out _);
+            _lastAccess.TryRemove(id, out _);
+        }
+    }
+
+    public void Dispose() {
+        _timer?.Dispose();
+    }
+
+    //public void SaveTo(string path) {
+
+    //}
 }

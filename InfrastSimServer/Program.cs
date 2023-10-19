@@ -1,4 +1,6 @@
 
+using Microsoft.AspNetCore.Diagnostics;
+
 namespace InfrastSimServer {
     public class Program {
         public static void Main(string[] args) {
@@ -26,11 +28,26 @@ namespace InfrastSimServer {
 
             app.UseAuthorization();
 
-            var simulatorService = new SimulatorService();
-            var summaries = new[]
+            app.UseExceptionHandler(appError =>
             {
-                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-            };
+                appError.Run(async context =>
+                {
+                    context.Response.StatusCode = 500;
+                    var exception = context.Features.Get<IExceptionHandlerFeature>();
+                    if (exception != null) {
+                        if (exception.Error is NotFoundException) {
+                            context.Response.StatusCode = 404;
+                        }
+                        await context.Response.WriteAsync(exception.Error.Message);
+                    }
+                });
+            });
+
+            var simulatorService = new SimulatorService();
+            //var summaries = new[]
+            //{
+            //    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+            //};
 
             //app.MapGet("/weatherforecast", (HttpContext httpContext) => {
             //    var forecast = Enumerable.Range(1, 5).Select(index =>
