@@ -1,10 +1,10 @@
 namespace InfrastSim.TimeDriven.Operators;
 internal class Dorothy : OperatorBase {
     public override string Name => "多萝西";
-    static string[] _groups = { "莱茵科技制造" };
-    public override string[] Groups => _groups;
+    static string[] _groups2 = { "莱茵科技制造" };
+    public override string[] Groups => Upgraded >= 2 ? base.Groups : _groups2;
 
-    public override void Resolve(Simulator simu) { // FIXME: 在技能非精英0解锁时叠加本不应叠加的效率
+    public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {

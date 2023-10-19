@@ -13,12 +13,14 @@ internal class Eunectes : OperatorBase {
             }
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            foreach (var op in manufacturing.Operators) {
-                if (!op.Groups.Contains("依赖设施数量")) {
-                    op.EfficiencyModifier.MaxValue = 0;
+            simu.DelayAction(simu => {
+                foreach (var op in manufacturing.Operators) {
+                    if (!op.Groups.Contains("依赖设施数量")) {
+                        op.EfficiencyModifier.MaxValue = 0;
+                    }
                 }
-            }
-            EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 0.1 : 0.05) * simu.GetPowerStations());
+                EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 0.1 : 0.05) * simu.GetPowerStations());
+            });
         }
     }
 }

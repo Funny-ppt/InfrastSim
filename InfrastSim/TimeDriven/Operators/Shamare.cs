@@ -7,6 +7,7 @@ internal class Shamare : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
+            MoodConsumeRate.SetValue(Name, -0.25);
             trading.PreGoldOrderPending += args =>
                 args.Priority4Gold.SetIfGreater(0.67 * Math.Min(1, WorkingTime / TimeSpan.FromHours(3)));
 
