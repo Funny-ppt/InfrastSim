@@ -40,6 +40,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         for (int i = 0; i < AcceptOperatorNums; ++i) {
             if (iter.MoveNext() && iter.Current != _operators[i]) {
                 _operators[i]?.LeaveFacility();
+                iter.Current.LeaveFacility();
                 Assign(iter.Current);
             }
         }
