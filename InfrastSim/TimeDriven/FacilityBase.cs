@@ -73,7 +73,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
             if (x.WorkingTime != y.WorkingTime) {
                 return x.WorkingTime < y.WorkingTime ? -1 : 1;
             }
-            return Array.IndexOf(fac._operators, x) < Array.IndexOf(fac._operators, y) ? -1 : 1;
+            return Array.IndexOf(fac._operators, x) > Array.IndexOf(fac._operators, y) ? -1 : 1;
         }
     }
     public IEnumerable<OperatorBase> OrderByTime() {

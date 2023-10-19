@@ -26,7 +26,7 @@ public static partial class Helper {
         var match = _roomNameRegex.Match(fac);
         var fac_name = match.Groups[1].Value;
         if (fac_name == "dormitory") {
-            var index = int.Parse(match.Groups[2].Value);
+            var index = int.Parse(match.Groups[2].Value.Trim()) - 1;
             return index < 4 ? simu.Dormitories[index] : null;
         } else {
             return fac_name switch {
@@ -145,6 +145,14 @@ public static partial class Helper {
                 facility = FacilityBase.FromJson(elem, simu);
                 simu.ModifiableFacilities[index] = facility;
                 simu.AllFacilities[index + 9] = facility;
+            } else {
+                fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
+                var match = _roomNameRegex.Match(fac);
+                var fac_name = match.Groups[1].Value;
+                if (fac_name == "dormitory") {
+                    var index = int.Parse(match.Groups[2].Value.Trim()) - 1;
+                    simu.Dormitories[index] = FacilityBase.FromJson(elem, simu) as Dormitory;
+                }
             }
 
             if (elem.TryGetProperty("strategy", out var strategy)) {
@@ -195,6 +203,6 @@ public static partial class Helper {
     [GeneratedRegex(@"^[bB][1-3]0[1-3]$")]
     private static partial Regex RoomLabelRegex();
 
-    [GeneratedRegex(@"^([\w ]+)( \d)?$")]
+    [GeneratedRegex(@"^([a-zA-Z ]+)( \d)?$")]
     private static partial Regex RoomNameWithOptionalIndexRegex();
 }

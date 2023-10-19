@@ -10,6 +10,9 @@ public class Simulator : ISimulator, IJsonSerializable {
         AllFacilities[2] = Reception = new();
         AllFacilities[3] = Training = new();
         AllFacilities[4] = Crafting = new();
+        for (int i = 0; i < 4; i++) {
+            AddDormitory(new Dormitory());
+        }
 
         Operators = OperatorInstances.Operators.ToDictionary(kvp =>  kvp.Key, kvp => kvp.Value.Clone());
     }
@@ -110,6 +113,7 @@ public class Simulator : ISimulator, IJsonSerializable {
             if (Dormitories[i] == null) {
                 Dormitories[i] = dorm;
                 AllFacilities[5 + i] = dorm;
+                return true;
             }
         }
         return false;
@@ -119,6 +123,7 @@ public class Simulator : ISimulator, IJsonSerializable {
             if (ModifiableFacilities[i] == null) {
                 ModifiableFacilities[i] = facility;
                 AllFacilities[9 + i] = facility;
+                return true;
             }
         }
         return false;
