@@ -69,6 +69,9 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
             writer.WriteNumber("working-time-seconds", WorkingTime.TotalSeconds);
             writer.WriteNumber("mood-consume-rate", MoodConsumeRate);
             writer.WriteNumber("efficiency", EfficiencyModifier);
+            if (Facility != null) {
+                writer.WriteNumber("index", Facility.IndexOf(this));
+            }
         }
 
         writer.WriteEndObject();

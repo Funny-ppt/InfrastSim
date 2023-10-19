@@ -19,6 +19,9 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     public abstract int AcceptOperatorNums { get; }
     public IEnumerable<OperatorBase> Operators
         => _operators.Take(AcceptOperatorNums).Where(op => op != null);
+    public int IndexOf(OperatorBase? op) {
+        return Array.IndexOf(_operators, op);
+    }
     public virtual bool IsWorking => Operators.Any();
     public IEnumerable<OperatorBase> WorkingOperators => Operators.Where(op => !op.IsTired);
     public int WorkingOperatorsCount => WorkingOperators.Count();
@@ -29,7 +32,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         }
         op.LeaveFacility();
 
-        var index = Array.IndexOf(_operators, null);
+        var index = IndexOf(null);
         _operators[index] = op;
         op.Facility = this;
         op.WorkingTime = TimeSpan.Zero;
@@ -38,10 +41,11 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     public void AssignMany(IEnumerable<OperatorBase> ops) {
         var iter = ops.GetEnumerator();
         for (int i = 0; i < AcceptOperatorNums; ++i) {
-            if (iter.MoveNext() && iter.Current != _operators[i]) {
+            var cur = iter.MoveNext() ? iter.Current : null;
+            if (cur != _operators[i]) {
                 _operators[i]?.LeaveFacility();
-                iter.Current.LeaveFacility();
-                Assign(iter.Current);
+                cur?.LeaveFacility();
+                Assign(cur);
             }
         }
     }
@@ -49,7 +53,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         if (op == null || op.Facility != this) {
             return false;
         }
-        var index = Array.IndexOf(_operators, op);
+        var index = IndexOf(op);
         if (index == -1) return false;
         _operators[index] = null;
         op.Facility = null;
