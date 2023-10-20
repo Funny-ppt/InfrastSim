@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "InfrastSimWasm": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:51632;http://localhost:51633"
+    }
+  }
+}

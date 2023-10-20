@@ -1,16 +1,22 @@
 using InfrastSim.TimeDriven;
 using InfrastSim.TimeDriven.WebHelper;
-using System.Buffers;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.Versioning;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace InfrastSim.Exports;
-public static partial class SimulatorService {
+namespace InfrastSim.Wasm;
+
+[SupportedOSPlatform("browser")]
+public static unsafe partial class SimulatorService {
     private static int _simuId = 0;
     private static ConcurrentDictionary<int, Simulator> _simus = new();
+
+    public static void Main() {
+        // no init required
+    }
 
     static Simulator GetSimulator(int id) {
         if (!_simus.TryGetValue(id, out var simulator)) {
@@ -44,18 +50,14 @@ public static partial class SimulatorService {
     }
 
     [JSExport]
-    public static IntPtr GetData(int id, bool detailed = true) {
+    public static string GetData(int id, bool detailed = true) {
         var simu = GetSimulator(id);
 
         simu.Resolve();
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, detailed);
-        ms.WriteByte(0);
-
-        var ptr = Marshal.AllocHGlobal((int)ms.Length);
-        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
-        return ptr;
+        return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
 
 
@@ -72,35 +74,27 @@ public static partial class SimulatorService {
 
 
     [JSExport]
-    public static void SetFacilityState(int id, IntPtr pFacility, IntPtr pJson) {
+    public static void SetFacilityState(int id, string facility, string json) {
         var simu = GetSimulator(id);
-        var fac = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
-        var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
         var doc = JsonDocument.Parse(json);
-        simu.SetFacilityState(fac, doc.RootElement);
+        simu.SetFacilityState(facility, doc.RootElement);
     }
 
 
     [JSExport]
-    public static IntPtr GetOperators(int id) {
+    public static string GetOperators(int id) {
         var simu = GetSimulator(id);
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteOperators(simu);
         writer.Flush();
-
-        ms.WriteByte(0);
-
-        var ptr = Marshal.AllocHGlobal((int)ms.Length);
-        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
-        return ptr;
+        return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
 
 
     [JSExport]
-    public static void SetUpgraded(int id, IntPtr pJson) {
+    public static void SetUpgraded(int id, string json) {
         var simu = GetSimulator(id);
-        var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
         var doc = JsonDocument.Parse(json);
 
         foreach (var prop in doc.RootElement.EnumerateObject()) {
@@ -110,16 +104,14 @@ public static partial class SimulatorService {
 
 
     [JSExport]
-    public static void RemoveOperator(int id, IntPtr pFacility, int idx) {
+    public static void RemoveOperator(int id, string facility, int idx) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.RemoveOperator(facility, idx);
     }
 
     [JSExport]
-    public static void RemoveOperators(int id, IntPtr pFacility) {
+    public static void RemoveOperators(int id, string facility) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.RemoveOperators(facility);
     }
 
@@ -130,17 +122,15 @@ public static partial class SimulatorService {
     }
 
     [JSExport]
-    public static void Collect(int id, IntPtr pFacility, int idx = 0) {
+    public static void Collect(int id, string facility, int idx = 0) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.Collect(facility, idx);
     }
 
 
     [JSExport]
-    public static void UseDrones(int id, IntPtr pFacility, int amount) {
+    public static void UseDrones(int id, string facility, int amount) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.UseDrones(facility, amount);
     }
 
@@ -151,7 +141,7 @@ public static partial class SimulatorService {
     }
 
     [JSExport]
-    public static IntPtr GetDataForMower(int id) {
+    public static string GetDataForMower(int id) {
         var simu = GetSimulator(id);
         simu.Resolve();
         using var ms = new MemoryStream();
@@ -215,11 +205,7 @@ public static partial class SimulatorService {
         ms.Position = 0;
         using var writer2 = new Utf8JsonWriter(ms);
         node.WriteTo(writer2);
-        ms.WriteByte(0);
-
-        var ptr = Marshal.AllocHGlobal((int)ms.Length);
-        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
-        return ptr;
+        return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
 
     static JsonObject RewriteOrder(JsonNode order, int timeRemain = 0) {
