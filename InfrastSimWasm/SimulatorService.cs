@@ -25,6 +25,18 @@ public static unsafe partial class SimulatorService {
         return simulator;
     }
 
+    static string AnyToString(object any) {
+        if (any == null) {
+            return string.Empty;
+        } else if (any is string str) {
+            return str;
+        } else if (any is JSObject jsObject){
+            
+        } else {
+            throw new ArgumentException(nameof(any));
+        }
+    }
+
     [JSExport]
     public static int Create() {
         var id = Interlocked.Increment(ref _simuId);
@@ -57,16 +69,20 @@ public static unsafe partial class SimulatorService {
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, detailed);
+        writer.Flush();
         return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
 
 
     [JSExport]
-    public static void Simulate(int id, int minutes, int seconds, int timespan) {
+    public static void Simulate(int id, int seconds = 0, int minutes = 0, int timespan = 60) {
         if (!_simus.TryGetValue(id, out var simu)) {
             return;
         }
-        
+        if (minutes == 0 && seconds == 0) {
+            minutes = 1;
+        }
+
         var time = new TimeSpan(0, minutes, seconds);
         var span = TimeSpan.FromSeconds(timespan);
         simu.SimulateUntil(simu.Now + time, span);
@@ -205,6 +221,7 @@ public static unsafe partial class SimulatorService {
         ms.Position = 0;
         using var writer2 = new Utf8JsonWriter(ms);
         node.WriteTo(writer2);
+        writer.Flush();
         return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
 

@@ -50,6 +50,7 @@ public static class SimulatorService {
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, detailed);
+        writer.Flush();
         ms.WriteByte(0);
 
         var ptr = Marshal.AllocHGlobal((int)ms.Length);
@@ -214,6 +215,7 @@ public static class SimulatorService {
         ms.Position = 0;
         using var writer2 = new Utf8JsonWriter(ms);
         node.WriteTo(writer2);
+        writer.Flush();
         ms.WriteByte(0);
 
         var ptr = Marshal.AllocHGlobal((int)ms.Length);
