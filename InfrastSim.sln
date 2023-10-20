@@ -16,6 +16,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastSimSourceGenerator",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InfrastSimTest", "InfrastSimTest\InfrastSimTest.csproj", "{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastSimExports", "InfrastSimExports\InfrastSimExports.csproj", "{2C153934-2C1F-4C66-9779-5E589B9ECDAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfrastSimWasm", "InfrastSimWasm\InfrastSimWasm.csproj", "{46CC6C88-6C04-41F4-B6D8-2227E04DA931}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +42,14 @@ Global
 		{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC1D5F08-8D8B-4AC7-9A02-6FBA202272ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C153934-2C1F-4C66-9779-5E589B9ECDAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C153934-2C1F-4C66-9779-5E589B9ECDAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C153934-2C1F-4C66-9779-5E589B9ECDAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C153934-2C1F-4C66-9779-5E589B9ECDAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46CC6C88-6C04-41F4-B6D8-2227E04DA931}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46CC6C88-6C04-41F4-B6D8-2227E04DA931}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46CC6C88-6C04-41F4-B6D8-2227E04DA931}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46CC6C88-6C04-41F4-B6D8-2227E04DA931}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

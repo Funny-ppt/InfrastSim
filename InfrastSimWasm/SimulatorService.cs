@@ -1,158 +1,157 @@
-using InfrastSim;
 using InfrastSim.TimeDriven;
 using InfrastSim.TimeDriven.WebHelper;
+using System.Buffers;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace InfrastSimServer; 
-public class SimulatorService : IDisposable {
-    //public static readonly SimulatorService Instance = new(); 
+namespace InfrastSim.Exports;
+public static partial class SimulatorService {
+    private static int _simuId = 0;
+    private static ConcurrentDictionary<int, Simulator> _simus = new();
 
-    private Timer? _timer;
-    private int _simuId = 0;
-    private ConcurrentDictionary<int, Simulator> _simus = new();
-    private ConcurrentDictionary<int, DateTime> _lastAccess = new();
-
-    public SimulatorService(bool cleanup = false) {
-        if (cleanup) _timer = new Timer(Cleanup, null, TimeSpan.Zero, TimeSpan.FromHours(1));
-    }
-
-    Simulator GetSimulator(int id) {
+    static Simulator GetSimulator(int id) {
         if (!_simus.TryGetValue(id, out var simulator)) {
-            throw new NotFoundException();
+            throw new KeyNotFoundException();
         }
-        _lastAccess[id] = DateTime.Now;
         return simulator;
     }
 
-    public void Create(HttpContext httpContext) {
+    [JSExport]
+    public static int Create() {
         var id = Interlocked.Increment(ref _simuId);
-        var simu = _simus[id] = new Simulator();
-        _lastAccess[id] = DateTime.Now;
-
-        httpContext.Response.ContentType = "application/json";
-        using var writer = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
-        writer.WriteStartObject();
-        writer.WriteNumber("id", id);
-        writer.WriteItem("data", simu);
-        writer.WriteEndObject();
-        writer.Flush();
+        _simus[id] = new Simulator();
+        return id;
     }
 
-    public void CreateWithData(HttpContext httpContext) {
-        var doc = JsonDocument.Parse(httpContext.Request.Body);
+    [JSExport]
+    public static int CreateWithData(string json) {
+        var doc = JsonDocument.Parse(json);
         var id = Interlocked.Increment(ref _simuId);
-        var simu = _simus[id] = new Simulator(doc.RootElement);
-        _lastAccess[id] = DateTime.Now;
-
-        httpContext.Response.ContentType = "application/json";
-        using var writer = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
-        writer.WriteStartObject();
-        writer.WriteNumber("id", id);
-        writer.WriteItem("data", simu);
-        writer.WriteEndObject();
-        writer.Flush();
+        _simus[id] = new Simulator(doc.RootElement);
+        return id;
     }
 
-    public void Destory(HttpContext httpContext, int id) {
+    [JSExport]
+    public static bool Destory(int id) {
         if (!_simus.ContainsKey(id)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
+            return false;
         }
 
-        _simus.TryRemove(id, out _);
-        _lastAccess.TryRemove(id, out _);
+        return _simus.TryRemove(id, out _);
     }
-    public void GetData(HttpContext httpContext, int id, bool detailed = true) {
+
+    [JSExport]
+    public static IntPtr GetData(int id, bool detailed = true) {
         var simu = GetSimulator(id);
 
         simu.Resolve();
-        httpContext.Response.ContentType = "application/json";
-        using var writer = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, detailed);
+        ms.WriteByte(0);
+
+        var ptr = Marshal.AllocHGlobal((int)ms.Length);
+        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
+        return ptr;
     }
 
-    public void Simulate(HttpContext httpContext, int id) {
+
+    [JSExport]
+    public static void Simulate(int id, int minutes, int seconds, int timespan) {
         if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
-
-        simu.Simulate(TimeSpan.FromMinutes(1));
-    }
-
-    public void SimulateP(HttpContext httpContext, int id, SimulateData data) {
-        var simu = GetSimulator(id);
-
-        var time = new TimeSpan(data.Hours, data.Minutes, data.Seconds);
-        var span = TimeSpan.FromSeconds(data.TimeSpan);
+        
+        var time = new TimeSpan(0, minutes, seconds);
+        var span = TimeSpan.FromSeconds(timespan);
         simu.SimulateUntil(simu.Now + time, span);
     }
 
-    public async Task SetFacilityState(HttpContext httpContext, int id, string facility) {
+
+    [JSExport]
+    public static void SetFacilityState(int id, IntPtr pFacility, IntPtr pJson) {
         var simu = GetSimulator(id);
-        var doc = await JsonDocument.ParseAsync(httpContext.Request.Body);
-        simu.SetFacilityState(facility, doc.RootElement);
+        var fac = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
+        var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
+        var doc = JsonDocument.Parse(json);
+        simu.SetFacilityState(fac, doc.RootElement);
     }
 
-    public void GetOperators(HttpContext httpContext, int id) {
+
+    [JSExport]
+    public static IntPtr GetOperators(int id) {
         var simu = GetSimulator(id);
-        httpContext.Response.ContentType = "application/json";
-        using var writer = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
         writer.WriteOperators(simu);
         writer.Flush();
+
+        ms.WriteByte(0);
+
+        var ptr = Marshal.AllocHGlobal((int)ms.Length);
+        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
+        return ptr;
     }
 
-    public void SetUpgraded(HttpContext httpContext, int id, Dictionary<string, int> ops) {
+
+    [JSExport]
+    public static void SetUpgraded(int id, IntPtr pJson) {
         var simu = GetSimulator(id);
-        foreach (var kvp in ops) {
-            simu.SetUpgraded(kvp.Key, kvp.Value);
+        var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
+        var doc = JsonDocument.Parse(json);
+
+        foreach (var prop in doc.RootElement.EnumerateObject()) {
+            simu.SetUpgraded(prop.Name, prop.Value.GetInt32());
         }
     }
 
-    public void SelectOperators(HttpContext httpContext, int id, SelectOperatorsData data) {
-        var simu = GetSimulator(id);
-        simu.SelectOperators(data.Facility, data.Operators);
-    }
 
-    public void RemoveOperator(HttpContext httpContext, int id, string facility, int idx) {
+    [JSExport]
+    public static void RemoveOperator(int id, IntPtr pFacility, int idx) {
         var simu = GetSimulator(id);
+        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.RemoveOperator(facility, idx);
     }
 
-    public void RemoveOperators(HttpContext httpContext, int id, string facility) {
+    [JSExport]
+    public static void RemoveOperators(int id, IntPtr pFacility) {
         var simu = GetSimulator(id);
+        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.RemoveOperators(facility);
     }
 
-    public void CollectAll(HttpContext httpContext, int id) {
+    [JSExport]
+    public static void CollectAll(int id) {
         var simu = GetSimulator(id);
         simu.CollectAll();
     }
 
-    public void Collect(HttpContext httpContext, int id, string facility, int idx = 0) {
+    [JSExport]
+    public static void Collect(int id, IntPtr pFacility, int idx = 0) {
         var simu = GetSimulator(id);
+        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.Collect(facility, idx);
     }
 
-    public void UseDrones(HttpContext httpContext, int id, string facility, int amount) {
+
+    [JSExport]
+    public static void UseDrones(int id, IntPtr pFacility, int amount) {
         var simu = GetSimulator(id);
+        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
         simu.UseDrones(facility, amount);
     }
 
-    public void Sanity(HttpContext httpContext, int id, int amount) {
+    [JSExport]
+    public static void Sanity(int id, int amount) {
         var simu = GetSimulator(id);
         simu.AddDrones(amount);
     }
 
-    public void SimulateUntil(HttpContext httpContext, int id, DateTime until) {
-        var simu = GetSimulator(id);
-        simu.SimulateUntil(until, TimeSpan.FromMinutes(1));
-        httpContext.Response.ContentType = "application/json";
-    }
-
-    public async Task GetDataForMower(HttpContext httpContext, int id) {
+    [JSExport]
+    public static IntPtr GetDataForMower(int id) {
         var simu = GetSimulator(id);
         simu.Resolve();
         using var ms = new MemoryStream();
@@ -160,12 +159,12 @@ public class SimulatorService : IDisposable {
         writer.WriteItemValue(simu, true);
         writer.Flush();
         ms.Position = 0;
-        var node = await JsonNode.ParseAsync(ms);
+        var node = JsonNode.Parse(ms);
         node!["power_limit"] = simu.TotalPowerProduce;
         node["power_usage"] = simu.TotalPowerConsume;
         node["drone_limit"] = 200;
         node["drone_count"] = simu.Drones;
-        node["next_drone"] = (int) simu.NextDroneTimeInSeconds;
+        node["next_drone"] = (int)simu.NextDroneTimeInSeconds;
         var globalProperties = new JsonObject();
         foreach (var prop in simu.GlobalValues) {
             globalProperties.Add(prop.Item1, (int)prop.Item2);
@@ -213,10 +212,14 @@ public class SimulatorService : IDisposable {
         node["operators-mower"] = operators;
 
 
-        httpContext.Response.ContentType = "application/json";
-        using var respWriter = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
-        node.WriteTo(respWriter);
-        writer.Flush();
+        ms.Position = 0;
+        using var writer2 = new Utf8JsonWriter(ms);
+        node.WriteTo(writer2);
+        ms.WriteByte(0);
+
+        var ptr = Marshal.AllocHGlobal((int)ms.Length);
+        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
+        return ptr;
     }
 
     static JsonObject RewriteOrder(JsonNode order, int timeRemain = 0) {
@@ -316,7 +319,7 @@ public class SimulatorService : IDisposable {
               + simu.GlobalTradingEffiency;
         newfac["order_chance"] = fac["order-chance"]!.DeepClone();
         newfac["orders"] = orders;
-        
+
         return newfac;
     }
     static JsonObject RewritePower(JsonNode fac) {
@@ -336,22 +339,4 @@ public class SimulatorService : IDisposable {
         };
         return newfac;
     }
-
-    void Cleanup(object? state) {
-        var simToCleanup = _lastAccess
-            .Where(kvp => DateTime.Now - kvp.Value > TimeSpan.FromDays(1))
-            .Select(kvp => kvp.Key);
-        foreach (var id in simToCleanup) {
-            _simus.TryRemove(id, out _);
-            _lastAccess.TryRemove(id, out _);
-        }
-    }
-
-    public void Dispose() {
-        _timer?.Dispose();
-    }
-
-    //public void SaveTo(string path) {
-
-    //}
 }

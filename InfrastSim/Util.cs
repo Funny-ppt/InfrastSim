@@ -1,8 +1,26 @@
+using System.Text.Json;
+using System.Text;
+
 namespace InfrastSim;
 
-internal static class Util {
+public static class Util {
     public static bool Equals(double self, double other, double epsilon = 1e-9) {
         return Math.Abs(self - other) < epsilon;
+    }
+
+    public static void WriteItem(this Utf8JsonWriter writer, string propertyName, IJsonSerializable serializable, bool detailed = false) {
+        writer.WritePropertyName(propertyName);
+        serializable.ToJson(writer, detailed);
+    }
+    public static void WriteItemValue(this Utf8JsonWriter writer, IJsonSerializable serializable, bool detailed = false) {
+        serializable.ToJson(writer, detailed);
+    }
+    public static string ToJson(this IJsonSerializable serializable, bool detailed = false) {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        serializable.ToJson(writer, detailed);
+        writer.Flush();
+        return Encoding.UTF8.GetString(ms.ToArray()) ?? string.Empty;
     }
 }
     
