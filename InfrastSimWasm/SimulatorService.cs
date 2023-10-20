@@ -25,18 +25,6 @@ public static unsafe partial class SimulatorService {
         return simulator;
     }
 
-    static string AnyToString(object any) {
-        if (any == null) {
-            return string.Empty;
-        } else if (any is string str) {
-            return str;
-        } else if (any is JSObject jsObject){
-            
-        } else {
-            throw new ArgumentException(nameof(any));
-        }
-    }
-
     [JSExport]
     public static int Create() {
         var id = Interlocked.Increment(ref _simuId);
