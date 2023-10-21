@@ -17,6 +17,7 @@ internal class Fiammetta : OperatorBase {
                     if (!op.IsFullOfEnergy) {
                         SetMood(op.Mood);
                         op.SetMood(24);
+                        break;
                     }
                 }
             }
