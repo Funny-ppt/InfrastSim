@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace InfrastSim.TimeDriven;
 public class Simulator : ISimulator, IJsonSerializable {
@@ -89,8 +90,8 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     internal Dictionary<string, OperatorBase> Operators;
-    internal OperatorBase? GetOperator(string name) {
-        return Operators.GetValueOrDefault(name);
+    internal OperatorBase GetOperator(string name) {
+        return Operators.GetValueOrDefault(name) ?? throw new KeyNotFoundException($"未知的干员名称 {name}");
     }
 
     internal ControlCenter ControlCenter { get; set; }

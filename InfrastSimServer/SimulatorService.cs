@@ -136,9 +136,9 @@ public class SimulatorService : IDisposable {
         simu.Collect(facility, idx);
     }
 
-    public void UseDrones(HttpContext httpContext, int id, string facility, int amount) {
+    public int UseDrones(HttpContext httpContext, int id, string facility, int amount) {
         var simu = GetSimulator(id);
-        simu.UseDrones(facility, amount);
+        return simu.UseDrones(facility, amount);
     }
 
     public void Sanity(HttpContext httpContext, int id, int amount) {

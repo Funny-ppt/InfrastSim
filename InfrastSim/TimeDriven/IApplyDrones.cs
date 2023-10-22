@@ -1,4 +1,4 @@
 namespace InfrastSim.TimeDriven;
 internal interface IApplyDrones {
-    void ApplyDrones(Simulator simu, int amount);
+    int ApplyDrones(Simulator simu, int amount);
 }

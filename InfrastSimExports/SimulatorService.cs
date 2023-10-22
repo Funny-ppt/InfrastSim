@@ -7,11 +7,11 @@ using System.Text.Json.Nodes;
 
 namespace InfrastSim.CDLL;
 public static class SimulatorService {
-    private static int _simuId = 0;
-    private static ConcurrentDictionary<int, Simulator> _simus = new();
+    private static int SimuId = 0;
+    private static ConcurrentDictionary<int, Simulator> Simus = new();
 
     static Simulator GetSimulator(int id) {
-        if (!_simus.TryGetValue(id, out var simulator)) {
+        if (!Simus.TryGetValue(id, out var simulator)) {
             throw new KeyNotFoundException();
         }
         return simulator;
@@ -19,8 +19,8 @@ public static class SimulatorService {
 
     [UnmanagedCallersOnly(EntryPoint = "CreateSimulator")]
     public static int Create() {
-        var id = Interlocked.Increment(ref _simuId);
-        _simus[id] = new Simulator();
+        var id = Interlocked.Increment(ref SimuId);
+        Simus[id] = new Simulator();
         return id;
     }
 
@@ -28,18 +28,18 @@ public static class SimulatorService {
     public static int CreateWithData(IntPtr pJson) {
         var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
         var doc = JsonDocument.Parse(json);
-        var id = Interlocked.Increment(ref _simuId);
-        _simus[id] = new Simulator(doc.RootElement);
+        var id = Interlocked.Increment(ref SimuId);
+        Simus[id] = new Simulator(doc.RootElement);
         return id;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "DestroySimulator")]
     public static bool Destory(int id) {
-        if (!_simus.ContainsKey(id)) {
+        if (!Simus.ContainsKey(id)) {
             return false;
         }
 
-        return _simus.TryRemove(id, out _);
+        return Simus.TryRemove(id, out _);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "GetData")]
@@ -61,7 +61,7 @@ public static class SimulatorService {
 
     [UnmanagedCallersOnly(EntryPoint = "Simulate")]
     public static void Simulate(int id, int minutes, int seconds, int timespan) {
-        if (!_simus.TryGetValue(id, out var simu)) {
+        if (!Simus.TryGetValue(id, out var simu)) {
             return;
         }
         
@@ -138,10 +138,10 @@ public static class SimulatorService {
 
 
     [UnmanagedCallersOnly(EntryPoint = "UseDrones")]
-    public static void UseDrones(int id, IntPtr pFacility, int amount) {
+    public static int UseDrones(int id, IntPtr pFacility, int amount) {
         var simu = GetSimulator(id);
         var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
-        simu.UseDrones(facility, amount);
+        return simu.UseDrones(facility, amount);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "Sanity")]

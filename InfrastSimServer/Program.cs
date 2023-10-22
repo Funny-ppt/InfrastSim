@@ -35,9 +35,12 @@ namespace InfrastSimServer {
                     context.Response.StatusCode = 500;
                     var exception = context.Features.Get<IExceptionHandlerFeature>();
                     if (exception != null) {
-                        if (exception.Error is NotFoundException) {
-                            context.Response.StatusCode = 404;
-                        }
+                        context.Response.StatusCode = exception switch {
+                            KeyNotFoundException => 400,
+                            NotFoundException => 404,
+                            ApplicationException => 400,
+                            _ => 500
+                        };
                         await context.Response.WriteAsync(exception.Error.Message);
                     }
                 });

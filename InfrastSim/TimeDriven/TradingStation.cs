@@ -125,7 +125,7 @@ internal class TradingStation : FacilityBase, IApplyDrones {
         base.Update(simu, info);
     }
 
-    public void ApplyDrones(Simulator simu, int amount) {
+    public int ApplyDrones(Simulator simu, int amount) {
         int max = (int)Math.Ceiling(RemainsTime / TimeSpan.FromMinutes(3));
         amount = Math.Min(amount, Math.Min(simu.Drones, max));
         var time = TimeSpan.FromMinutes(3 * amount);
@@ -137,6 +137,7 @@ internal class TradingStation : FacilityBase, IApplyDrones {
             Progress += time / CurrentOrder.ProduceTime;
         }
         simu.RemoveDrones(amount);
+        return amount;
     }
 
 

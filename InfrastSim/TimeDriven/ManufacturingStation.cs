@@ -77,7 +77,7 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
         base.Update(simu, info);
     }
 
-    public void ApplyDrones(Simulator simu, int amount) {
+    public int ApplyDrones(Simulator simu, int amount) {
         amount = Math.Min(amount, simu.Drones);
         var time = TimeSpan.FromMinutes(3 * amount);
 
@@ -93,6 +93,7 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
             amount -= remains;
         }
         simu.RemoveDrones(amount);
+        return amount;
     }
 
 

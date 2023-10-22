@@ -11,15 +11,15 @@ namespace InfrastSim.Wasm;
 
 [SupportedOSPlatform("browser")]
 public static unsafe partial class SimulatorService {
-    private static int _simuId = 0;
-    private static ConcurrentDictionary<int, Simulator> _simus = new();
+    private static int SimuId = 0;
+    private static ConcurrentDictionary<int, Simulator> Simus = new();
 
     public static void Main() {
         // no init required
     }
 
     static Simulator GetSimulator(int id) {
-        if (!_simus.TryGetValue(id, out var simulator)) {
+        if (!Simus.TryGetValue(id, out var simulator)) {
             throw new KeyNotFoundException();
         }
         return simulator;
@@ -27,26 +27,26 @@ public static unsafe partial class SimulatorService {
 
     [JSExport]
     public static int Create() {
-        var id = Interlocked.Increment(ref _simuId);
-        _simus[id] = new Simulator();
+        var id = Interlocked.Increment(ref SimuId);
+        Simus[id] = new Simulator();
         return id;
     }
 
     [JSExport]
     public static int CreateWithData(string json) {
         var doc = JsonDocument.Parse(json);
-        var id = Interlocked.Increment(ref _simuId);
-        _simus[id] = new Simulator(doc.RootElement);
+        var id = Interlocked.Increment(ref SimuId);
+        Simus[id] = new Simulator(doc.RootElement);
         return id;
     }
 
     [JSExport]
     public static bool Destory(int id) {
-        if (!_simus.ContainsKey(id)) {
+        if (!Simus.ContainsKey(id)) {
             return false;
         }
 
-        return _simus.TryRemove(id, out _);
+        return Simus.TryRemove(id, out _);
     }
 
     [JSExport]
@@ -64,7 +64,7 @@ public static unsafe partial class SimulatorService {
 
     [JSExport]
     public static void Simulate(int id, int seconds = 0, int minutes = 0, int timespan = 60) {
-        if (!_simus.TryGetValue(id, out var simu)) {
+        if (!Simus.TryGetValue(id, out var simu)) {
             return;
         }
         if (minutes == 0 && seconds == 0) {
@@ -133,9 +133,9 @@ public static unsafe partial class SimulatorService {
 
 
     [JSExport]
-    public static void UseDrones(int id, string facility, int amount) {
+    public static int UseDrones(int id, string facility, int amount) {
         var simu = GetSimulator(id);
-        simu.UseDrones(facility, amount);
+        return simu.UseDrones(facility, amount);
     }
 
     [JSExport]
