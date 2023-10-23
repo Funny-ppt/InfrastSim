@@ -1,6 +1,8 @@
+using System.Text.Json;
+
 namespace InfrastSim;
 
-public class AggregateValue {
+public class AggregateValue : IJsonSerializable {
     double _baseValue;
     double _value = new();
     readonly Dictionary<string, double> _additionValues = new();
@@ -93,6 +95,26 @@ public class AggregateValue {
         }
         _upToDate = true;
         _value = _baseValue;
+    }
+
+    public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
+        writer.WriteStartObject();
+        writer.WriteNumber("value", CalculatedValue);
+        writer.WriteNumber("base-value", BaseValue);
+        writer.WriteNumber("min-value", MinValue);
+        writer.WriteNumber("max-value", MaxValue);
+
+        writer.WriteStartArray();
+        foreach (var kvp in _additionValues) {
+            writer.WriteStartObject();
+            writer.WriteString("tag", kvp.Key);
+            writer.WriteNumber("value", kvp.Value);
+            writer.WriteBoolean("disabled", _disables.Contains(kvp.Key));
+            writer.WriteEndObject();
+        }
+        writer.WriteEndArray();
+
+        writer.WriteEndObject();
     }
 
     public static implicit operator double(AggregateValue aggregateValue) {

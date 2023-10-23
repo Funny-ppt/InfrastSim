@@ -14,9 +14,9 @@ public class MowerHelper {
         }
         node["global_properties"] = globalProperties;
         var facilities = new JsonObject();
-        facilities["Control Center"] = RewriteFacility(node["control-center"]!);
-        facilities["Office"] = RewriteFacility(node["office"]!);
-        facilities["Recpetion Room"] = RewriteFacility(node["reception"]!);
+        facilities["controlCenter"] = RewriteFacility(node["control-center"]!);
+        facilities["office"] = RewriteFacility(node["office"]!);
+        facilities["recpetionRoom"] = RewriteFacility(node["reception"]!);
         facilities["training"] = RewriteFacility(node["training"]!);
         facilities["crafting"] = RewriteFacility(node["crafting"]!);
         for (int i = 0; i < 4; i++) {
