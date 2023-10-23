@@ -104,6 +104,7 @@ public class AggregateValue : IJsonSerializable {
         writer.WriteNumber("min-value", MinValue);
         writer.WriteNumber("max-value", MaxValue);
 
+        writer.WritePropertyName("details");
         writer.WriteStartArray();
         foreach (var kvp in _additionValues) {
             writer.WriteStartObject();

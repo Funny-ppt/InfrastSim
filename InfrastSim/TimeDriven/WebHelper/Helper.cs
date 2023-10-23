@@ -111,6 +111,15 @@ public static partial class Helper {
     public static void SetFacilityState(this Simulator simu, string fac, JsonElement elem) {
         var facility = simu.GetFacilityByName(fac);
         if (facility != null) {
+            if (elem.TryGetProperty("destroy", out var _)) {
+                if (_roomLabelRegex.IsMatch(fac)) {
+                    var index = LabelToIndex(fac);
+                    facility.RemoveAll();
+                    simu.ModifiableFacilities[index] = null;
+                    simu.AllFacilities[9 + index] = null;
+                    return;
+                }
+            }
             if (elem.TryGetProperty("level", out var level)) {
                 facility.SetLevel(level.GetInt32());
             }
