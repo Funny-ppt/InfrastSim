@@ -73,21 +73,9 @@ public class SimulatorService : IDisposable {
         writer.WriteItemValue(simu, detailed);
     }
 
-    public void Simulate(HttpContext httpContext, int id) {
-        if (!_simus.TryGetValue(id, out var simu)) {
-            httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
-        simu.Simulate(TimeSpan.FromMinutes(1));
-    }
-
-    public void SimulateP(HttpContext httpContext, int id, SimulateData data) {
+    public void Simulate(HttpContext httpContext, int id, int seconds = 60) {
         var simu = GetSimulator(id);
-
-        var time = new TimeSpan(data.Hours, data.Minutes, data.Seconds);
-        var span = TimeSpan.FromSeconds(data.TimeSpan);
-        simu.SimulateUntil(simu.Now + time, span);
+        simu.SimulateUntil(simu.Now + TimeSpan.FromSeconds(seconds));
     }
 
     public async Task SetFacilityState(HttpContext httpContext, int id, string facility) {
@@ -148,7 +136,7 @@ public class SimulatorService : IDisposable {
 
     public void SimulateUntil(HttpContext httpContext, int id, DateTime until) {
         var simu = GetSimulator(id);
-        simu.SimulateUntil(until, TimeSpan.FromMinutes(1));
+        simu.SimulateUntil(until);
         httpContext.Response.ContentType = "application/json";
     }
 

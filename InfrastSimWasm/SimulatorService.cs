@@ -63,17 +63,15 @@ public static unsafe partial class SimulatorService {
 
 
     [JSExport]
-    public static void Simulate(int id, int seconds = 0, int minutes = 0, int timespan = 60) {
+    public static void Simulate(int id, int seconds = 0) {
         if (!Simus.TryGetValue(id, out var simu)) {
             return;
         }
-        if (minutes == 0 && seconds == 0) {
-            minutes = 1;
+        if (seconds == 0) {
+            seconds = 60;
         }
 
-        var time = new TimeSpan(0, minutes, seconds);
-        var span = TimeSpan.FromSeconds(timespan);
-        simu.SimulateUntil(simu.Now + time, span);
+        simu.SimulateUntil(simu.Now + TimeSpan.FromSeconds(seconds));
     }
 
 

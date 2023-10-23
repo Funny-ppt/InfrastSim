@@ -4,7 +4,8 @@ using System.Text;
 namespace InfrastSim;
 
 public static class Util {
-    public static bool Equals(double self, double other, double epsilon = 1e-9) {
+    public const double Epsilon = 1e-9;
+    public static bool Equals(double self, double other, double epsilon = Epsilon) {
         return Math.Abs(self - other) < epsilon;
     }
 

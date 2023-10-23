@@ -18,7 +18,7 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
     public bool CanStoreMore => Product != null && CapacityN - CapacityOccupied >= Product.Volume;
     public Product? Product { get; private set; }
     public double Progress { get; private set; }
-    public TimeSpan RemainsTime => (Product?.ProduceTime ?? TimeSpan.MaxValue) * (1 - Progress);
+    public TimeSpan RemainsTime => Product == null ? TimeSpan.MaxValue : Product.ProduceTime * (1 - Progress);
     public void ChangeProduct(Product newProduct) {
         if (newProduct != Product) {
             if (newProduct.RequiredLevel > Level) {
@@ -57,8 +57,14 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
 
         base.Resolve(simu);
     }
-    public override void Update(Simulator simu, TimeElapsedInfo info) {
+    public override void QueryInterest(Simulator simu) {
+        var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
+        var remains = RemainsTime / effiency;
+        simu.SetInterest(this, remains);
 
+        base.QueryInterest(simu);
+    }
+    public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
             var equivTime = info.TimeElapsed * effiency;

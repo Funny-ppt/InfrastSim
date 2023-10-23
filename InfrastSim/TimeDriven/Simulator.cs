@@ -56,6 +56,15 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public DateTime Now { get; private set; }
+    ITimeDrivenObject _interestSource;
+    TimeSpan _nextInterest;
+    TimeSpan _minSpan = TimeSpan.FromSeconds(10);
+    internal void SetInterest(ITimeDrivenObject o, TimeSpan span) {
+        if (span < _nextInterest) {
+            _interestSource = o;
+            _nextInterest = span;
+        }
+    }
     public void Resolve() {
         foreach (var value in _globalValues.Values) {
             value.Clear();
@@ -71,10 +80,15 @@ public class Simulator : ISimulator, IJsonSerializable {
         }
         _delayActions.Clear();
     }
+    void QueryInterest() {
+        foreach (var facility in AllFacilities) {
+            facility?.QueryInterest(this);
+        }
+    }
     void Update(TimeElapsedInfo info) {
         AddDrones((1 + GlobalDronesEffiency) * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
     }
-    public void Simulate(TimeSpan span) {
+    void SimulateImpl(TimeSpan span) {
         Resolve();
         var info = new TimeElapsedInfo(Now, Now + span, span);
         foreach (var facility in AllFacilities) {
@@ -83,9 +97,13 @@ public class Simulator : ISimulator, IJsonSerializable {
         Update(info);
         Now += span;
     }
-    public void SimulateUntil(DateTime dateTime, TimeSpan interval) {
+    public void SimulateUntil(DateTime dateTime) {
         while (Now < dateTime) {
-            Simulate(interval);
+            QueryInterest();
+            var span = dateTime - Now;
+            if (_nextInterest < span) span = _nextInterest;
+            if (_minSpan > span) span = _minSpan;
+            SimulateImpl(span);
         }
     }
 

@@ -34,18 +34,18 @@ internal class OperatorSkillBuilder {
         return this;
     }
 
-    public void Bind(OperatorBase op) {
-        if (_resolveExpr != null) {
-            var block = Expression.Block(_actionGroup);
-            var expr = new ReplaceVisitor(block).Visit(_resolveExpr);
+    //public void Bind(OperatorBase op) {
+    //    if (_resolveExpr != null) {
+    //        var block = Expression.Block(_actionGroup);
+    //        var expr = new ReplaceVisitor(block).Visit(_resolveExpr);
 
-            Debug.Assert(expr != null);
-            var lambda = Expression.Lambda<Action<OperatorBase, Simulator>>(
-                expr, _opParam, _simuParam
-            ).Compile();
-            op.OnResolve = simu => lambda(op, simu);
-        }
-    }
+    //        Debug.Assert(expr != null);
+    //        var lambda = Expression.Lambda<Action<OperatorBase, Simulator>>(
+    //            expr, _opParam, _simuParam
+    //        ).Compile();
+    //        op.OnResolve = simu => lambda(op, simu);
+    //    }
+    //}
 
     public OperatorSkillBuilder RequiredUpgraded(int upgraded) {
         If((op, simu) => op.Upgraded >= upgraded);

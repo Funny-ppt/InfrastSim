@@ -101,7 +101,13 @@ internal class TradingStation : FacilityBase, IApplyDrones {
 
         base.Resolve(simu);
     }
+    public override void QueryInterest(Simulator simu) {
+        var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
+        var remains = RemainsTime / effiency;
+        simu.SetInterest(this, remains);
 
+        base.QueryInterest(simu);
+    }
     public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
             if (CurrentOrder == null) {

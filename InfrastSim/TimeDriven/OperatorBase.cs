@@ -1,10 +1,11 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
 internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public abstract string Name { get; }
-    public virtual string[] Groups { get; } = Array.Empty<string>();
+    public virtual string[] Groups => Array.Empty<string>();
     public bool HasGroup(string group) => Groups.Contains(group);
     public FacilityBase? Facility { get; set; } = null;
 
@@ -15,12 +16,16 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public void SetMood(double mood) {
         Mood = Math.Clamp(mood, MinMood, MaxMood);
     }
+    static readonly int[] DefaultThreshold = new int[] { 0 };
+    public virtual int[] Thresholds => DefaultThreshold;
+
     public bool IsTired => Util.Equals(MinMood, Mood);
     public bool IsFullOfEnergy => Util.Equals(MaxMood, Mood);
     public virtual int DormVipPriority => 1;
     public AggregateValue MoodConsumeRate { get; private set; } = new(1);
     public AggregateValue EfficiencyModifier { get; private set; } = new();
     public TimeSpan WorkingTime { get; set; } = TimeSpan.Zero;
+
 
     public bool LeaveFacility() {
         if (Facility == null) return false;
@@ -34,11 +39,31 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
 
     public virtual void Resolve(Simulator simu) {
         EfficiencyModifier.MaxValue = double.MaxValue;
-        OnResolve?.Invoke(simu);
+        //OnResolve?.Invoke(simu);
+    }
+
+    public virtual void QueryInterest(Simulator simu) {
+        Debug.Assert(Facility != null);
+        if (Facility.IsWorking) {
+            var hours = 1000.0;
+            if (MoodConsumeRate > 0) {
+                foreach (var threshold in Thresholds) {
+                    if (Mood - threshold > Util.Epsilon) {
+                        hours = Math.Min(hours, (Mood - threshold) / MoodConsumeRate);
+                    }
+                }
+            } else {
+                if (MaxMood - Mood > Util.Epsilon) {
+                    hours = (Mood - MaxMood) / MoodConsumeRate;
+                }
+            }
+            simu.SetInterest(this, TimeSpan.FromHours(hours));
+        }
     }
 
     public virtual void Update(Simulator simu, TimeElapsedInfo info) {
-        if (Facility != null && Facility.IsWorking) {
+        Debug.Assert(Facility != null);
+        if (Facility.IsWorking) { // 如果 Update 被调用，则 Facility 必不为null
             SetMood(Mood - MoodConsumeRate * (info.TimeElapsed / TimeSpan.FromHours(1)));
             WorkingTime += info.TimeElapsed;
         }
@@ -47,7 +72,7 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
         }
     }
 
-    public Action<Simulator>? OnResolve { get; set; }
+    //public Action<Simulator>? OnResolve { get; set; }
 
     // TODO: 添加技能标签，附带解锁精英化等级等信息
 

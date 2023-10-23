@@ -60,14 +60,12 @@ public static class SimulatorService {
 
 
     [UnmanagedCallersOnly(EntryPoint = "Simulate")]
-    public static void Simulate(int id, int minutes, int seconds, int timespan) {
+    public static void Simulate(int id, int seconds) {
         if (!Simus.TryGetValue(id, out var simu)) {
             return;
         }
-        
-        var time = new TimeSpan(0, minutes, seconds);
-        var span = TimeSpan.FromSeconds(timespan);
-        simu.SimulateUntil(simu.Now + time, span);
+
+        simu.SimulateUntil(simu.Now + TimeSpan.FromSeconds(seconds));
     }
 
 

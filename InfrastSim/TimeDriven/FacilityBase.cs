@@ -114,6 +114,12 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         }
     }
 
+    public virtual void QueryInterest(Simulator simu) {
+        foreach (var op in Operators) {
+            op.QueryInterest(simu);
+        }
+    }
+
     /// <summary>
     /// 该方法应该在派生类的方法结束前被调用。
     /// 默认会调用所有内部干员的Update方法。
