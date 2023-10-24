@@ -1,3 +1,4 @@
+using RandomEx;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
@@ -27,7 +28,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
     public TimeSpan RemainsTime => (CurrentOrder?.ProduceTime ?? TimeSpan.MaxValue) * (1 - Progress);
     public event Action<GoldOrderPendingArgs>? PreGoldOrderPending;
     public event Action<OrderPendingArgs>? OnPending;
-    public bool PendingNewOrder() {
+    public bool PendingNewOrder(XoshiroRandom random) {
         if (CapacityN == OrderCount) return false;
 
         Order order;
@@ -40,7 +41,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
             };
             PreGoldOrderPending?.Invoke(args);
             var total = args.Priority2Gold + args.Priority3Gold + args.Priority4Gold;
-            var rnd = Random.Shared.NextDouble() * total;
+            var rnd = random.NextDouble() * total;
             if (rnd < args.Priority2Gold) {
                 order = Order.Gold[0];
             } else if (rnd < args.Priority2Gold + args.Priority3Gold) {
@@ -111,7 +112,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
     public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
             if (CurrentOrder == null) {
-                PendingNewOrder();
+                PendingNewOrder(simu.Random);
             }
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
             var equivTime = info.TimeElapsed * effiency;
@@ -119,7 +120,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
                 var remains = equivTime - RemainsTime;
 
                 InsertCurrentOrder();
-                if (PendingNewOrder()) {
+                if (PendingNewOrder(simu.Random)) {
                     Debug.Assert(CurrentOrder != null);
                     Progress += remains / CurrentOrder.ProduceTime;
                 }
@@ -138,7 +139,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
 
         if (time >= RemainsTime) {
             InsertCurrentOrder();
-            PendingNewOrder();
+            PendingNewOrder(simu.Random);
         } else {
             Progress += time / CurrentOrder.ProduceTime;
         }

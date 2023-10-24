@@ -1,13 +1,12 @@
-using System.Runtime.InteropServices;
+using RandomEx;
 using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace InfrastSim.TimeDriven;
 public class Simulator : ISimulator, IJsonSerializable {
     public Simulator() {
         Now = DateTime.UtcNow;
-        Random = new Random();
+        Random = new XoshiroRandom();
         AllFacilities[0] = ControlCenter = new();
         AllFacilities[1] = Office = new();
         AllFacilities[2] = Reception = new();
@@ -22,6 +21,7 @@ public class Simulator : ISimulator, IJsonSerializable {
 
     public Simulator(JsonElement elem) {
         Now = elem.GetProperty("time").GetDateTime();
+        Random = new XoshiroRandom(elem.GetProperty("random"));
         _drones = elem.GetProperty("drones").GetDouble();
 
         foreach (var prop in elem.GetProperty("materials").EnumerateObject()) {
@@ -56,7 +56,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public DateTime Now { get; private set; }
-    public Random Random { get; private set; }
+    public XoshiroRandom Random { get; private set; }
     ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
     TimeSpan _minSpan = TimeSpan.FromSeconds(10);
@@ -223,6 +223,8 @@ public class Simulator : ISimulator, IJsonSerializable {
         writer.WriteStartObject();
 
         writer.WriteString("time", Now);
+        writer.WritePropertyName("random");
+        Random.ToJson(writer);
         writer.WriteNumber("drones", _drones);
 
         writer.WritePropertyName("operators");

@@ -212,7 +212,7 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
                 }
                 var op = simu.GetOperator(name);
                 if (op.Facility != null) {
-                    throw new ApplicationException($"{name} 干员被指派到两个不同的设施");
+                    throw new JsonException($"{name} 干员被指派到两个不同的设施");
                 }
                 fac.AssignAt(op, i);
             }

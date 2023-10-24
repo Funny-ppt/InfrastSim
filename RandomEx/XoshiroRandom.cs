@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Text.Json;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -31,7 +32,6 @@ namespace RandomEx {
             ulong* ptr = stackalloc ulong[4];
             do {
                 RandomNumberGenerator.Fill(new Span<byte>(ptr, 4 * sizeof(ulong)));
-                //Interop.GetRandomBytes((byte*)ptr, 4 * sizeof(ulong));
                 _s0 = ptr[0];
                 _s1 = ptr[1];
                 _s2 = ptr[2];
@@ -39,6 +39,21 @@ namespace RandomEx {
             }
             while ((_s0 | _s1 | _s2 | _s3) == 0); // at least one value must be non-zero
         }
+
+        public XoshiroRandom(JsonElement elem) {
+            var arr = new ulong[4];
+            int i = 0;
+            foreach (var val_elem in elem.EnumerateArray()) {
+                if (i > 4) throw new JsonException("XoshiroRandom should create from an array with 4 ulong");
+                arr[i++] = val_elem.GetUInt64();
+            }
+            if (i != 4) throw new JsonException("XoshiroRandom should create from an array with 4 ulong");
+            _s0 = arr[0];
+            _s1 = arr[1];
+            _s2 = arr[2];
+            _s3 = arr[3];
+        }
+
 
         /// <summary>Produces a value in the range [0, uint.MaxValue].</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)] // small-ish hot path used by very few call sites
@@ -83,13 +98,13 @@ namespace RandomEx {
         public int Next(int maxValue) {
             Debug.Assert(maxValue >= 0);
 
-            return (int)NextUInt32((uint)maxValue, this);
+            return (int)NextUInt32((uint)maxValue);
         }
 
         public int Next(int minValue, int maxValue) {
             Debug.Assert(minValue <= maxValue);
 
-            return (int)NextUInt32((uint)(maxValue - minValue), this) + minValue;
+            return (int)NextUInt32((uint)(maxValue - minValue)) + minValue;
         }
 
         public long NextInt64() {
@@ -107,13 +122,13 @@ namespace RandomEx {
         public long NextInt64(long maxValue) {
             Debug.Assert(maxValue >= 0);
 
-            return (long)NextUInt64((ulong)maxValue, this);
+            return (long)NextUInt64((ulong)maxValue);
         }
 
         public long NextInt64(long minValue, long maxValue) {
             Debug.Assert(minValue <= maxValue);
 
-            return (long)NextUInt64((ulong)(maxValue - minValue), this) + minValue;
+            return (long)NextUInt64((ulong)(maxValue - minValue)) + minValue;
         }
 
         public void NextBytes(byte[] buffer) => NextBytes((Span<byte>)buffer);
@@ -178,15 +193,15 @@ namespace RandomEx {
         // NextUInt32/64 algorithms based on https://arxiv.org/pdf/1805.10941.pdf and https://github.com/lemire/fastrange.
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static uint NextUInt32(uint maxValue, XoshiroRandom xoshiro) {
-            ulong randomProduct = (ulong)maxValue * xoshiro.NextUInt32();
+        internal uint NextUInt32(uint maxValue) {
+            ulong randomProduct = (ulong)maxValue * NextUInt32();
             uint lowPart = (uint)randomProduct;
 
             if (lowPart < maxValue) {
                 uint remainder = (0u - maxValue) % maxValue;
 
                 while (lowPart < remainder) {
-                    randomProduct = (ulong)maxValue * xoshiro.NextUInt32();
+                    randomProduct = (ulong)maxValue * NextUInt32();
                     lowPart = (uint)randomProduct;
                 }
             }
@@ -195,18 +210,27 @@ namespace RandomEx {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ulong NextUInt64(ulong maxValue, XoshiroRandom xoshiro) {
-            ulong randomProduct = Math.BigMul(maxValue, xoshiro.NextUInt64(), out ulong lowPart);
+        internal ulong NextUInt64(ulong maxValue) {
+            ulong randomProduct = Math.BigMul(maxValue, NextUInt64(), out ulong lowPart);
 
             if (lowPart < maxValue) {
                 ulong remainder = (0ul - maxValue) % maxValue;
 
                 while (lowPart < remainder) {
-                    randomProduct = Math.BigMul(maxValue, xoshiro.NextUInt64(), out lowPart);
+                    randomProduct = Math.BigMul(maxValue, NextUInt64(), out lowPart);
                 }
             }
 
             return randomProduct;
+        }
+
+        public void ToJson(Utf8JsonWriter writer) {
+            writer.WriteStartArray();
+            writer.WriteNumberValue(_s0);
+            writer.WriteNumberValue(_s1);
+            writer.WriteNumberValue(_s2);
+            writer.WriteNumberValue(_s3);
+            writer.WriteEndArray();
         }
     }
 }
