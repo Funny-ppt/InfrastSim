@@ -7,6 +7,7 @@ namespace InfrastSim.TimeDriven;
 public class Simulator : ISimulator, IJsonSerializable {
     public Simulator() {
         Now = DateTime.UtcNow;
+        Random = new Random();
         AllFacilities[0] = ControlCenter = new();
         AllFacilities[1] = Office = new();
         AllFacilities[2] = Reception = new();
@@ -55,6 +56,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public DateTime Now { get; private set; }
+    public Random Random { get; private set; }
     ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
     TimeSpan _minSpan = TimeSpan.FromSeconds(10);
