@@ -128,7 +128,7 @@ public class MowerHelper {
               + fac["operators-efficiency"]!.GetValue<double>()
               + simu.GlobalManufacturingEffiency;
         newfac["finished_product"] = fac["product-count"]!.DeepClone();
-        newfac["product"] = fac["product"]!.DeepClone();
+        newfac["product"] = fac["product"]?.DeepClone() ?? null;
         newfac["progress"] = fac["progress"]!.DeepClone();
 
         return newfac;
