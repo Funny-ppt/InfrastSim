@@ -1,3 +1,4 @@
+using InfrastSim.TimeDriven.Operators;
 using System;
 using System.Reflection;
 using System.Text;
@@ -44,6 +45,11 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         op.LeaveFacility();
         op.WorkingTime = TimeSpan.Zero;
         AssignAt(op, IndexOf(null));
+
+        // 游戏中，菲亚会在入住瞬间结算技能。
+        if (op is Fiammetta fiammetta && this is Dormitory dorm) {
+            fiammetta.TryExchange(dorm);
+        }
         return true;
     }
     public void AssignMany(IEnumerable<OperatorBase> ops) {
