@@ -45,6 +45,9 @@ public class Dormitory : FacilityBase {
             if (x.Mood != y.Mood) {
                 return x.Mood - y.Mood < 0 ? -1 : 1;
             }
+            if (x.WorkingTime != y.WorkingTime) {
+                return x.WorkingTime < y.WorkingTime ? -1 : 1;
+            }
             return x.Facility.IndexOf(x) - y.Facility.IndexOf(y);
         }
     }
