@@ -12,11 +12,10 @@ internal class Coldshot : OperatorBase {
             // FIXME: 冰酿自己是否为反嘲讽？
             var count = dorm.Operators.Where(op => !op.IsFullOfEnergy).Count();
             if (count == 1) {
-                var vip = dorm.GetVip();
-                vip?.MoodConsumeRate.SetIfLesser("dorm-vip", -0.8);
+                dorm.SetVipMoodModifier(-0.8);
             } else {
                 var amount = -0.8 / count;
-                dorm.DormMoodModifier.SetIfLesser(amount);
+                dorm.SetDormMoodModifier(amount);
             }
         }
     }

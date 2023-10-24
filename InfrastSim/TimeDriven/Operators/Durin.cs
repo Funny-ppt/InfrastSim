@@ -10,7 +10,7 @@ internal class Durin : OperatorBase {
 
         if (Facility is Dormitory dorm) {
             MoodConsumeRate.AddValue(Name, 0.1);
-            dorm.DormMoodModifier.SetIfLesser(-0.25);
+            dorm.SetDormMoodModifier(-0.25);
         }
     }
 }

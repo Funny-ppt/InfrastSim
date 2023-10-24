@@ -9,7 +9,7 @@ internal class Amiya : OperatorBase {
             simu.GlobalTradingEffiency.SetIfGreater(0.07);
         }
         if (Facility is Dormitory dorm && Upgraded >= 2) {
-            dorm.DormMoodModifier.SetIfLesser(-0.15);
+            dorm.SetDormMoodModifier(-0.15);
         }
     }
 }

@@ -6,7 +6,7 @@ internal class Vendela : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.DormMoodModifier.SetIfLesser(-0.15);
+            dorm.SetDormMoodModifier(-0.15);
 
             if (Upgraded >= 2) {
                 foreach (var op in Facility.Operators) {

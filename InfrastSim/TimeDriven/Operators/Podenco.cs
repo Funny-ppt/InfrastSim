@@ -7,10 +7,10 @@ internal class Podenco : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.GetVip()?.MoodConsumeRate.SetIfLesser("dorm-vip", Upgraded >= 1 ? -0.65 : -0.55);
+            dorm.SetVipMoodModifier(Upgraded >= 1 ? -0.65 : -0.55);
 
             if (Upgraded >= 1) {
-                dorm.DormMoodModifier.SetIfLesser(-0.15);
+                dorm.SetDormMoodModifier(-0.15);
             }
         }
     }

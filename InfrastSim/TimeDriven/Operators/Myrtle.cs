@@ -14,7 +14,7 @@ internal class Myrtle : OperatorBase {
             trading.Capacity.SetValue(Name, 5);
         }
         if (Facility is Dormitory dorm && Upgraded >= 1) {
-            dorm.DormMoodModifier.SetIfLesser(-0.15);
+            dorm.SetDormMoodModifier(-0.15);
         }
     }
 }

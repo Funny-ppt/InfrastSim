@@ -9,7 +9,7 @@ internal class Lancet_2 : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.GetVip()?.MoodConsumeRate.SetIfLesser("dorm-vip", -0.65);
+            dorm.SetVipMoodModifier(-0.65);
         }
         if (Facility is PowerStation && !IsTired) {
             EfficiencyModifier.SetValue(Name, 0.1);

@@ -14,7 +14,7 @@ public static partial class Helper {
         }
     }
     public static string? GetVipName(this Simulator simu, int dormIndex) {
-        return ((Dormitory?)simu.Dormitories[dormIndex])?.GetVip()?.Name;
+        return ((Dormitory?)simu.Dormitories[dormIndex])?.Vip?.Name;
     }
 
     static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + label[3] - '0' - 1;

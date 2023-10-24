@@ -9,7 +9,7 @@ internal class Muelsyse : OperatorBase {
 
         if (Facility is Dormitory dorm) {
             MoodConsumeRate.SetValue(Name, -0.55);
-            dorm.DormMoodModifier.SetIfLesser(-0.1);
+            dorm.SetDormMoodModifier(-0.1);
         }
         if (Facility is PowerStation && !IsTired) {
             var amount = simu.GroupMemberCount("莱茵生命");

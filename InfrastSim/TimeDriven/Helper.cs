@@ -37,12 +37,6 @@ internal static class Helper
     {
         return (int)simu.ExtraPowerStation + simu.PowerStations.Count();
     }
-    public static OperatorBase? GetVip(this Dormitory dorm)
-    {
-        return dorm.Operators
-            .OrderByDescending(op => op, new VipPriorityComparer())
-            .FirstOrDefault();
-    }
     public static bool IsProduceGold(this ManufacturingStation manufacturing) {
         return manufacturing.Product == Product.Gold;
     }
