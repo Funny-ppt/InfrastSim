@@ -55,7 +55,10 @@ public class Dormitory : FacilityBase {
             Vip = null;
         }
         if (VipMoodModifier > 0 && Vip == null) {
-            Vip = Operators.OrderBy(op => op, new VipPriorityComparer()).FirstOrDefault();
+            Vip = Operators
+                .OrderBy(op => op, new VipPriorityComparer())
+                .Where(op => !op.IsFullOfEnergy)
+                .FirstOrDefault();
         }
 
         foreach (var op in Operators) {
