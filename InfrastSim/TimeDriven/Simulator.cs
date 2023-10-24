@@ -84,22 +84,25 @@ public class Simulator : ISimulator, IJsonSerializable {
             facility?.QueryInterest(this);
         }
     }
-    void Update(TimeElapsedInfo info) {
-        AddDrones((1 + GlobalDronesEffiency) * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
-    }
     void SimulateImpl(TimeSpan span) {
-        Resolve();
         var info = new TimeElapsedInfo(Now, Now + span, span);
         foreach (var facility in AllFacilities) {
             facility?.Update(this, info);
         }
-        Update(info);
+        AddDrones((1 + GlobalDronesEffiency) * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
         Now += span;
     }
     public void SimulateUntil(DateTime dateTime) {
         while (Now < dateTime) {
+            Resolve();
             QueryInterest();
             var span = dateTime - Now;
+
+            if (span < _minSpan) {
+                SimulateImpl(span);
+                return;
+            }
+
             if (_nextInterest < span) span = _nextInterest;
             if (_minSpan > span) span = _minSpan;
             SimulateImpl(span);
