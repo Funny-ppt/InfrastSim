@@ -109,7 +109,8 @@ internal class ManufacturingStation : FacilityBase, IApplyDrones {
         writer.WriteNumber("product-count", ProductCount);
 
         if (detailed) {
-            writer.WriteString("product", Product!.Name);
+            if (Product != null) writer.WriteString("product", Product.Name);
+            else writer.WriteNull("product");
             writer.WriteNumber("remains", RemainsTime.TotalSeconds);
             writer.WriteNumber("base-capacity", BaseCapacity);
             writer.WriteNumber("capacity", CapacityN);

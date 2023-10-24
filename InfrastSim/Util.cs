@@ -9,12 +9,14 @@ public static class Util {
         return Math.Abs(self - other) < epsilon;
     }
 
-    public static void WriteItem(this Utf8JsonWriter writer, string propertyName, IJsonSerializable serializable, bool detailed = false) {
+    public static void WriteItem(this Utf8JsonWriter writer, string propertyName, IJsonSerializable? serializable, bool detailed = false) {
         writer.WritePropertyName(propertyName);
-        serializable.ToJson(writer, detailed);
+        if (serializable != null) serializable.ToJson(writer, detailed);
+        else writer.WriteNullValue();
     }
-    public static void WriteItemValue(this Utf8JsonWriter writer, IJsonSerializable serializable, bool detailed = false) {
-        serializable.ToJson(writer, detailed);
+    public static void WriteItemValue(this Utf8JsonWriter writer, IJsonSerializable? serializable, bool detailed = false) {
+        if (serializable != null) serializable.ToJson(writer, detailed);
+        else writer.WriteNullValue();
     }
     public static string ToJson(this IJsonSerializable serializable, bool detailed = false) {
         using var ms = new MemoryStream();

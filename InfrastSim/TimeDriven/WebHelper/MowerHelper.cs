@@ -55,7 +55,7 @@ public class MowerHelper {
         node["operators-mower"] = operators;
         return node;
     }
-    public static JsonObject RewriteOrder(JsonNode order, int timeRemain = 0) {
+    public static JsonObject RewriteOrder(JsonNode order, double timeRemain = 0) {
         var newOrder = new JsonObject();
         switch (order["consume"]!.GetValue<string>()) {
             case "赤金":
@@ -70,7 +70,7 @@ public class MowerHelper {
                 break;
         }
         newOrder["time_total"] = new TimeSpan(order["produce-time"]!.GetValue<long>()).TotalSeconds;
-        newOrder["time_remain"] = timeRemain;
+        newOrder["time_remain"] = (long)timeRemain;
         return newOrder;
     }
     public static JsonObject RewriteOperator(JsonNode op) {
@@ -138,7 +138,8 @@ public class MowerHelper {
         foreach (var order in fac["orders"]!.AsArray()) {
             orders.Add(RewriteOrder(order!));
         }
-        orders.Add(RewriteOrder(fac["current-order"]!, fac["remains"]!.GetValue<int>()));
+        var cur_order = fac["current-order"];
+        if (cur_order != null) orders.Add(RewriteOrder(cur_order, fac["remains"]!.GetValue<double>()));
 
         var newfac = RewriteFacility(fac);
         newfac["name"] = "贸易站";
