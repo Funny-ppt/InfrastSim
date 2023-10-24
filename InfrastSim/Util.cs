@@ -8,6 +8,10 @@ public static class Util {
     public static bool Equals(double self, double other, double epsilon = Epsilon) {
         return Math.Abs(self - other) < epsilon;
     }
+    public static double Align(double a, double b) {
+        return Math.Floor(a / b) * b;
+    }
+
 
     public static void WriteItem(this Utf8JsonWriter writer, string propertyName, IJsonSerializable? serializable, bool detailed = false) {
         writer.WritePropertyName(propertyName);

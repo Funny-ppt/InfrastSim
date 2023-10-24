@@ -10,7 +10,7 @@ internal class Ling : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ControlCenter center && !IsTired) {
-            simu.DelayAction(simu => {
+            simu.Delay(simu => {
                 foreach (var op in center.Operators) {
                     op.MoodConsumeRate.Remove("岁");
                 }

@@ -12,7 +12,7 @@ internal class Shamare : OperatorBase {
                 args.Priority4Gold.SetIfGreater(0.67 * Math.Min(1, WorkingTime / TimeSpan.FromHours(3)));
 
             if (Upgraded >= 2) {
-                simu.DelayAction(simu => {
+                simu.Delay(simu => {
                     foreach (var op in trading.Operators) {
                         if (op != this) {
                             op.EfficiencyModifier.MaxValue = 0;

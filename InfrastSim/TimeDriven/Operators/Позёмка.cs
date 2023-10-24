@@ -6,13 +6,14 @@ internal class Позёмка : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            simu.DelayAction(simu => {
+            simu.Delay(simu => {
                 EfficiencyModifier.SetValue(Name, simu.GetGoldProductionLine() * 0.05);
             });
 
             if (Upgraded >= 2) {
                 simu.ExtraGoldProductionLine.SetValue(Name,
-                    Math.Min(4, simu.OperatorsInFacility.Where(op => op.Groups.Contains("杜林")).Count()));
+                    Math.Min(4, simu.GroupMemberCount("杜林")
+                 ));
             }
         }
     }

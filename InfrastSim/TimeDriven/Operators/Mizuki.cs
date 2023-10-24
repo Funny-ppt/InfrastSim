@@ -3,7 +3,7 @@ namespace InfrastSim.TimeDriven.Operators;
 internal class Mizuki : OperatorBase {
     public override string Name => "水月";
     static string[] _groups2 = { "标准化" };
-    public override string[] Groups => Upgraded >= 2 ? base.Groups : _groups2;
+    public override string[] Groups => Upgraded >= 2 ? _groups2 : base.Groups;
 
     public override void Resolve(Simulator simu) {
         base.Resolve(simu);

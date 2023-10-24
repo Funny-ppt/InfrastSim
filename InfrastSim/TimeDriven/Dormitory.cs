@@ -19,7 +19,6 @@ public class Dormitory : FacilityBase {
         }
     }
     public AggregateValue DormMoodModifier { get; } = new(0.0, max: 0.0);
-    public double DormMoodModifierForOne = 0.0;
     public override double EffiencyModifier => 0.0;
     public int Atmosphere => Level * 1000;
 

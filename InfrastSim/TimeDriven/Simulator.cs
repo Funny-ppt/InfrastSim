@@ -115,6 +115,9 @@ public class Simulator : ISimulator, IJsonSerializable {
     internal OperatorBase GetOperator(string name) {
         return Operators.GetValueOrDefault(name) ?? throw new KeyNotFoundException($"未知的干员名称 {name}");
     }
+    internal OperatorBase? GetOperatorNoThrow(string name) {
+        return Operators.GetValueOrDefault(name);
+    }
 
     public ControlCenter ControlCenter {
         get => (ControlCenter)AllFacilities[0]!;
@@ -170,7 +173,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     Dictionary<string, AggregateValue> _globalValues = new();
     SortedDictionary<int, Action<Simulator>> _delayActions = new();
 
-    public void DelayAction(Action<Simulator> action, int priority = 100) {
+    public void Delay(Action<Simulator> action, int priority = 100) {
         if (_delayActions.ContainsKey(priority)) {
             _delayActions[priority] += action;
         } else {
@@ -206,6 +209,9 @@ public class Simulator : ISimulator, IJsonSerializable {
     public AggregateValue SilverVine => GetGlobalValue("木天蓼");
     public AggregateValue Renjianyanhuo => GetGlobalValue("人间烟火");
     public AggregateValue Ganzhixinxi => GetGlobalValue("感知信息");
+    public AggregateValue Wushenggongming => GetGlobalValue("无声共鸣");
+    public AggregateValue Siweilianhuan => GetGlobalValue("思维链环");
+    public AggregateValue Gongchengjiqiren => GetGlobalValue("工程机器人");
     public AggregateValue ExtraGoldProductionLine => GetGlobalValue("虚拟赤金线");
     public AggregateValue ExtraPowerStation => GetGlobalValue("虚拟发电站");
     public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));

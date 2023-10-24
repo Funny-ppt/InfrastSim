@@ -6,7 +6,7 @@ internal class MrNothing : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 2) {
-            simu.DelayAction(simu => {
+            simu.Delay(simu => {
                 EfficiencyModifier.SetValue(Name, simu.Renjianyanhuo * 0.01);
             });
             simu.Renjianyanhuo.SetValue(Name,

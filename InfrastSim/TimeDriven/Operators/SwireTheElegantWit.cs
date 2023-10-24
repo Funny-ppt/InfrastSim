@@ -12,7 +12,7 @@ internal class SwireTheElegantWit : OperatorBase {
             EfficiencyModifier.SetValue(Name, 0.2);
 
             if (Upgraded >= 2) {
-                simu.DelayAction(simu => {
+                simu.Delay(simu => {
                     var diff = trading.Capacity - trading.BaseCapacity;
                     EfficiencyModifier.AddValue(Name, diff * 0.04);
                 });

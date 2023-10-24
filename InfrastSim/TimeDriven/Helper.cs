@@ -4,9 +4,19 @@ using System.Text.Json;
 namespace InfrastSim.TimeDriven;
 internal static class Helper
 {
+    public static OperatorBase? FindOp(this FacilityBase facility, string opName)
+    {
+        return facility.Operators.Where(op => op.Name == opName).FirstOrDefault();
+    }
+    public static int GroupMemberCount(this Simulator simu, string group) {
+        return simu.OperatorsInFacility.Where(op => group.Contains(op.Name)).Count();
+    }
+    public static IEnumerable<OperatorBase> GroupMembers(this FacilityBase facility, string group) {
+        return facility.Operators.Where(op => op.Groups.Contains(group));
+    }
     public static bool HasGroupMember(this FacilityBase facility, string group)
     {
-        return facility.Operators.Where(op => op.Groups.Contains(group)).Any();
+        return facility.GroupMembers(group).Any();
     }
     public static int GroupMemberCount(this FacilityBase facility, string group)
     {

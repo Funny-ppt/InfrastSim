@@ -9,11 +9,11 @@ internal class Chongyue : OperatorBase {
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {
             MoodConsumeRate.SetValue("岁", 0.5);
-            var count = simu.OperatorsInFacility.Where(op => _groups.Contains("岁")).Count();
+            var count = simu.GroupMemberCount("岁");
             simu.Renjianyanhuo.SetValue(Name, Math.Max(count, 5) * 5);
 
             if (Upgraded >= 2) {
-                simu.DelayAction(simu => {
+                simu.Delay(simu => {
                     var ops = simu.OperatorsInFacility.Where(op =>
                         op.Facility is not Dormitory
                      && op.Facility is not ControlCenter);
