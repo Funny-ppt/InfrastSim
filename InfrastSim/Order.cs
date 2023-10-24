@@ -22,6 +22,8 @@ public record Order(int RequiredLevel, TimeSpan ProduceTime, Material Consumes, 
         writer.WriteEndObject();
     }
     public static Order? FromJson(JsonElement elem) {
+        if (elem.ValueKind == JsonValueKind.Null) return null;
+
         var produceTime = new TimeSpan(elem.GetProperty("produce-time").GetInt64());
         var consume = elem.GetProperty("consume").GetString();
         var consumeCount = elem.GetProperty("consume-count").GetInt32();
