@@ -3,11 +3,11 @@ using System.Text;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
-internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
+public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public abstract string Name { get; }
     public virtual string[] Groups => Array.Empty<string>();
     public bool HasGroup(string group) => Groups.Contains(group);
-    public FacilityBase? Facility { get; set; } = null;
+    public FacilityBase? Facility { get; internal set; } = null;
 
     const double MinMood = 0.0;
     const double MaxMood = 24.0;
@@ -24,7 +24,7 @@ internal abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public virtual int DormVipPriority => 1;
     public AggregateValue MoodConsumeRate { get; private set; } = new(1);
     public AggregateValue EfficiencyModifier { get; private set; } = new();
-    public TimeSpan WorkingTime { get; set; } = TimeSpan.Zero;
+    public TimeSpan WorkingTime { get; internal set; } = TimeSpan.Zero;
 
 
     public bool LeaveFacility() {

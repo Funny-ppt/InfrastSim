@@ -5,9 +5,9 @@ using System.Text.Json;
 using System.Xml.Linq;
 
 namespace InfrastSim.TimeDriven;
-internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
+public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     public abstract FacilityType Type { get; }
-    public int Level { get; internal set; }
+    public int Level { get; protected set; }
     public virtual int PowerConsumes => Level switch {
         1 => 10,
         2 => 30,
@@ -17,8 +17,10 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
 
     OperatorBase?[] _operators = new OperatorBase[5];
     public abstract int AcceptOperatorNums { get; }
+
     public IEnumerable<OperatorBase> Operators
         => _operators.Take(AcceptOperatorNums).Where(op => op != null);
+
     public int IndexOf(OperatorBase? op) {
         return Array.IndexOf(_operators, op);
     }
@@ -26,16 +28,22 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     public IEnumerable<OperatorBase> WorkingOperators => Operators.Where(op => !op.IsTired);
     public int WorkingOperatorsCount => WorkingOperators.Count();
 
+    private void AssignAt(OperatorBase op, int index) {
+        _operators[index] = op;
+        op.Facility = this;
+    }
+    private void RemoveAt(int index) {
+        _operators[index]?.LeaveFacility();
+        _operators[index] = null;
+    }
+
     public bool Assign(OperatorBase? op) {
         if (op == null || Operators.Count() == AcceptOperatorNums || op.Facility == this) {
             return false;
         }
         op.LeaveFacility();
-
-        var index = IndexOf(null);
-        _operators[index] = op;
-        op.Facility = this;
         op.WorkingTime = TimeSpan.Zero;
+        AssignAt(op, IndexOf(null));
         return true;
     }
     public void AssignMany(IEnumerable<OperatorBase> ops) {
@@ -43,7 +51,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         for (int i = 0; i < AcceptOperatorNums; ++i) {
             var cur = iter.MoveNext() ? iter.Current : null;
             if (cur != _operators[i]) {
-                _operators[i]?.LeaveFacility();
+                RemoveAt(i);
                 cur?.LeaveFacility();
                 Assign(cur);
             }
@@ -61,10 +69,7 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     }
     public void RemoveAll() {
         for (int i = 0; i < AcceptOperatorNums; i++) {
-            if (_operators[i] != null) {
-                _operators[i]!.Facility = null;
-                _operators[i] = null;
-            }
+            RemoveAt(i);
         }
     }
 
@@ -84,8 +89,10 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         return Operators.Order(new WorkingTimeComparer(this));
     }
     public void SetLevel(int level) {
-        if (level != Level) RemoveAll();
-        Level = level;
+        if (level != Level) {
+            RemoveAll();
+            Level = level;
+        }
     }
 
     public abstract double MoodConsumeModifier { get; }
@@ -144,8 +151,17 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
 
         writer.WritePropertyName("operators");
         writer.WriteStartArray();
-        foreach(var op in Operators) {
-            op.ToJson(writer, detailed);
+        for (int i = 0; i < AcceptOperatorNums; ++i) {
+            var op = _operators[i];
+            if (op != null) {
+                if (detailed) {
+                    writer.WriteItemValue(op, detailed);
+                } else {
+                    writer.WriteStringValue(op.Name);
+                }
+            } else {
+                writer.WriteNullValue();
+            }
         }
         writer.WriteEndArray();
 
@@ -159,6 +175,8 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         writer.WriteEndObject();
     }
     public static FacilityBase? FromJson(JsonElement elem, Simulator simu) {
+        if (elem.ValueKind == JsonValueKind.Null) return null;
+
         if (!elem.TryGetProperty("type", out var type)) {
             return null;
         }
@@ -181,9 +199,22 @@ internal abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
             fac.Level = level.GetInt32();
         }
         if (elem.TryGetProperty("operators", out var operators) && operators.ValueKind == JsonValueKind.Array) {
+            int i = -1;
             foreach (var op_elem in operators.EnumerateArray()) {
-                var name = op_elem.GetProperty("name").GetString();
-                fac.Assign(simu.GetOperator(name ?? string.Empty));
+                i += 1;
+                var name = op_elem.ValueKind switch {
+                    JsonValueKind.Object => op_elem.GetProperty("name").GetString(),
+                    JsonValueKind.String => op_elem.GetString(),
+                    _ => null
+                };
+                if (name == null) {
+                    continue;
+                }
+                var op = simu.GetOperator(name);
+                if (op.Facility != null) {
+                    throw new ApplicationException($"{name} 干员被指派到两个不同的设施");
+                }
+                fac.AssignAt(op, i);
             }
         }
         fac.ReadDerivedContent(elem);

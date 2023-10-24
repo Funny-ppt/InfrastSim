@@ -14,7 +14,7 @@ public static partial class Helper {
         }
     }
     public static string? GetVipName(this Simulator simu, int dormIndex) {
-        return simu.Dormitories[dormIndex]?.GetVip()?.Name;
+        return ((Dormitory?)simu.Dormitories[dormIndex])?.GetVip()?.Name;
     }
 
     static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + label[3] - '0' - 1;
@@ -115,7 +115,6 @@ public static partial class Helper {
                 if (_roomLabelRegex.IsMatch(fac)) {
                     var index = LabelToIndex(fac);
                     facility.RemoveAll();
-                    simu.ModifiableFacilities[index] = null;
                     simu.AllFacilities[9 + index] = null;
                     return;
                 }
@@ -166,7 +165,6 @@ public static partial class Helper {
             if (_roomLabelRegex.IsMatch(fac)) {
                 var index = LabelToIndex(fac);
                 facility = FacilityBase.FromJson(elem, simu);
-                simu.ModifiableFacilities[index] = facility;
                 simu.AllFacilities[index + 9] = facility;
             } else {
                 fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
@@ -174,7 +172,7 @@ public static partial class Helper {
                 var fac_name = match.Groups[1].Value;
                 if (fac_name == "dormitory") {
                     var index = int.Parse(match.Groups[2].Value.Trim()) - 1;
-                    simu.Dormitories[index] = FacilityBase.FromJson(elem, simu) as Dormitory;
+                    simu.AllFacilities[index + 5] = FacilityBase.FromJson(elem, simu);
                 }
             }
 

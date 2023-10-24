@@ -1,5 +1,4 @@
 using InfrastSim.Wasm;
-using System.Diagnostics;
 
 namespace InfrastSimTest {
     [TestClass]
@@ -48,6 +47,12 @@ namespace InfrastSimTest {
             SimulatorService.Simulate(id, 7200);
 
             ValidateData(id);
+
+            var data = SimulatorService.GetData(id);
+            var id2 = SimulatorService.CreateWithData(data);
+            var data2 = SimulatorService.GetData(id2);
+
+            Assert.AreEqual(data, data2);
         }
     }
 }

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
-internal class ManufacturingStation : FacilityBase, IApplyDrones {
+public class ManufacturingStation : FacilityBase, IApplyDrones {
     public override FacilityType Type => FacilityType.Manufacturing;
 
     public int BaseCapacity => Level switch {

@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace InfrastSim;
 
-internal record Order(int RequiredLevel, TimeSpan ProduceTime, Material Consumes, Material Earns) : IJsonSerializable {
+public record Order(int RequiredLevel, TimeSpan ProduceTime, Material Consumes, Material Earns) : IJsonSerializable {
     public readonly static Order[] Gold = {
         new(1, TimeSpan.FromMinutes(144), new Material("赤金", 2),  new Material("龙门币", 1000)),
         new(2, TimeSpan.FromMinutes(210), new Material("赤金", 3),  new Material("龙门币", 1500)),

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace InfrastSim; 
-internal enum FacilityType {
+public enum FacilityType {
     ControlCenter, // 控制中枢
     Manufacturing, // 制造站
     Trading, // 贸易站

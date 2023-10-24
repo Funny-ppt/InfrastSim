@@ -73,7 +73,9 @@ public class MowerHelper {
         newOrder["time_remain"] = (long)timeRemain;
         return newOrder;
     }
-    public static JsonObject RewriteOperator(JsonNode op) {
+    public static JsonObject? RewriteOperator(JsonNode? op) {
+        if (op == null) return null;
+
         var newop = new JsonObject {
             ["name"] = op["name"]!.DeepClone(),
             ["morale"] = op["mood"]!.DeepClone(),

@@ -1,5 +1,5 @@
 namespace InfrastSim; 
-internal class OrderPendingArgs {
+public class OrderPendingArgs {
     public OrderPendingArgs(Order order) {
         CurrentOrder = OriginOrder = order ?? throw new ArgumentNullException(nameof(order));
     }

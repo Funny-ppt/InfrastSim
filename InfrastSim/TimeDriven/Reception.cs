@@ -1,5 +1,5 @@
 namespace InfrastSim.TimeDriven;
-internal class Reception : FacilityBase {
+public class Reception : FacilityBase {
     public override FacilityType Type => FacilityType.Reception;
 
     public override int AcceptOperatorNums => 2;

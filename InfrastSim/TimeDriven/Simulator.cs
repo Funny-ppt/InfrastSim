@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -11,8 +12,8 @@ public class Simulator : ISimulator, IJsonSerializable {
         AllFacilities[2] = Reception = new();
         AllFacilities[3] = Training = new();
         AllFacilities[4] = Crafting = new();
-        for (int i = 0; i < 4; i++) {
-            AddDormitory(new Dormitory());
+        for (int i = 5; i < 9; i++) {
+            AllFacilities[i] = new Dormitory();
         }
 
         Operators = OperatorInstances.Operators.ToDictionary(kvp =>  kvp.Key, kvp => kvp.Value.Clone());
@@ -26,6 +27,7 @@ public class Simulator : ISimulator, IJsonSerializable {
             _materials.Add(prop.Name, prop.Value.GetInt32());
         }
 
+        Operators = new();
         foreach (var op_elem in elem.GetProperty("operators").EnumerateArray()) {
             var name = op_elem.GetProperty("name").GetString();
             Operators[name] = OperatorBase.FromJson(op_elem);
@@ -41,22 +43,19 @@ public class Simulator : ISimulator, IJsonSerializable {
         AllFacilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception"), this) as Reception;
         AllFacilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training"), this) as Training;
         AllFacilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting"), this) as Crafting;
-        int i = 0, j = 5;
+        int i = 5;
         foreach (var dormElem in elem.GetProperty("dormitories").EnumerateArray()) {
             var dorm = FacilityBase.FromJson(dormElem, this);
-            Dormitories[i++] = dorm as Dormitory;
-            AllFacilities[j++] = dorm;
+            AllFacilities[i++] = dorm;
         }
-        i = 0;
-        foreach (var facElem in elem.GetProperty("facilities").EnumerateArray()) {
+        foreach (var facElem in elem.GetProperty("modifiable-facilities").EnumerateArray()) {
             var fac = FacilityBase.FromJson(facElem, this);
-            ModifiableFacilities[i++] = fac;
-            AllFacilities[j++] = fac;
+            AllFacilities[i++] = fac;
         }
     }
 
     public DateTime Now { get; private set; }
-    ITimeDrivenObject _interestSource;
+    ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
     TimeSpan _minSpan = TimeSpan.FromSeconds(10);
     internal void SetInterest(ITimeDrivenObject o, TimeSpan span) {
@@ -112,42 +111,42 @@ public class Simulator : ISimulator, IJsonSerializable {
         return Operators.GetValueOrDefault(name) ?? throw new KeyNotFoundException($"未知的干员名称 {name}");
     }
 
-    internal ControlCenter ControlCenter { get; set; }
-    internal Office Office { get; set; }
-    internal Reception Reception { get; set; }
-    internal Training Training { get; set; }
-    internal Crafting Crafting { get; set; }
-    internal Dormitory?[] Dormitories = new Dormitory[4];
-    internal FacilityBase?[] ModifiableFacilities { get; } = new FacilityBase?[9];
+    public ControlCenter ControlCenter {
+        get => (ControlCenter)AllFacilities[0]!;
+        private set => AllFacilities[0] = value;
+    }
+    public Office Office {
+        get => (Office)AllFacilities[1]!;
+        private set => AllFacilities[1] = value;
+    }
+    public Reception Reception {
+        get => (Reception)AllFacilities[2]!;
+        private set => AllFacilities[3] = value;
+    }
+    public Training Training {
+        get => (Training)AllFacilities[3]!;
+        private set => AllFacilities[3] = value;
+    }
+    public Crafting Crafting {
+        get => (Crafting)AllFacilities[4]!;
+        private set => AllFacilities[4] = value;
+    }
+    public ArraySegment<FacilityBase?> Dormitories {
+        get => new(AllFacilities, 5, 4);
+    }
+    public ArraySegment<FacilityBase?> ModifiableFacilities {
+        get => new(AllFacilities, 9, 9);
+    }
     internal FacilityBase?[] AllFacilities { get; } = new FacilityBase?[18];
-    internal IEnumerable<PowerStation> PowerStations
-        => ModifiableFacilities.Select(fac => fac as PowerStation).Where(fac => fac != null);
-    internal IEnumerable<TradingStation> TradingStations
-        => ModifiableFacilities.Select(fac => fac as TradingStation).Where(fac => fac != null);
-    internal IEnumerable<ManufacturingStation> ManufacturingStation
-        => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
-    internal IEnumerable<OperatorBase> OperatorsInFacility => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
-    internal bool AddDormitory(Dormitory dorm) {
-        for (int i = 0; i < Dormitories.Length; ++i) {
-            if (Dormitories[i] == null) {
-                Dormitories[i] = dorm;
-                AllFacilities[5 + i] = dorm;
-                return true;
-            }
-        }
-        return false;
-    }
-    internal bool AddFacility(FacilityBase facility) {
-        for (int i = 0; i < ModifiableFacilities.Length; ++i) {
-            if (ModifiableFacilities[i] == null) {
-                ModifiableFacilities[i] = facility;
-                AllFacilities[9 + i] = facility;
-                return true;
-            }
-        }
-        return false;
-    }
 
+    public IEnumerable<PowerStation> PowerStations
+        => ModifiableFacilities.Select(fac => fac as PowerStation).Where(fac => fac != null);
+    public IEnumerable<TradingStation> TradingStations
+        => ModifiableFacilities.Select(fac => fac as TradingStation).Where(fac => fac != null);
+    public IEnumerable<ManufacturingStation> ManufacturingStations
+        => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
+    public IEnumerable<OperatorBase> OperatorsInFacility
+        => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
 
     public int TotalPowerConsume =>
         AllFacilities
@@ -175,6 +174,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
     public int Drones => (int)Math.Floor(_drones);
     public void AddDrones(double amount) => _drones = Math.Min(200, _drones + amount);
+
     internal void RemoveDrones(int amount) => _drones -= Math.Max(Drones, amount);
     internal void RemoveMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
@@ -188,6 +188,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     internal void AddMaterial(string name, int amount) {
         _materials[name] = _materials.GetValueOrDefault(name) + amount;
     }
+
     public AggregateValue GetGlobalValue(string name) {
         if (!_globalValues.ContainsKey(name)) {
             _globalValues.Add(name, new(min: 0.0));

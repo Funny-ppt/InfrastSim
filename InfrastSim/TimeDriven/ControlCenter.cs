@@ -1,5 +1,5 @@
 namespace InfrastSim.TimeDriven;
-internal class ControlCenter : FacilityBase {
+public class ControlCenter : FacilityBase {
     public override FacilityType Type => FacilityType.ControlCenter;
     public override int PowerConsumes => 0;
 

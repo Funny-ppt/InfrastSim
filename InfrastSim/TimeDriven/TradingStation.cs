@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
-internal class TradingStation : FacilityBase, IApplyDrones {
+public class TradingStation : FacilityBase, IApplyDrones {
     public override FacilityType Type => FacilityType.Trading;
     public int BaseCapacity => Level switch {
         1 => 6,

@@ -1,5 +1,5 @@
 namespace InfrastSim;
-internal class GoldOrderPendingArgs {
+public class GoldOrderPendingArgs {
     public GoldOrderPendingArgs(AggregateValue priority2Gold, AggregateValue priority3Gold, AggregateValue priority4Gold)
     {
         Priority2Gold = priority2Gold ?? throw new ArgumentNullException(nameof(priority2Gold));

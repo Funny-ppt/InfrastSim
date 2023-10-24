@@ -1,5 +1,5 @@
 namespace InfrastSim.TimeDriven;
-internal class Dormitory : FacilityBase {
+public class Dormitory : FacilityBase {
     public override FacilityType Type => FacilityType.Dormitory;
     public override int PowerConsumes => Level switch {
         1 => 10,

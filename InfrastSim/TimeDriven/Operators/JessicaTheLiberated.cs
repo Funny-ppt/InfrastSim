@@ -14,7 +14,7 @@ internal class JessicaTheLiberated : OperatorBase {
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired && Upgraded >= 2) {
             MoodConsumeRate.SetValue(Name, 0.5);
-            var ops = simu.ManufacturingStation.SelectMany(manufacturing => manufacturing.Operators);
+            var ops = simu.ManufacturingStations.SelectMany(manufacturing => manufacturing.Operators);
             foreach (var op in ops.Where(op => op.HasGroup("黑钢国际"))) {
                 op.EfficiencyModifier.SetValue(Name, 0.05);
             }

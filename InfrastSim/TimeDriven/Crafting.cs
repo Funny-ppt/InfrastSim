@@ -1,5 +1,5 @@
 namespace InfrastSim.TimeDriven;
-internal class Crafting : FacilityBase {
+public class Crafting : FacilityBase {
     public override FacilityType Type => FacilityType.Crafting;
     public override int PowerConsumes => Level switch {
         1 or 2 or 3 => 10,

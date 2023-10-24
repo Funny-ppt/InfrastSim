@@ -1,5 +1,5 @@
 namespace InfrastSim.TimeDriven;
-internal class Training : FacilityBase {
+public class Training : FacilityBase {
     public override FacilityType Type => FacilityType.Training;
 
     public override int AcceptOperatorNums => 1;
