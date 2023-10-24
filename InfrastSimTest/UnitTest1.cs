@@ -30,6 +30,11 @@ namespace InfrastSimTest {
                 "level": 2,
                 "operators": [{"name": "多萝西"}, {"name": "赫默"}] }
             """);
+            SimulatorService.SetFacilityState(id, "B103", """
+            {   "type": "Power",
+                "level": 3,
+                "operators": [{"name": "承曦格雷伊"}] }
+            """);
 
             ValidateData(id);
 

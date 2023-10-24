@@ -164,11 +164,8 @@ public class MowerHelper {
         var base_eff = fac["base-efficiency"]!.GetValue<double>() - 1;
         var newfac = new JsonObject {
             ["name"] = "发电站",
-            ["base_order_limit"] = fac["base-capacity"]!.DeepClone(),
-            ["order_limit"] = fac["capacity"]!.DeepClone(),
             ["base_drone_efficiency"] = base_eff,
             ["drone_efficiency"] = base_eff + fac["operators-efficiency"]!.GetValue<double>(),
-            ["order_chance"] = fac["order-chance"]!.DeepClone(),
             ["operators"] = ops
         };
         return newfac;
