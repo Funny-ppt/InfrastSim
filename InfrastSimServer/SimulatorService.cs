@@ -40,10 +40,11 @@ public class SimulatorService : IDisposable {
         writer.Flush();
     }
 
-    public void CreateWithData(HttpContext httpContext) {
+    public void CreateWithData(HttpContext httpContext, bool newRandom = true) {
         var doc = JsonDocument.Parse(httpContext.Request.Body);
         var id = Interlocked.Increment(ref _simuId);
         var simu = _simus[id] = new Simulator(doc.RootElement);
+        if (newRandom) simu.Random = new();
         _lastAccess[id] = DateTime.Now;
 
         httpContext.Response.ContentType = "application/json";

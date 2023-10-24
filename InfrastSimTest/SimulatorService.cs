@@ -26,10 +26,11 @@ public static class SimulatorService {
         return id;
     }
 
-    public static int CreateWithData(string json) {
+    public static int CreateWithData(string json, bool newRandom = false) {
         var doc = JsonDocument.Parse(json);
         var id = Interlocked.Increment(ref SimuId);
-        Simus[id] = new Simulator(doc.RootElement);
+        var simu = Simus[id] = new Simulator(doc.RootElement);
+        if (newRandom) simu.Random = new ();
         return id;
     }
 

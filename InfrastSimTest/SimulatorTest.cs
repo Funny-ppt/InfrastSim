@@ -1,4 +1,3 @@
-using InfrastSim.TimeDriven;
 using InfrastSim.Wasm;
 
 namespace InfrastSimTest {

@@ -25,11 +25,12 @@ public static class SimulatorService {
     }
 
     [UnmanagedCallersOnly(EntryPoint = "CreateSimulatorWithData")]
-    public static int CreateWithData(IntPtr pJson) {
+    public static int CreateWithData(IntPtr pJson, bool newRandom) {
         var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
         var doc = JsonDocument.Parse(json);
         var id = Interlocked.Increment(ref SimuId);
-        Simus[id] = new Simulator(doc.RootElement);
+        var simu = Simus[id] = new Simulator(doc.RootElement);
+        if (newRandom) simu.Random = new();
         return id;
     }
 

@@ -56,7 +56,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public DateTime Now { get; private set; }
-    public XoshiroRandom Random { get; private set; }
+    public XoshiroRandom Random { get; set; }
     ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
     TimeSpan _minSpan = TimeSpan.FromSeconds(10);
