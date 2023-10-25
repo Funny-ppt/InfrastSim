@@ -7,8 +7,16 @@ internal class Kirara : OperatorBase {
 
         if (Facility is TradingStation trading && !IsTired) {
             EfficiencyModifier.SetValue(Name, 0.05);
-            simu.ExtraGoldProductionLine.SetValue(
-                Name, simu.GetRealGoldProductionLine() / (Upgraded >= 2 ? 2 : 4) * 2);
+
+            if (trading.HasGroupMember("虚拟赤金线")) {
+                simu.Delay(simu => {
+                    simu.ExtraGoldProductionLine.SetValue(
+                        Name, simu.GetRealGoldProductionLine() / (Upgraded >= 2 ? 2 : 4) * 2);
+                });
+            } else {
+                simu.ExtraGoldProductionLine.SetValue(
+                    Name, simu.GetRealGoldProductionLine() / (Upgraded >= 2 ? 2 : 4) * 2);
+            }
         }
     }
 }

@@ -2,6 +2,9 @@ namespace InfrastSim.TimeDriven.Operators;
 
 internal class Позёмка : OperatorBase {
     public override string Name => "鸿雪";
+    static string[] _groups = { "虚拟赤金线" };
+    public override string[] Groups => _groups;
+
     public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 

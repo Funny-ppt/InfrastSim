@@ -37,11 +37,10 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public virtual void Reset() {
         MoodConsumeRate.Clear();
         EfficiencyModifier.Clear();
+        EfficiencyModifier.MaxValue = double.MaxValue;
     }
 
     public virtual void Resolve(Simulator simu) {
-        EfficiencyModifier.MaxValue = double.MaxValue;
-        //OnResolve?.Invoke(simu);
     }
 
     public virtual void QueryInterest(Simulator simu) {

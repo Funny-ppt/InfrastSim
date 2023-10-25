@@ -155,6 +155,8 @@ public class Simulator : ISimulator, IJsonSerializable {
         => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
     public IEnumerable<OperatorBase> OperatorsInFacility
         => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
+    public IEnumerable<OperatorBase> WorkingOperators
+    => AllFacilities.SelectMany(fac => fac?.WorkingOperators ?? Enumerable.Empty<OperatorBase>());
 
     public int TotalPowerConsume =>
         AllFacilities

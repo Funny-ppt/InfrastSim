@@ -8,19 +8,37 @@ internal static class Helper
     {
         return facility.Operators.Where(op => op.Name == opName).FirstOrDefault();
     }
+    /// <summary>
+    /// 适用于 xxx干员是否在xxx位置, 不考虑红脸
+    /// </summary>
+    public static bool IsOpInFacility(this Simulator simu, string name, FacilityType type) {
+        return simu.GetOperator(name).Facility?.Type == type;
+    }
+    /// <summary>
+    /// 适用于 基建中xxx组干员的数量, 考虑红脸
+    /// </summary>
     public static int GroupMemberCount(this Simulator simu, string group) {
-        return simu.OperatorsInFacility.Where(op => group.Contains(op.Name)).Count();
+        return simu.WorkingOperators.Where(op => group.Contains(op.Name)).Count();
     }
+    /// <summary>
+    /// 适用于 设施中xxx组干员, 考虑红脸
+    /// </summary>
     public static IEnumerable<OperatorBase> GroupMembers(this FacilityBase facility, string group) {
-        return facility.Operators.Where(op => op.Groups.Contains(group));
+        return facility.WorkingOperators.Where(op => op.Groups.Contains(group));
     }
+    /// <summary>
+    /// 适用于 设施中是否有xxx组干员, 考虑红脸
+    /// </summary>
     public static bool HasGroupMember(this FacilityBase facility, string group)
     {
         return facility.GroupMembers(group).Any();
     }
+    /// <summary>
+    /// 适用于 设施中xxx组干员的数量, 考虑红脸
+    /// </summary>
     public static int GroupMemberCount(this FacilityBase facility, string group)
     {
-        return facility.Operators.Where(op => op.Groups.Contains(group)).Count();
+        return facility.GroupMembers(group).Count();
     }
     public static int GetRealGoldProductionLine(this Simulator simu)
     {
