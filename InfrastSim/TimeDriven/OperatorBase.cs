@@ -18,6 +18,8 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     }
     static readonly int[] DefaultThreshold = new int[] { 0 };
     public virtual int[] Thresholds => DefaultThreshold;
+    static readonly TimeSpan[] DefaultWorkingTimeThreshold = Array.Empty<TimeSpan>();
+    public virtual TimeSpan[] WorkingTimeThresholds => DefaultWorkingTimeThreshold;
 
     public bool IsTired => Util.Equals(MinMood, Mood);
     public bool IsFullOfEnergy => Util.Equals(MaxMood, Mood);
@@ -55,6 +57,13 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
             } else {
                 if (MaxMood - Mood > Util.Epsilon) {
                     hours = (Mood - MaxMood) / MoodConsumeRate;
+                }
+            }
+            if (Facility is not Dormitory && !IsTired) {
+                foreach (var threshold in WorkingTimeThresholds) {
+                    if (threshold > WorkingTime) {
+                        hours = Math.Min(hours, (threshold - WorkingTime).TotalHours);
+                    }
                 }
             }
             simu.SetInterest(this, TimeSpan.FromHours(hours));

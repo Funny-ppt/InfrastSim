@@ -59,7 +59,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     public XoshiroRandom Random { get; set; }
     ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
-    TimeSpan _minSpan = TimeSpan.FromSeconds(10);
+    TimeSpan _minSpan = TimeSpan.FromSeconds(2);
     internal void SetInterest(ITimeDrivenObject o, TimeSpan span) {
         if (span < _nextInterest) {
             _interestSource = o;

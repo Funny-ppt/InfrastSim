@@ -41,14 +41,13 @@ public class Dormitory : FacilityBase {
 
     class VipPriorityComparer : IComparer<OperatorBase> {
         public int Compare(OperatorBase? x, OperatorBase? y) {
-            if (x.DormVipPriority != y.DormVipPriority) return y.DormVipPriority - x.DormVipPriority;
+            if (x.DormVipPriority != y.DormVipPriority) {
+                return y.DormVipPriority - x.DormVipPriority;
+            }
             if (x.Mood != y.Mood) {
                 return x.Mood - y.Mood < 0 ? -1 : 1;
             }
-            if (x.WorkingTime != y.WorkingTime) {
-                return x.WorkingTime < y.WorkingTime ? -1 : 1;
-            }
-            return x.Facility.IndexOf(x) - y.Facility.IndexOf(y);
+            return x.WorkingTime < y.WorkingTime ? -1 : 1;
         }
     }
     public override void Resolve(Simulator simu) {

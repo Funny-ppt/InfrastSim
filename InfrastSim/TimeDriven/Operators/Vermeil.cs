@@ -14,7 +14,8 @@ internal class Vermeil : OperatorBase {
                 if (op != null && op.Upgraded >= 1) return; // 泡泡优先生效
 
                 simu.Delay(simu => {
-                    EfficiencyModifier.SetValue(Name, 0.02 * (manufacturing.Capacity - manufacturing.BaseCapacity));
+                    var amount = 0.02 * (manufacturing.Capacity - manufacturing.BaseCapacity);
+                    EfficiencyModifier.SetValue(Name, Math.Max(0, amount));
                 });
             }
         }

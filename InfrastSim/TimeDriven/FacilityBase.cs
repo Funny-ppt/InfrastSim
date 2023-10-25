@@ -44,6 +44,9 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         }
         op.LeaveFacility();
         op.WorkingTime = TimeSpan.Zero;
+        foreach (var op1 in _operators) {
+            op1.WorkingTime += new TimeSpan(1);
+        }
         AssignAt(op, IndexOf(null));
 
         // 游戏中，菲亚会在入住瞬间结算技能。
@@ -79,21 +82,6 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         }
     }
 
-    class WorkingTimeComparer : IComparer<OperatorBase> {
-        FacilityBase fac;
-        public WorkingTimeComparer(FacilityBase fac) {
-            this.fac = fac;
-        }
-        public int Compare(OperatorBase? x, OperatorBase? y) {
-            if (x.WorkingTime != y.WorkingTime) {
-                return x.WorkingTime < y.WorkingTime ? -1 : 1;
-            }
-            return fac.IndexOf(x) > fac.IndexOf(y) ? -1 : 1;
-        }
-    }
-    public IEnumerable<OperatorBase> OrderByTime() {
-        return Operators.Order(new WorkingTimeComparer(this));
-    }
     public void SetLevel(int level) {
         if (level != Level) {
             RemoveAll();

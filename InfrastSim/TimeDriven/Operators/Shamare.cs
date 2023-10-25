@@ -20,7 +20,7 @@ internal class Shamare : OperatorBase {
                         op.MoodConsumeRate.SetValue(Name, 0.25);
                     }
                     EfficiencyModifier.SetValue(Name, (trading.Operators.Count() - 1) * 0.45);
-                });
+                }, 150);
             }
         }
     }

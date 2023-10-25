@@ -5,7 +5,7 @@ internal class Fiammetta : OperatorBase {
 
     public void TryExchange(Dormitory dorm) {
         if (IsFullOfEnergy) {
-            var arr = dorm.OrderByTime().ToArray();
+            var arr = dorm.Operators.OrderBy(op => op.WorkingTime).ToArray();
             var index = Array.IndexOf(arr, this);
             for (int i = index + 1; i < arr.Length; i++) {
                 var op = arr[i];
