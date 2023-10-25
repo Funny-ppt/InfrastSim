@@ -44,7 +44,7 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         }
         op.LeaveFacility();
         op.WorkingTime = TimeSpan.Zero;
-        foreach (var op1 in _operators) {
+        foreach (var op1 in Operators) {
             op1.WorkingTime += new TimeSpan(1);
         }
         AssignAt(op, IndexOf(null));
