@@ -1,6 +1,6 @@
 namespace InfrastSim.TimeDriven.Operators;
 internal class Muelsyse : OperatorBase {
-    public override string Name => "缪尔塞思";
+    public override string Name => "缪尔赛思";
     static string[] _groups = { "莱茵生命" };
     public override string[] Groups => _groups;
 
