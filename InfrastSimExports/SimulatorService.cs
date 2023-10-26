@@ -6,30 +6,33 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace InfrastSim.CDLL;
-public static class SimulatorService {
+public unsafe static class SimulatorService {
     private static int SimuId = 0;
-    private static ConcurrentDictionary<int, Simulator> Simus = new();
+    private static ConcurrentDictionary<int, SimContext> Simus = new();
 
     static Simulator GetSimulator(int id) {
-        if (!Simus.TryGetValue(id, out var simulator)) {
+        if (!Simus.TryGetValue(id, out var context)) {
             throw new KeyNotFoundException();
         }
-        return simulator;
+        return context.Simulator;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "CreateSimulator")]
     public static int Create() {
         var id = Interlocked.Increment(ref SimuId);
-        Simus[id] = new Simulator();
+        Simus[id] = new(id, new Simulator());
         return id;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "CreateSimulatorWithData")]
     public static int CreateWithData(IntPtr pJson, bool newRandom) {
+        // 长JSON输入还是没什么好办法，该传指针接着传
+
         var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
         var doc = JsonDocument.Parse(json);
         var id = Interlocked.Increment(ref SimuId);
-        var simu = Simus[id] = new Simulator(doc.RootElement);
+        var simu = new Simulator(doc.RootElement);
+        Simus[id] = new(id, simu);
         if (newRandom) simu.Random = new();
         return id;
     }
@@ -48,51 +51,34 @@ public static class SimulatorService {
         var simu = GetSimulator(id);
 
         simu.Resolve();
-        using var ms = new MemoryStream();
+        var ms = Simus[id].OutputStream;
+        ms.Position = 0;
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, detailed);
         writer.Flush();
         ms.WriteByte(0);
 
-        var ptr = Marshal.AllocHGlobal((int)ms.Length);
-        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
-        return ptr;
+        fixed (byte* ptr = ms.GetBuffer()) {
+            return new IntPtr(ptr);
+        }
     }
 
 
     [UnmanagedCallersOnly(EntryPoint = "Simulate")]
     public static void Simulate(int id, int seconds) {
-        if (!Simus.TryGetValue(id, out var simu)) {
-            return;
-        }
+        var simu = GetSimulator(id);
 
         simu.SimulateUntil(simu.Now + TimeSpan.FromSeconds(seconds));
     }
 
 
     [UnmanagedCallersOnly(EntryPoint = "SetFacilityState")]
-    public static void SetFacilityState(int id, IntPtr pFacility, IntPtr pJson) {
+    public static void SetFacilityState(int id, Facility facility, IntPtr pJson) {
         var simu = GetSimulator(id);
-        var fac = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
+
         var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
         var doc = JsonDocument.Parse(json);
-        simu.SetFacilityState(fac, doc.RootElement);
-    }
-
-
-    [UnmanagedCallersOnly(EntryPoint = "GetOperators")]
-    public static IntPtr GetOperators(int id) {
-        var simu = GetSimulator(id);
-        using var ms = new MemoryStream();
-        using var writer = new Utf8JsonWriter(ms);
-        writer.WriteOperators(simu);
-        writer.Flush();
-
-        ms.WriteByte(0);
-
-        var ptr = Marshal.AllocHGlobal((int)ms.Length);
-        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
-        return ptr;
+        simu.SetFacilityState(facility.ToString(), doc.RootElement);
     }
 
 
@@ -107,19 +93,38 @@ public static class SimulatorService {
         }
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "SetStrategy")]
+    public static void SetStrategy(int id, Facility facility, TradingStation.OrderStrategy strategy) {
+        var simu = GetSimulator(id);
+        var fac = simu.GetFacilityByIndex((int)facility);
+        if (fac is TradingStation trading) {
+            trading.Strategy = strategy;
+        } else {
+            throw new ArgumentException($"{facility} 对应的设施不是贸易站或未建造");
+        }
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "SetProduct")]
+    public static void SetProduct(int id, Facility facility, Product product) {
+        var simu = GetSimulator(id);
+        var fac = simu.GetFacilityByIndex((int)facility);
+        if (fac is ManufacturingStation manufacturing) {
+            // TODO
+        } else {
+            throw new ArgumentException($"{facility} 对应的设施不是制造站或未建造");
+        }
+    }
 
     [UnmanagedCallersOnly(EntryPoint = "RemoveOperator")]
-    public static void RemoveOperator(int id, IntPtr pFacility, int idx) {
+    public static void RemoveOperator(int id, Facility facility, int idx) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
-        simu.RemoveOperator(facility, idx);
+        simu.RemoveOperator(facility.ToString(), idx);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "RemoveOperators")]
-    public static void RemoveOperators(int id, IntPtr pFacility) {
+    public static void RemoveOperators(int id, Facility facility) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
-        simu.RemoveOperators(facility);
+        simu.RemoveOperators(facility.ToString());
     }
 
     [UnmanagedCallersOnly(EntryPoint = "CollectAll")]
@@ -129,18 +134,15 @@ public static class SimulatorService {
     }
 
     [UnmanagedCallersOnly(EntryPoint = "Collect")]
-    public static void Collect(int id, IntPtr pFacility, int idx = 0) {
+    public static void Collect(int id, Facility facility, int idx = 0) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
-        simu.Collect(facility, idx);
+        simu.Collect(facility.ToString(), idx);
     }
 
-
     [UnmanagedCallersOnly(EntryPoint = "UseDrones")]
-    public static int UseDrones(int id, IntPtr pFacility, int amount) {
+    public static int UseDrones(int id, Facility facility, int amount) {
         var simu = GetSimulator(id);
-        var facility = Marshal.PtrToStringUTF8(pFacility) ?? string.Empty;
-        return simu.UseDrones(facility, amount);
+        return simu.UseDrones(facility.ToString(), amount);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "Sanity")]
@@ -153,7 +155,8 @@ public static class SimulatorService {
     public static IntPtr GetDataForMower(int id) {
         var simu = GetSimulator(id);
         simu.Resolve();
-        using var ms = new MemoryStream();
+        var ms = Simus[id].OutputStream;
+        ms.Position = 0;
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, true);
         writer.Flush();
@@ -167,8 +170,8 @@ public static class SimulatorService {
         writer.Flush();
         ms.WriteByte(0);
 
-        var ptr = Marshal.AllocHGlobal((int)ms.Length);
-        Marshal.Copy(ms.GetBuffer(), 0, ptr, (int)ms.Length);
-        return ptr;
+        fixed (byte* ptr = ms.GetBuffer()) {
+            return new IntPtr(ptr);
+        }
     }
 }

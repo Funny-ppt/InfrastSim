@@ -1,11 +1,11 @@
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace InfrastSim.TimeDriven.WebHelper;
 public static partial class Helper {
+    public static FacilityBase? GetFacilityByIndex(this Simulator simu, int index) {
+        return simu.Facilities[index];
+    }
     public static void SetUpgraded(this Simulator simu, string name, int upgraded) {
         if (simu.Operators.TryGetValue(name, out var value)) {
             value.Upgraded = upgraded;
@@ -115,7 +115,7 @@ public static partial class Helper {
                 if (_roomLabelRegex.IsMatch(fac)) {
                     var index = LabelToIndex(fac);
                     facility.RemoveAll();
-                    simu.AllFacilities[9 + index] = null;
+                    simu.Facilities[9 + index] = null;
                     return;
                 }
             }
@@ -165,14 +165,14 @@ public static partial class Helper {
             if (_roomLabelRegex.IsMatch(fac)) {
                 var index = LabelToIndex(fac);
                 facility = FacilityBase.FromJson(elem, simu);
-                simu.AllFacilities[index + 9] = facility;
+                simu.Facilities[index + 9] = facility;
             } else {
                 fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
                 var match = _roomNameRegex.Match(fac);
                 var fac_name = match.Groups[1].Value;
                 if (fac_name == "dormitory") {
                     var index = int.Parse(match.Groups[2].Value.Trim()) - 1;
-                    simu.AllFacilities[index + 5] = FacilityBase.FromJson(elem, simu);
+                    simu.Facilities[index + 5] = FacilityBase.FromJson(elem, simu);
                 }
             }
 

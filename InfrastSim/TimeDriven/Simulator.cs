@@ -7,13 +7,13 @@ public class Simulator : ISimulator, IJsonSerializable {
     public Simulator() {
         Now = DateTime.UtcNow;
         Random = new XoshiroRandom();
-        AllFacilities[0] = ControlCenter = new();
-        AllFacilities[1] = Office = new();
-        AllFacilities[2] = Reception = new();
-        AllFacilities[3] = Training = new();
-        AllFacilities[4] = Crafting = new();
+        Facilities[0] = ControlCenter = new();
+        Facilities[1] = Office = new();
+        Facilities[2] = Reception = new();
+        Facilities[3] = Training = new();
+        Facilities[4] = Crafting = new();
         for (int i = 5; i < 9; i++) {
-            AllFacilities[i] = new Dormitory();
+            Facilities[i] = new Dormitory();
         }
 
         Operators = OperatorInstances.Operators.ToDictionary(kvp =>  kvp.Key, kvp => kvp.Value.Clone());
@@ -39,19 +39,19 @@ public class Simulator : ISimulator, IJsonSerializable {
             Operators[kvp.Key] = kvp.Value.Clone();
         }
 
-        AllFacilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center"), this) as ControlCenter;
-        AllFacilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office"), this) as Office;
-        AllFacilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception"), this) as Reception;
-        AllFacilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training"), this) as Training;
-        AllFacilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting"), this) as Crafting;
+        Facilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center"), this) as ControlCenter;
+        Facilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office"), this) as Office;
+        Facilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception"), this) as Reception;
+        Facilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training"), this) as Training;
+        Facilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting"), this) as Crafting;
         int i = 5;
         foreach (var dormElem in elem.GetProperty("dormitories").EnumerateArray()) {
             var dorm = FacilityBase.FromJson(dormElem, this);
-            AllFacilities[i++] = dorm;
+            Facilities[i++] = dorm;
         }
         foreach (var facElem in elem.GetProperty("modifiable-facilities").EnumerateArray()) {
             var fac = FacilityBase.FromJson(facElem, this);
-            AllFacilities[i++] = fac;
+            Facilities[i++] = fac;
         }
     }
 
@@ -70,10 +70,10 @@ public class Simulator : ISimulator, IJsonSerializable {
         foreach (var value in _globalValues.Values) {
             value.Clear();
         }
-        foreach (var facility in AllFacilities) {
+        foreach (var facility in Facilities) {
             facility?.Reset();
         }
-        foreach (var facility in AllFacilities) {
+        foreach (var facility in Facilities) {
             facility?.Resolve(this);
         }
         foreach (var actions in _delayActions.Values) {
@@ -82,13 +82,13 @@ public class Simulator : ISimulator, IJsonSerializable {
         _delayActions.Clear();
     }
     void QueryInterest() {
-        foreach (var facility in AllFacilities) {
+        foreach (var facility in Facilities) {
             facility?.QueryInterest(this);
         }
     }
     void SimulateImpl(TimeSpan span) {
         var info = new TimeElapsedInfo(Now, Now + span, span);
-        foreach (var facility in AllFacilities) {
+        foreach (var facility in Facilities) {
             facility?.Update(this, info);
         }
         AddDrones(DronesEfficiency * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
@@ -120,32 +120,32 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public ControlCenter ControlCenter {
-        get => (ControlCenter)AllFacilities[0]!;
-        private set => AllFacilities[0] = value;
+        get => (ControlCenter)Facilities[0]!;
+        private set => Facilities[0] = value;
     }
     public Office Office {
-        get => (Office)AllFacilities[1]!;
-        private set => AllFacilities[1] = value;
+        get => (Office)Facilities[1]!;
+        private set => Facilities[1] = value;
     }
     public Reception Reception {
-        get => (Reception)AllFacilities[2]!;
-        private set => AllFacilities[3] = value;
+        get => (Reception)Facilities[2]!;
+        private set => Facilities[3] = value;
     }
     public Training Training {
-        get => (Training)AllFacilities[3]!;
-        private set => AllFacilities[3] = value;
+        get => (Training)Facilities[3]!;
+        private set => Facilities[3] = value;
     }
     public Crafting Crafting {
-        get => (Crafting)AllFacilities[4]!;
-        private set => AllFacilities[4] = value;
+        get => (Crafting)Facilities[4]!;
+        private set => Facilities[4] = value;
     }
     public ArraySegment<FacilityBase?> Dormitories {
-        get => new(AllFacilities, 5, 4);
+        get => new(Facilities, 5, 4);
     }
     public ArraySegment<FacilityBase?> ModifiableFacilities {
-        get => new(AllFacilities, 9, 9);
+        get => new(Facilities, 9, 9);
     }
-    internal FacilityBase?[] AllFacilities { get; } = new FacilityBase?[18];
+    internal FacilityBase?[] Facilities { get; } = new FacilityBase?[18];
 
     public IEnumerable<PowerStation> PowerStations
         => ModifiableFacilities.Select(fac => fac as PowerStation).Where(fac => fac != null);
@@ -154,12 +154,12 @@ public class Simulator : ISimulator, IJsonSerializable {
     public IEnumerable<ManufacturingStation> ManufacturingStations
         => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
     public IEnumerable<OperatorBase> OperatorsInFacility
-        => AllFacilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
+        => Facilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
     public IEnumerable<OperatorBase> WorkingOperators
-    => AllFacilities.SelectMany(fac => fac?.WorkingOperators ?? Enumerable.Empty<OperatorBase>());
+    => Facilities.SelectMany(fac => fac?.WorkingOperators ?? Enumerable.Empty<OperatorBase>());
 
     public int TotalPowerConsume =>
-        AllFacilities
+        Facilities
         .Where(fac => fac != null && fac is not PowerStation)
         .Sum(fac => fac!.PowerConsumes);
 
