@@ -47,6 +47,7 @@ public static class SimulatorService {
     public static string GetData(int id, bool detailed = true) {
         var simu = GetSimulator(id);
 
+        simu.EnsurePropExists();
         simu.Resolve();
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);

@@ -91,7 +91,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         foreach (var facility in AllFacilities) {
             facility?.Update(this, info);
         }
-        AddDrones((1 + GlobalDronesEffiency) * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
+        AddDrones(DronesEfficiency * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
         Now += span;
     }
     public void SimulateUntil(DateTime dateTime) {
@@ -168,7 +168,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         .Where(fac => fac is PowerStation)
         .Sum(fac => -fac!.PowerConsumes);
     public double NextDroneTimeInSeconds =>
-        (Math.Ceiling(_drones) - _drones) * 360 / (1 + GlobalDronesEffiency);
+        (Math.Ceiling(_drones) - _drones) * 360 / DronesEfficiency;
 
     double _drones;
     Dictionary<string, int> _materials = new();
@@ -218,7 +218,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     public AggregateValue ExtraPowerStation => GetGlobalValue("虚拟发电站");
     public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
     public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
-    public AggregateValue GlobalDronesEffiency => GetGlobalValue(nameof(GlobalDronesEffiency));
+    public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
 
     public string ToJson(bool detailed = false) {
         using var ms = new MemoryStream();
@@ -234,6 +234,9 @@ public class Simulator : ISimulator, IJsonSerializable {
         writer.WritePropertyName("random");
         Random.ToJson(writer);
         writer.WriteNumber("drones", _drones);
+        if (detailed) {
+            writer.WriteNumber("drones-efficiency", DronesEfficiency);
+        }
 
         writer.WritePropertyName("operators");
         writer.WriteStartArray();
@@ -278,25 +281,24 @@ public class Simulator : ISimulator, IJsonSerializable {
         writer.WriteEndArray();
 
         if (detailed) {
-            writer.WritePropertyName("materials");
-            writer.WriteStartArray();
-            foreach (var mat in _materials) {
-                writer.WriteStartObject();
-                writer.WriteString("name", mat.Key);
-                writer.WriteNumber("amount", mat.Value);
-                writer.WriteEndObject();
-            }
-            writer.WriteEndArray();
-
-
             writer.WritePropertyName("global-props");
-            writer.WriteStartArray();
-            foreach (var prop in _globalValues.Values) {
-                writer.WriteItemValue(prop, detailed);
+            writer.WriteStartObject();
+            foreach (var prop in _globalValues) {
+                writer.WriteItem(prop.Key, prop.Value, detailed);
             }
-            writer.WriteEndArray();
+            writer.WriteEndObject();
         }
 
         writer.WriteEndObject();
+    }
+
+    /// <summary>
+    /// 该方法仅供测试使用：
+    /// 如果没有干员访问这两个属性，在Resolve中就不会产生，但Update中制造站和贸易站始终会访问这两个值，
+    /// 进而导致出现默认的值，使得序列化、反序列化结果不一致（尽管没有任何影响）
+    /// </summary>
+    public void EnsurePropExists() {
+        var p1 = GlobalManufacturingEffiency;
+        var p2 = GlobalTradingEffiency;
     }
 }
