@@ -11,13 +11,13 @@ internal class Almond : OperatorBase {
             MoodConsumeRate.SetValue(Name, 0.25);
             if (manufacturing.Product == Product.Gold) {
                 EfficiencyModifier.SetValue(Name, 0.25);
-            }
 
-            if (Upgraded >= 2) {
-                var count = simu.OperatorsInFacility.Where(op => op.Groups.Contains("黑钢国际")).Count();
-                count = Math.Min(count, 3);
-                EfficiencyModifier.AddValue(Name, count * 0.02);
-                MoodConsumeRate.AddValue(Name, count * -0.15);
+                if (Upgraded >= 2) {
+                    var count = simu.GroupMemberCount("黑钢国际");
+                    count = Math.Min(count, 3);
+                    EfficiencyModifier.AddValue(Name, count * 0.02);
+                    MoodConsumeRate.AddValue(Name, count * -0.15);
+                }
             }
         }
     }
