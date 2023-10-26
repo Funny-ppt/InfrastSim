@@ -277,6 +277,26 @@ public class Simulator : ISimulator, IJsonSerializable {
         }
         writer.WriteEndArray();
 
+        if (detailed) {
+            writer.WritePropertyName("materials");
+            writer.WriteStartArray();
+            foreach (var mat in _materials) {
+                writer.WriteStartObject();
+                writer.WriteString("name", mat.Key);
+                writer.WriteNumber("amount", mat.Value);
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+
+
+            writer.WritePropertyName("global-props");
+            writer.WriteStartArray();
+            foreach (var prop in _globalValues.Values) {
+                writer.WriteItemValue(prop, detailed);
+            }
+            writer.WriteEndArray();
+        }
+
         writer.WriteEndObject();
     }
 }
