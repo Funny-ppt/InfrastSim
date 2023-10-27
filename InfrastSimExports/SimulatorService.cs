@@ -93,6 +93,14 @@ public unsafe static class SimulatorService {
         }
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "SetLevel")]
+    public static void SetLevel(int id, Facility facility, int level) {
+        var simu = GetSimulator(id);
+        var fac = simu.GetFacilityByIndex((int)facility)
+            ?? throw new ArgumentException($"{facility} 对应的设施未建造");
+        fac.SetLevel(level);
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "SetStrategy")]
     public static void SetStrategy(int id, Facility facility, TradingStation.OrderStrategy strategy) {
         var simu = GetSimulator(id);
@@ -109,7 +117,7 @@ public unsafe static class SimulatorService {
         var simu = GetSimulator(id);
         var fac = simu.GetFacilityByIndex((int)facility);
         if (fac is ManufacturingStation manufacturing) {
-            // TODO
+            manufacturing.ChangeProduct(InfrastSim.Product.AllProducts[(int)product]);
         } else {
             throw new ArgumentException($"{facility} 对应的设施不是制造站或未建造");
         }
