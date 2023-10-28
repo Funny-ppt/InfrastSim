@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace InfrastSim.CDLL;
-public unsafe static class SimulatorService {
+public static class SimulatorService {
     private static int SimuId = 0;
     private static ConcurrentDictionary<int, SimContext> Simus = new();
 
@@ -15,6 +15,12 @@ public unsafe static class SimulatorService {
             throw new KeyNotFoundException();
         }
         return context.Simulator;
+    }
+    static SimContext GetContext(int id) {
+        if (!Simus.TryGetValue(id, out var context)) {
+            throw new KeyNotFoundException();
+        }
+        return context;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "CreateSimulator")]
@@ -48,19 +54,18 @@ public unsafe static class SimulatorService {
 
     [UnmanagedCallersOnly(EntryPoint = "GetData")]
     public static IntPtr GetData(int id, bool detailed = true) {
-        var simu = GetSimulator(id);
-
+        var context = GetContext(id);
+        var simu = context.Simulator;
         simu.Resolve();
-        var ms = Simus[id].OutputStream;
+
+        var ms = context.OutputStream;
         ms.Position = 0;
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, detailed);
         writer.Flush();
         ms.WriteByte(0);
 
-        fixed (byte* ptr = ms.GetBuffer()) {
-            return new IntPtr(ptr);
-        }
+        return context.GetBuffer();
     }
 
 
@@ -161,9 +166,11 @@ public unsafe static class SimulatorService {
 
     [UnmanagedCallersOnly(EntryPoint = "GetDataForMower")]
     public static IntPtr GetDataForMower(int id) {
-        var simu = GetSimulator(id);
+        var context = GetContext(id);
+        var simu = context.Simulator;
         simu.Resolve();
-        var ms = Simus[id].OutputStream;
+
+        var ms = context.OutputStream;
         ms.Position = 0;
         using var writer = new Utf8JsonWriter(ms);
         writer.WriteItemValue(simu, true);
@@ -178,8 +185,6 @@ public unsafe static class SimulatorService {
         writer.Flush();
         ms.WriteByte(0);
 
-        fixed (byte* ptr = ms.GetBuffer()) {
-            return new IntPtr(ptr);
-        }
+        return context.GetBuffer();
     }
 }
