@@ -11,8 +11,12 @@ internal class Ling : OperatorBase {
 
         if (Facility is ControlCenter center && !IsTired) {
             simu.Delay(simu => {
-                foreach (var op in center.Operators) {
-                    op.MoodConsumeRate.Remove("岁");
+                var names = center.Operators.Select(op => op.Name);
+                foreach (var op in center.GroupMembers("岁")) {
+                    foreach (var name in names) {
+                        op.MoodConsumeRate.Disable(op.Name);
+                    }
+                    op.MoodConsumeRate.Disable("control-center-extra");
                 }
             });
 

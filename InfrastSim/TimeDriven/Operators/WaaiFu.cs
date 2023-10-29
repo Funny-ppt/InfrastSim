@@ -8,9 +8,10 @@ internal class WaaiFu : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             simu.Delay(simu => {
+                var names = manufacturing.Operators.Select(op => op.Name);
                 foreach (var op in manufacturing.Operators) {
-                    foreach (var name in manufacturing.Operators.Select(op => op.Name)) {
-                        op.MoodConsumeRate.Remove(op.Name);
+                    foreach (var name in names) {
+                        op.MoodConsumeRate.Disable(op.Name);
                     }
                     if (Upgraded >= 2) {
                         EfficiencyModifier.AddValue(Name, Math.Max(0, Util.Align(op.EfficiencyModifier, 0.05)));

@@ -11,7 +11,7 @@ internal class Dusk : OperatorBase {
 
         if (Facility is ControlCenter center && !IsTired) {
             center.ExtraMoodModifier.SetValue(Name, -0.05);
-            MoodConsumeRate.SetValue("岁", 0.5);
+            MoodConsumeRate.SetValue(Name, 0.5);
 
             if (Mood >= 12) {
                 simu.Ganzhixinxi.SetValue(Name, 10);
