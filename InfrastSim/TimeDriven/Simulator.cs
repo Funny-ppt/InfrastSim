@@ -23,6 +23,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         Now = elem.GetProperty("time").GetDateTime();
         Random = new XoshiroRandom(elem.GetProperty("random"));
         _drones = elem.GetProperty("drones").GetDouble();
+        _refresh = elem.GetProperty("refresh").GetDouble();
 
         foreach (var prop in elem.GetProperty("materials").EnumerateObject()) {
             _materials.Add(prop.Name, prop.Value.GetInt32());
@@ -92,6 +93,7 @@ public class Simulator : ISimulator, IJsonSerializable {
             facility?.Update(this, info);
         }
         AddDrones(DronesEfficiency * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
+        _refresh += OfficeEfficiency * (info.TimeElapsed / TimeSpan.FromHours(12));
         Now += span;
     }
     public void SimulateUntil(DateTime dateTime) {
@@ -171,6 +173,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         (Math.Ceiling(_drones) - _drones) * 360 / DronesEfficiency;
 
     double _drones;
+    double _refresh;
     Dictionary<string, int> _materials = new();
     Dictionary<string, AggregateValue> _globalValues = new();
     SortedDictionary<int, Action<Simulator>> _delayActions = new();
@@ -214,11 +217,15 @@ public class Simulator : ISimulator, IJsonSerializable {
     public AggregateValue Wushenggongming => GetGlobalValue("无声共鸣");
     public AggregateValue Siweilianhuan => GetGlobalValue("思维链环");
     public AggregateValue Gongchengjiqiren => GetGlobalValue("工程机器人");
+    public AggregateValue Jiyisuipian => GetGlobalValue("记忆碎片");
+    public AggregateValue Mengjing => GetGlobalValue("梦境");
+    public AggregateValue Xiaojie => GetGlobalValue("小节");
     public AggregateValue ExtraGoldProductionLine => GetGlobalValue("虚拟赤金线");
     public AggregateValue ExtraPowerStation => GetGlobalValue("虚拟发电站");
     public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
     public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
     public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
+    public double OfficeEfficiency => 1 + Office.TotalEffiencyModifier;
 
     public string ToJson(bool detailed = false) {
         using var ms = new MemoryStream();
@@ -236,6 +243,10 @@ public class Simulator : ISimulator, IJsonSerializable {
         writer.WriteNumber("drones", _drones);
         if (detailed) {
             writer.WriteNumber("drones-efficiency", DronesEfficiency);
+        }
+        writer.WriteNumber("refresh", _refresh);
+        if (detailed) {
+            writer.WriteNumber("office-efficiency", OfficeEfficiency);
         }
 
         writer.WritePropertyName("operators");
