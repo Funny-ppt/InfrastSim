@@ -1,3 +1,4 @@
+using InfrastSim.TimeDriven.Operators;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -6,7 +7,9 @@ namespace InfrastSim.TimeDriven;
 public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public abstract string Name { get; }
     public virtual string[] Groups => Array.Empty<string>();
-    public bool HasGroup(string group) => Groups.Contains(group);
+    public bool HasGroup(string group) =>
+           Groups.Contains(group)
+        || OperatorGroups.Groups.GetValueOrDefault(group)?.Contains(Name) == true;
     public FacilityBase? Facility { get; internal set; } = null;
 
     const double MinMood = 0.0;

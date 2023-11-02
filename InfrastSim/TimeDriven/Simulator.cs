@@ -1,4 +1,5 @@
 using RandomEx;
+using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json;
 
@@ -16,7 +17,7 @@ public class Simulator : ISimulator, IJsonSerializable {
             Facilities[i] = new Dormitory();
         }
 
-        Operators = OperatorInstances.Operators.ToDictionary(kvp =>  kvp.Key, kvp => kvp.Value.Clone());
+        Operators = OperatorInstances.Operators.ToFrozenDictionary(kvp => kvp.Key, kvp => kvp.Value.Clone());
     }
 
     public Simulator(JsonElement elem) {
@@ -29,16 +30,17 @@ public class Simulator : ISimulator, IJsonSerializable {
             _materials.Add(prop.Name, prop.Value.GetInt32());
         }
 
-        Operators = new();
+        var operators = new Dictionary<string, OperatorBase>();
         foreach (var op_elem in elem.GetProperty("operators").EnumerateArray()) {
             var name = op_elem.GetProperty("name").GetString();
-            Operators[name] = OperatorBase.FromJson(op_elem);
+            operators[name] = OperatorBase.FromJson(op_elem);
         }
         var newops = OperatorInstances.Operators
-            .ExceptBy(Operators.Keys, kvp => kvp.Key);
+            .ExceptBy(operators.Keys, kvp => kvp.Key);
         foreach (var kvp in newops) {
-            Operators[kvp.Key] = kvp.Value.Clone();
+            operators[kvp.Key] = kvp.Value.Clone();
         }
+        Operators = operators.ToFrozenDictionary();
 
         Facilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center"), this) as ControlCenter;
         Facilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office"), this) as Office;
@@ -113,7 +115,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         }
     }
 
-    internal Dictionary<string, OperatorBase> Operators;
+    internal FrozenDictionary<string, OperatorBase> Operators;
     internal OperatorBase GetOperator(string name) {
         return Operators.GetValueOrDefault(name) ?? throw new KeyNotFoundException($"未知的干员名称 {name}");
     }
