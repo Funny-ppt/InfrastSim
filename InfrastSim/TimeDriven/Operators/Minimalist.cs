@@ -12,7 +12,7 @@ internal class Minimalist : OperatorBase {
             var amount = simu.Facilities.Sum(fac => fac?.Level ?? 0);
             simu.Gongchengjiqiren.SetValue(Name, Math.Min(64, amount));
 
-            EfficiencyModifier.SetValue(Name, Util.Align(simu.Gongchengjiqiren, Upgraded >= 2 ? 8 : 16));
+            EfficiencyModifier.SetValue(Name, (int)simu.Gongchengjiqiren / (Upgraded >= 2 ? 8 : 16) * 0.05);
         }
     }
 }
