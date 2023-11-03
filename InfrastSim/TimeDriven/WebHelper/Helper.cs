@@ -33,6 +33,7 @@ public static partial class Helper {
             return simu.Dormitories[index];
         } else {
             return fac_name switch {
+                "controlcenter" => simu.ControlCenter,
                 "control center" => simu.ControlCenter,
                 "reception" => simu.Reception,
                 "crafting" => simu.Crafting,
