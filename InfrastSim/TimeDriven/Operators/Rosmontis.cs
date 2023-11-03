@@ -10,7 +10,7 @@ internal class Rosmontis : OperatorBase {
             simu.Ganzhixinxi.SetValue(Name, sum);
 
             simu.Delay(simu => {
-                simu.Wushenggongming.SetValue(Name, simu.Siweilianhuan);
+                simu.Siweilianhuan.SetValue(Name, simu.Ganzhixinxi);
             }, Priority.PropConversion);
 
             simu.Delay(simu => {

@@ -213,6 +213,8 @@ public class Simulator : ISimulator, IJsonSerializable {
 
     public IEnumerable<(string, double)> GlobalValues
         => _globalValues.Select(kvp => (kvp.Key, (double)kvp.Value));
+
+    #region 全局参数
     public AggregateValue SilverVine => GetGlobalValue("木天蓼");
     public AggregateValue Renjianyanhuo => GetGlobalValue("人间烟火");
     public AggregateValue Ganzhixinxi => GetGlobalValue("感知信息");
@@ -224,10 +226,14 @@ public class Simulator : ISimulator, IJsonSerializable {
     public AggregateValue Xiaojie => GetGlobalValue("小节");
     public AggregateValue ExtraGoldProductionLine => GetGlobalValue("虚拟赤金线");
     public AggregateValue ExtraPowerStation => GetGlobalValue("虚拟发电站");
+    #endregion
+
+    #region 全局效率
     public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
     public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
     public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
     public double OfficeEfficiency => 1 + Office.TotalEffiencyModifier;
+    #endregion
 
     public string ToJson(bool detailed = false) {
         using var ms = new MemoryStream();
