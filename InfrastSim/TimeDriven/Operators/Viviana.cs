@@ -2,8 +2,6 @@ namespace InfrastSim.TimeDriven.Operators;
 
 internal class Viviana : OperatorBase {
     public override string Name => "薇薇安娜";
-    static string[] _groups = { "骑士" };
-    public override string[] Groups => _groups;
 
     public override void Resolve(Simulator simu) {
         base.Resolve(simu);

@@ -30,8 +30,9 @@ namespace RandomEx {
 
         public unsafe XoshiroRandom() {
             ulong* ptr = stackalloc ulong[4];
+            var span = new Span<byte>(ptr, 4 * sizeof(ulong));
             do {
-                RandomNumberGenerator.Fill(new Span<byte>(ptr, 4 * sizeof(ulong)));
+                RandomNumberGenerator.Fill(span);
                 _s0 = ptr[0];
                 _s1 = ptr[1];
                 _s2 = ptr[2];
