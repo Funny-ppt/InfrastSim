@@ -1,7 +1,7 @@
 namespace InfrastSim.TimeDriven.Operators;
 
 internal class Ashlock : OperatorBase {
-    public override string Name => "灰豪";
+    public override string Name => "灰毫";
     static string[] _groups = { "红松骑士团" };
     public override string[] Groups => _groups;
 
