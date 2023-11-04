@@ -89,6 +89,14 @@ public static class EnumerateHelper {
         Clear();
         return;
     }
+
+    class Comparer : IComparer<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> {
+        public int Compare((OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) x, (OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) y) {
+            double x_score = x.eff.GetScore(), y_score = y.eff.GetScore();
+            if (!Util.Equals(x_score, y_score)) return x_score - y_score < 0 ? -1 : 1;
+            return x.extra_eff.GetScore() / x.comb.Length - y.extra_eff.GetScore() / y.comb.Length < 0 ? -1 : 1;
+        }
+    }
     static IOrderedEnumerable<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> EnumerateImpl(JsonDocument json) {
         var root = json.RootElement;
         var preset = root.GetProperty("preset");
@@ -113,7 +121,7 @@ public static class EnumerateHelper {
             Parallel.ForEach(enumerable, () => InitSimulator(preset), Proc, simu => { });
         }
 
-        return Results.OrderByDescending((v) => v.extra_eff.GetScore() / v.comb.Length);
+        return Results.OrderDescending(new Comparer());
     }
     static Simulator InitSimulator(JsonElement elem) {
         var simu = new Simulator();

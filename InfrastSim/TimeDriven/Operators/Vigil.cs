@@ -9,7 +9,7 @@ internal class Vigil : OperatorBase {
         // TODO: missing skill 1
 
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 2) {
-            EfficiencyModifier.SetValue(Name, 0.25 + simu.Reception.Level);
+            EfficiencyModifier.SetValue(Name, 0.25 + simu.Reception.Level * 0.05);
         }
     }
 }
