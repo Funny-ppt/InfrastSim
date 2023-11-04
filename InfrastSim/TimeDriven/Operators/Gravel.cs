@@ -10,7 +10,7 @@ internal class Gravel : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceGold()) {
-                EfficiencyModifier.SetValue(0.35);
+                EfficiencyModifier.SetValue(Name, 0.35);
             }
         }
     }
