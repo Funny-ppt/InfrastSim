@@ -11,10 +11,12 @@ public static class EnumerateHelper {
 
     static EnumerateHelper() {
         TestOp = new TestOp();
-        Options = new JsonSerializerOptions();
+        Options = new JsonSerializerOptions {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        };
+        Options.TypeInfoResolverChain.Add(SourceGenerationContext.Default);
         SingleEfficiency = new Dictionary<string, Efficiency>();
         Results = new ConcurrentBag<(OpEnumData[] comb, Efficiency eff)>();
-        Options.TypeInfoResolverChain.Add(SourceGenerationContext.Default);
     }
 
     static void Clear() {
