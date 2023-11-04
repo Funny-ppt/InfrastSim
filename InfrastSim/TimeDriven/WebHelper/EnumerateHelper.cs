@@ -6,7 +6,7 @@ public static class EnumerateHelper {
     static readonly OperatorBase TestOp;
     static readonly JsonSerializerOptions Options;
     static readonly Dictionary<string, Efficiency> SingleEfficiency;
-    static readonly ConcurrentBag<(OpEnumData[] comb, Efficiency eff)> Results;
+    static readonly ConcurrentBag<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> Results;
     static Efficiency Baseline;
 
     static EnumerateHelper() {
@@ -16,7 +16,7 @@ public static class EnumerateHelper {
         };
         Options.TypeInfoResolverChain.Add(SourceGenerationContext.Default);
         SingleEfficiency = new Dictionary<string, Efficiency>();
-        Results = new ConcurrentBag<(OpEnumData[] comb, Efficiency eff)>();
+        Results = new ConcurrentBag<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)>();
     }
 
     static void Clear() {
@@ -35,9 +35,9 @@ public static class EnumerateHelper {
         var power_eff = eff.PowerEff;
         foreach (var data in comb) {
             var single_eff = SingleEfficiency[data.Name];
-            manu_eff += single_eff.ManuEff;
-            trad_eff += single_eff.TradEff;
-            power_eff += single_eff.PowerEff;
+            manu_eff -= single_eff.ManuEff;
+            trad_eff -= single_eff.TradEff;
+            power_eff -= single_eff.PowerEff;
         }
         if (manu_eff < 0 || trad_eff < 0 || power_eff < 0) {
             return simu;
@@ -45,10 +45,10 @@ public static class EnumerateHelper {
         if (manu_eff == 0 && trad_eff == 0 && power_eff == 0) {
             return simu;
         }
-        Results.Add((comb, new Efficiency(manu_eff, trad_eff, power_eff)));
+        Results.Add((comb, eff, new Efficiency(trad_eff, manu_eff, power_eff)));
         return simu;
     }
-    public static List<(OpEnumData[] comb, Efficiency eff)> Enumerate(JsonDocument json) {
+    public static List<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> Enumerate(JsonDocument json) {
         Clear();
         var result = EnumerateImpl(json).ToList();
         Clear();
@@ -58,7 +58,7 @@ public static class EnumerateHelper {
         Clear();
         var result = EnumerateImpl(json);
         writer.WriteStartArray();
-        foreach (var (comb, eff) in result) {
+        foreach (var (comb, eff, extra_eff) in result) {
             writer.WriteStartObject();
               writer.WritePropertyName("comb");
               writer.WriteRawValue(JsonSerializer.Serialize(comb, Options));
@@ -76,6 +76,12 @@ public static class EnumerateHelper {
                 writer.WriteNumber("trad_eff", eff.TradEff);
                 writer.WriteNumber("power_eff", eff.PowerEff);
               writer.WriteEndObject();
+              writer.WritePropertyName("extra_eff");
+              writer.WriteStartObject();
+                writer.WriteNumber("manu_eff", extra_eff.ManuEff);
+                writer.WriteNumber("trad_eff", extra_eff.TradEff);
+                writer.WriteNumber("power_eff", extra_eff.PowerEff);
+              writer.WriteEndObject();
             writer.WriteEndObject();
         }
         writer.WriteEndArray();
@@ -83,7 +89,7 @@ public static class EnumerateHelper {
         Clear();
         return;
     }
-    static IOrderedEnumerable<(OpEnumData[] comb, Efficiency eff)> EnumerateImpl(JsonDocument json) {
+    static IOrderedEnumerable<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> EnumerateImpl(JsonDocument json) {
         var root = json.RootElement;
         var preset = root.GetProperty("preset");
         var simu = InitSimulator(preset);
@@ -93,7 +99,12 @@ public static class EnumerateHelper {
         foreach (var data in ops) {
             SingleEfficiency[data.Name] = TestSingle(simu, data);
         }
-        for (int i = 2; i <= ops.Length; i++) {
+
+        var max_size = ops.Length;
+        if (root.TryGetProperty("max_size", out var max_size_elem)) {
+            max_size = Math.Min(max_size, root.GetProperty("max_size").GetInt32());
+        }
+        for (int i = 2; i <= max_size; i++) {
             var combs = new Combination<OpEnumData>(ops, i);
             var enumerable = combs
                 .ToEnumerable()
@@ -102,7 +113,7 @@ public static class EnumerateHelper {
             Parallel.ForEach(enumerable, () => InitSimulator(preset), Proc, simu => { });
         }
 
-        return Results.OrderByDescending((v) => v.eff.GetScore() / v.comb.Length);
+        return Results.OrderByDescending((v) => v.extra_eff.GetScore() / v.comb.Length);
     }
     static Simulator InitSimulator(JsonElement elem) {
         var simu = new Simulator();
