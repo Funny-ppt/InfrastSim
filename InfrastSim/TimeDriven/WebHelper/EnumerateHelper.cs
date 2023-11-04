@@ -34,7 +34,7 @@ public static class EnumerateHelper {
         var trad_eff = eff.TradEff;
         var power_eff = eff.PowerEff;
         foreach (var data in comb) {
-            var single_eff = SingleEfficiency[data.Name];
+            var single_eff = SingleEfficiency[$"{data.Name}_{data.Fac}"];
             manu_eff -= single_eff.ManuEff;
             trad_eff -= single_eff.TradEff;
             power_eff -= single_eff.PowerEff;
@@ -97,7 +97,7 @@ public static class EnumerateHelper {
 
         var ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(Options);
         foreach (var data in ops) {
-            SingleEfficiency[data.Name] = TestSingle(simu, data);
+            SingleEfficiency[$"{data.Name}_{data.Fac}"] = TestSingle(simu, data);
         }
 
         var max_size = ops.Length;
