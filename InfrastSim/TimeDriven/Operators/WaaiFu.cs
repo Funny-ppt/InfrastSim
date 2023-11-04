@@ -10,6 +10,8 @@ internal class WaaiFu : OperatorBase {
             simu.Delay(simu => {
                 var names = manufacturing.Operators.Select(op => op.Name);
                 foreach (var op in manufacturing.Operators) {
+                    if (op == this) return;
+
                     foreach (var name in names) {
                         op.MoodConsumeRate.Disable(op.Name);
                     }
