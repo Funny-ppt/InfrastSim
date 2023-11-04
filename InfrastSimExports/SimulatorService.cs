@@ -197,6 +197,7 @@ public static class SimulatorService {
         var doc = JsonDocument.Parse(json);
 
         EnumerateHelper.Enumerate(doc, writer);
+        EnumerateSharedMS.WriteByte(0);
 
         if (EnumerateSharedGCHandle.IsAllocated) {
             EnumerateSharedGCHandle.Free();

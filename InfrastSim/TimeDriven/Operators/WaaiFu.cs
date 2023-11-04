@@ -20,7 +20,7 @@ internal class WaaiFu : OperatorBase {
                     }
                 }
                 EfficiencyModifier.SetIfLesser(Name, 0.4);
-            });
+            }, 120);
         }
     }
 }
