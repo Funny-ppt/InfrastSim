@@ -187,4 +187,24 @@ public static class SimulatorService {
 
         return context.GetBuffer();
     }
+
+    static MemoryStream EnumerateSharedMS = new();
+    static GCHandle EnumerateSharedGCHandle;
+    [UnmanagedCallersOnly(EntryPoint = "EnumerateGroup")]
+    public static IntPtr EnumerateGroup(IntPtr data) {
+        EnumerateSharedMS.Position = 0;
+        using var writer = new Utf8JsonWriter(EnumerateSharedMS);
+        var json = Marshal.PtrToStringUTF8(data);
+        var doc = JsonDocument.Parse(json);
+
+        EnumerateHelper.Enumerate(doc, writer);
+
+        if (EnumerateSharedGCHandle.IsAllocated) {
+            EnumerateSharedGCHandle.Free();
+        }
+
+        var buffer = EnumerateSharedMS.GetBuffer();
+        EnumerateSharedGCHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        return EnumerateSharedGCHandle.AddrOfPinnedObject();
+    }
 }

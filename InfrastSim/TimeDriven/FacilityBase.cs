@@ -1,9 +1,6 @@
 using InfrastSim.TimeDriven.Operators;
-using System;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 
 namespace InfrastSim.TimeDriven;
 public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
@@ -16,7 +13,7 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         _ => 0,
     }; // 大多数基建建筑满足 10-30-60的规律，节省重复代码量。
 
-    OperatorBase?[] _operators = new OperatorBase[5];
+    internal OperatorBase?[] _operators = new OperatorBase[5];
     public abstract int AcceptOperatorNums { get; }
 
     public IEnumerable<OperatorBase> Operators
@@ -29,11 +26,11 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
     public IEnumerable<OperatorBase> WorkingOperators => Operators.Where(op => !op.IsTired);
     public int WorkingOperatorsCount => WorkingOperators.Count();
 
-    private void AssignAt(OperatorBase op, int index) {
+    internal void AssignAt(OperatorBase op, int index) {
         _operators[index] = op;
         op.Facility = this;
     }
-    private void RemoveAt(int index) {
+    internal void RemoveAt(int index) {
         _operators[index]?.LeaveFacility();
         _operators[index] = null;
     }
@@ -168,7 +165,7 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
 
         writer.WriteEndObject();
     }
-    public static FacilityBase? FromJson(JsonElement elem, Simulator simu) {
+    public static FacilityBase? FromJson(in JsonElement elem, Simulator simu) {
         if (elem.ValueKind == JsonValueKind.Null) return null;
 
         if (!elem.TryGetProperty("type", out var type)) {

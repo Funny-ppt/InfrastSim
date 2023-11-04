@@ -114,7 +114,7 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
 
         writer.WriteEndObject();
     }
-    public static OperatorBase? FromJson(JsonElement elem) {
+    public static OperatorBase? FromJson(in JsonElement elem) {
         if (!elem.TryGetProperty("name", out var name)) {
             return null;
         }

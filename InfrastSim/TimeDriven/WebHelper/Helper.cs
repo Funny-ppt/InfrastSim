@@ -109,6 +109,19 @@ public static partial class Helper {
         }
     }
 
+    public static TradingStation.OrderStrategy ToStrategy(string text) {
+        return text switch {
+            "赤金" => TradingStation.OrderStrategy.Gold,
+            "龙门币" => TradingStation.OrderStrategy.Gold,
+            "gold" => TradingStation.OrderStrategy.Gold,
+            "lmb" => TradingStation.OrderStrategy.Gold,
+            "源石" => TradingStation.OrderStrategy.OriginStone,
+            "合成玉" => TradingStation.OrderStrategy.OriginStone,
+            "originium" => TradingStation.OrderStrategy.OriginStone,
+            _ => throw new ApplicationException($"未知的订单类型 {text}")
+        };
+    }
+
     public static void SetFacilityState(this Simulator simu, string fac, JsonElement elem) {
         var facility = simu.GetFacilityByName(fac);
         if (facility != null) {
@@ -126,11 +139,7 @@ public static partial class Helper {
             if (elem.TryGetProperty("strategy", out var strategy)) {
                 if (facility is TradingStation trading) {
                     var strategyText = strategy.GetString().ToLower();
-                    trading.Strategy = strategyText switch {
-                        "gold" => TradingStation.OrderStrategy.Gold,
-                        "originium" => TradingStation.OrderStrategy.OriginStone,
-                        _ => throw new ApplicationException($"未知的订单类型 {strategyText}")
-                    };
+                    trading.Strategy = ToStrategy(strategyText);
                 }
             }
             if (elem.TryGetProperty("product", out var prod)) {

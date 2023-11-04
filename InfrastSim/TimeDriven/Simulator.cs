@@ -20,7 +20,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         Operators = OperatorInstances.Operators.ToFrozenDictionary(kvp => kvp.Key, kvp => kvp.Value.Clone());
     }
 
-    public Simulator(JsonElement elem) {
+    public Simulator(in JsonElement elem) {
         Now = elem.GetProperty("time").GetDateTime();
         Random = new XoshiroRandom(elem.GetProperty("random"));
         _drones = elem.GetProperty("drones").GetDouble();
@@ -123,6 +123,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         return Operators.GetValueOrDefault(name);
     }
 
+    #region 设施
     public ControlCenter ControlCenter {
         get => (ControlCenter)Facilities[0]!;
         private set => Facilities[0] = value;
@@ -161,6 +162,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         => Facilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
     public IEnumerable<OperatorBase> WorkingOperators
     => Facilities.SelectMany(fac => fac?.WorkingOperators ?? Enumerable.Empty<OperatorBase>());
+    #endregion
 
     public int TotalPowerConsume =>
         Facilities
@@ -233,6 +235,20 @@ public class Simulator : ISimulator, IJsonSerializable {
     public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
     public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
     public double OfficeEfficiency => 1 + Office.TotalEffiencyModifier;
+    public double ManufacturingEfficiency {
+        get {
+            var count = ManufacturingStations.Count();
+            var eff = ManufacturingStations.Sum(fac => fac.TotalEffiencyModifier);
+            return count * (1 + GlobalManufacturingEffiency) + eff;
+        }
+    }
+    public double TradingEfficiency {
+        get {
+            var count = TradingStations.Count();
+            var eff = TradingStations.Sum(fac => fac.TotalEffiencyModifier);
+            return count * (1 + GlobalTradingEffiency) + eff;
+        }
+    }
     #endregion
 
     public string ToJson(bool detailed = false) {
@@ -249,12 +265,12 @@ public class Simulator : ISimulator, IJsonSerializable {
         writer.WritePropertyName("random");
         Random.ToJson(writer);
         writer.WriteNumber("drones", _drones);
-        if (detailed) {
-            writer.WriteNumber("drones-efficiency", DronesEfficiency);
-        }
         writer.WriteNumber("refresh", _refresh);
         if (detailed) {
+            writer.WriteNumber("drones-efficiency", DronesEfficiency);
             writer.WriteNumber("office-efficiency", OfficeEfficiency);
+            writer.WriteNumber("manufacturing-efficiency", ManufacturingEfficiency);
+            writer.WriteNumber("trading-efficiency", TradingEfficiency);
         }
 
         writer.WritePropertyName("operators");
