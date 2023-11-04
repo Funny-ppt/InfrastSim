@@ -24,7 +24,12 @@ public static class EnumerateHelper {
         Results.Clear();
     }
     static Simulator Proc(OpEnumData[] comb, ParallelLoopState state, Simulator simu) {
-        var eff = TestMany(simu, comb);
+        Efficiency eff;
+        try {
+            eff = TestMany(simu, comb);
+        } catch {
+            return simu;
+        }
         var manu_eff = eff.ManuEff;
         var trad_eff = eff.TradEff;
         var power_eff = eff.PowerEff;
@@ -151,18 +156,18 @@ public static class EnumerateHelper {
         var facName = data.Fac.ToLower();
         FacilityBase? fac = facName switch {
             "控制中枢" => simu.ControlCenter,
-            "办公室" => simu.Office,
             "controlcenter" => simu.ControlCenter,
             "control center" => simu.ControlCenter,
             "reception" => simu.Reception,
             "crafting" => simu.Crafting,
+            "办公室" => simu.Office,
             "office" => simu.Office,
             "training" => simu.Training,
             _ => null
         };
         if (fac != null) {
-            var success = fac.TestAssign(simu.GetOperator(data.Name));
-            if (!success) throw new Exception("没有足够的位置摆放干员");
+            if (!fac.TestAssign(simu.GetOperator(data.Name)))
+                throw new Exception("没有足够的位置摆放干员");
             return;
         }
         if (facName == "trading" || facName == "贸易站") {
@@ -179,16 +184,14 @@ public static class EnumerateHelper {
             foreach (var trading in simu.TradingStations) {
                 if (strategy != null) {
                     if (!trading.AnyOp()) {
-                        trading.TestAssign(simu.GetOperator(data.Name));
+                        trading.TestAssign(op);
                         trading.Strategy = strategy.Value;
                         return;
                     } else if (trading.Strategy == strategy) {
-                        var success = trading.TestAssign(simu.GetOperator(data.Name));
-                        if (success) return;
+                        if (trading.TestAssign(op)) return;
                     }
                 } else {
-                    var success = trading.TestAssign(simu.GetOperator(data.Name));
-                    if (success) return;
+                    if (trading.TestAssign(op)) return;
                 }
             }
         }
@@ -205,19 +208,21 @@ public static class EnumerateHelper {
                         manufacturing.ChangeProduct(product);
                         return;
                     } else if (manufacturing.Product == product) {
-                        var success = manufacturing.TestAssign(op);
-                        if (success) return;
+                        if (manufacturing.TestAssign(op)) return;
                     }
                 } else {
-                    var success = manufacturing.TestAssign(op);
-                    if (success) return;
+                    if (manufacturing.TestAssign(op)) return;
                 }
             }
         }
         if (facName == "power" || facName == "发电站") {
             foreach (var power in simu.PowerStations) {
-                var success = power.TestAssign(op);
-                if (success) return;
+                if (power.TestAssign(op)) return;
+            }
+        }
+        if (facName.StartsWith("dorm") || facName == "宿舍") {
+            foreach (var dorm in simu.Dormitories) {
+                if (dorm?.TestAssign(op) ?? false) return;
             }
         }
         throw new Exception("未识别的设施或没有足够位置拜访干员");
@@ -230,11 +235,15 @@ public static class EnumerateHelper {
         return diff;
     }
     static Efficiency TestMany(Simulator simu, IEnumerable<OpEnumData> datas) {
-        foreach (var data in datas) {
-            simu.Assign(data);
+        try {
+            foreach (var data in datas) {
+                simu.Assign(data);
+            }
+            var diff = simu.GetEfficiency() - Baseline;
+            return diff;
         }
-        var diff = simu.GetEfficiency() - Baseline;
-        simu.FillTestOp();
-        return diff;
+        finally {
+            simu.FillTestOp();
+        }
     }
 }
