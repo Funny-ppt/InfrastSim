@@ -39,10 +39,10 @@ public static class EnumerateHelper {
             trad_eff -= single_eff.TradEff;
             power_eff -= single_eff.PowerEff;
         }
-        if (manu_eff < 0 || trad_eff < 0 || power_eff < 0) {
+        if (manu_eff < -Util.Epsilon || trad_eff < -Util.Epsilon || power_eff < -Util.Epsilon) {
             return simu;
         }
-        if (manu_eff == 0 && trad_eff == 0 && power_eff == 0) {
+        if (Util.Equals(manu_eff, 0) && Util.Equals(trad_eff, 0) && Util.Equals(power_eff, 0)) {
             return simu;
         }
         Results.Add((comb, eff, new Efficiency(trad_eff, manu_eff, power_eff)));
@@ -90,16 +90,16 @@ public static class EnumerateHelper {
         return;
     }
 
-    class Comparer : IComparer<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> {
-        public int Compare((OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) x, (OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) y) {
-            double x_score = x.eff.GetScore(), y_score = y.eff.GetScore();
-            if (!Util.Equals(x_score, y_score)) return x_score - y_score < 0 ? -1 : 1;
-            x_score = x.extra_eff.GetScore() / x.comb.Length;
-            y_score = y.extra_eff.GetScore() / y.comb.Length;
-            if (!Util.Equals(x_score, y_score)) return x_score - y_score < 0 ? -1 : 1;
-            return 0;
-        }
-    }
+    //class Comparer : IComparer<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> {
+    //    public int Compare((OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) x, (OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) y) {
+    //        double x_score = x.eff.GetScore(), y_score = y.eff.GetScore();
+    //        if (!Util.Equals(x_score, y_score)) return x_score - y_score < 0 ? -1 : 1;
+    //        x_score = x.extra_eff.GetScore() / x.comb.Length;
+    //        y_score = y.extra_eff.GetScore() / y.comb.Length;
+    //        if (!Util.Equals(x_score, y_score)) return x_score - y_score < 0 ? -1 : 1;
+    //        return 0;
+    //    }
+    //}
     static IOrderedEnumerable<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> EnumerateImpl(JsonDocument json) {
         var root = json.RootElement;
         var preset = root.GetProperty("preset");
@@ -124,7 +124,8 @@ public static class EnumerateHelper {
             Parallel.ForEach(enumerable, () => InitSimulator(preset), Proc, simu => { });
         }
 
-        return Results.OrderDescending(new Comparer());
+        //return Results.OrderDescending(new Comparer());
+        return Results.OrderByDescending(v => v.extra_eff.GetScore() / v.comb.Length);
     }
     static Simulator InitSimulator(JsonElement elem) {
         var simu = new Simulator();
