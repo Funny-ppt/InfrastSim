@@ -16,7 +16,7 @@ internal class Jaye : OperatorBase {
                 // FIXME: 孑的技能和不同干员的交互仍然需要重点关注
                 simu.Delay(simu => {
                     var total = trading.Operators.Sum(op => op.EfficiencyModifier);
-                    trading.Capacity.SetValue(Name, Math.Floor(total / 0.1));
+                    trading.Capacity.SetValue(Name, -Math.Floor(total / 0.1));
                     EfficiencyModifier.SetValue(Name, trading.Capacity * 0.04);
                 }, 130);
             }
