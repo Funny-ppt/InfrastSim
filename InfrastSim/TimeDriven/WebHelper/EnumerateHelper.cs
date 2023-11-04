@@ -80,14 +80,11 @@ public static class EnumerateHelper {
     }
     static IOrderedEnumerable<(OpEnumData[] comb, Efficiency eff)> EnumerateImpl(JsonDocument json) {
         var root = json.RootElement;
-        var simuElem = root.GetProperty("simu");
-        var simu = InitSimulator(simuElem);
+        var preset = root.GetProperty("preset");
+        var simu = InitSimulator(preset);
         Baseline = simu.GetEfficiency();
 
-        var ops = root.GetProperty("ops")
-            .EnumerateArray()
-            .Select(e => e.Deserialize<OpEnumData>())
-            .ToArray();
+        var ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(Options);
         foreach (var data in ops) {
             SingleEfficiency[data.Name] = TestSingle(simu, data);
         }
@@ -97,13 +94,16 @@ public static class EnumerateHelper {
                 .ToEnumerable()
                 .Where(comb => comb.DistinctBy(op => op.Name).Count() == i)
                 .Select(comb => comb.ToArray());
-            Parallel.ForEach(enumerable, () => InitSimulator(simuElem), Proc, simu => { });
+            Parallel.ForEach(enumerable, () => InitSimulator(preset), Proc, simu => { });
         }
 
         return Results.OrderByDescending((v) => v.eff.GetScore() / v.comb.Length);
     }
     static Simulator InitSimulator(JsonElement elem) {
-        var simu = new Simulator(elem);
+        var simu = new Simulator();
+        foreach (var prop in elem.EnumerateObject()) {
+            simu.SetFacilityState(prop.Name, prop.Value);
+        }
         simu.FillTestOp();
         return simu;
     }
@@ -150,6 +150,8 @@ public static class EnumerateHelper {
         var op = simu.GetOperator(data.Name);
         var facName = data.Fac.ToLower();
         FacilityBase? fac = facName switch {
+            "控制中枢" => simu.ControlCenter,
+            "办公室" => simu.Office,
             "controlcenter" => simu.ControlCenter,
             "control center" => simu.ControlCenter,
             "reception" => simu.Reception,
@@ -163,7 +165,7 @@ public static class EnumerateHelper {
             if (!success) throw new Exception("没有足够的位置摆放干员");
             return;
         }
-        if (facName == "trading") {
+        if (facName == "trading" || facName == "贸易站") {
             TradingStation.OrderStrategy? strategy = data.Strategy switch {
                 "赤金" => TradingStation.OrderStrategy.Gold,
                 "龙门币" => TradingStation.OrderStrategy.Gold,
@@ -190,7 +192,7 @@ public static class EnumerateHelper {
                 }
             }
         }
-        if (facName == "manufacturing") {
+        if (facName == "manufacturing" || facName == "制造站") {
             Product? product = null;
             if (data.Product != null) {
                 product = Product.AllProducts.Where(p => p.Name == data.Product).FirstOrDefault()
@@ -212,7 +214,7 @@ public static class EnumerateHelper {
                 }
             }
         }
-        if (facName == "power") {
+        if (facName == "power" || facName == "发电站") {
             foreach (var power in simu.PowerStations) {
                 var success = power.TestAssign(op);
                 if (success) return;

@@ -86,7 +86,6 @@ public static class SimulatorService {
         simu.SetFacilityState(facility.ToString(), doc.RootElement);
     }
 
-
     [UnmanagedCallersOnly(EntryPoint = "SetUpgraded")]
     public static void SetUpgraded(int id, IntPtr pJson) {
         var simu = GetSimulator(id);
