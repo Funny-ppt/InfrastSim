@@ -93,7 +93,7 @@ public static class EnumerateHelper {
         foreach (var data in ops) {
             SingleEfficiency[data.Name] = TestSingle(simu, data);
         }
-        for (int i = 1; i <= ops.Length; i++) {
+        for (int i = 2; i <= ops.Length; i++) {
             var combs = new Combination<OpEnumData>(ops, i);
             var enumerable = combs
                 .ToEnumerable()
