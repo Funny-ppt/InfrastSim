@@ -111,7 +111,7 @@ internal class EnumerateContext {
             if (extra_eff.TradEff < -Util.Epsilon || extra_eff.ManuEff < -Util.Epsilon || extra_eff.PowerEff < -Util.Epsilon) {
                 return;
             }
-            if (Util.Equals(extra_eff.TradEff, 0) && Util.Equals(extra_eff.ManuEff, 0) && Util.Equals(extra_eff.PowerEff, 0)) {
+            if (extra_eff.IsZero()) {
                 return;
             }
 
