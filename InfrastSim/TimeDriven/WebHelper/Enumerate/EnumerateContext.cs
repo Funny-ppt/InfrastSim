@@ -87,21 +87,21 @@ internal class EnumerateContext {
         return simu;
     }
     static int GetGroupId(OpEnumData[] comb) {
-        int f = 1;
+        long f = 1;
         foreach (var op in comb) {
             f = f * op.prime % MOD;
         }
-        return (comb.Length << 24) | f;
+        return (comb.Length << 24) | (int)f;
     }
 
     void Proc(OpEnumData[] comb, Simulator simu, Efficiency base_eff) {
         var gid = GetGroupId(comb);
-        if (!results.TryAdd(gid, (comb, default, default))) {
-            return;
-        }
 
         Efficiency eff = base_eff;
         if (comb.Length > 1) {
+            if (!results.TryAdd(gid, (comb, default, default))) {
+                return;
+            }
             try {
                 eff = TestMany(simu, comb);
             } catch {
