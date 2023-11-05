@@ -100,25 +100,27 @@ internal class EnumerateContext {
             return;
         }
 
-        Efficiency eff;
-        try {
-            eff = TestMany(simu, comb);
-        } catch {
-            return;
-        }
-        var extra_eff = eff - base_eff;
-        if (extra_eff.TradEff < -Util.Epsilon || extra_eff.ManuEff < -Util.Epsilon || extra_eff.PowerEff < -Util.Epsilon) {
-            return;
-        }
-        if (Util.Equals(extra_eff.TradEff, 0) && Util.Equals(extra_eff.ManuEff, 0) && Util.Equals(extra_eff.PowerEff, 0)) {
-            return;
-        }
+        Efficiency eff = base_eff;
+        if (comb.Length > 1) {
+            try {
+                eff = TestMany(simu, comb);
+            } catch {
+                return;
+            }
+            var extra_eff = eff - base_eff;
+            if (extra_eff.TradEff < -Util.Epsilon || extra_eff.ManuEff < -Util.Epsilon || extra_eff.PowerEff < -Util.Epsilon) {
+                return;
+            }
+            if (Util.Equals(extra_eff.TradEff, 0) && Util.Equals(extra_eff.ManuEff, 0) && Util.Equals(extra_eff.PowerEff, 0)) {
+                return;
+            }
 
-        var tot_extra_eff = eff;
-        foreach (var op in comb) {
-            tot_extra_eff -= op.SingleEfficiency;
+            var tot_extra_eff = eff;
+            foreach (var op in comb) {
+                tot_extra_eff -= op.SingleEfficiency;
+            }
+            results[gid] = (comb, eff, tot_extra_eff);
         }
-        results[gid] = (comb, eff, tot_extra_eff);
 
         var f = new BitArray(ucnt);
         foreach (var op in comb) {
