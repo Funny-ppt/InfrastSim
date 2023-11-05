@@ -4,10 +4,7 @@ using System.Text.Json;
 namespace InfrastSim.TimeDriven.WebHelper;
 public static class EnumerateHelper {
     static readonly OperatorBase TestOp;
-    static readonly JsonSerializerOptions Options;
-    static readonly Dictionary<string, Efficiency> SingleEfficiency;
-    static readonly ConcurrentBag<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> Results;
-    static Efficiency Baseline;
+    internal static readonly JsonSerializerOptions Options;
 
     static EnumerateHelper() {
         TestOp = new TestOp();
@@ -15,48 +12,10 @@ public static class EnumerateHelper {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
         Options.TypeInfoResolverChain.Add(SourceGenerationContext.Default);
-        SingleEfficiency = new Dictionary<string, Efficiency>();
-        Results = new ConcurrentBag<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)>();
     }
 
-    static void Clear() {
-        SingleEfficiency.Clear();
-        Results.Clear();
-    }
-    static Simulator Proc(OpEnumData[] comb, ParallelLoopState state, Simulator simu) {
-        Efficiency eff;
-        try {
-            eff = TestMany(simu, comb);
-        } catch {
-            return simu;
-        }
-        var manu_eff = eff.ManuEff;
-        var trad_eff = eff.TradEff;
-        var power_eff = eff.PowerEff;
-        foreach (var data in comb) {
-            var single_eff = SingleEfficiency[$"{data.Name}_{data.Fac}"];
-            manu_eff -= single_eff.ManuEff;
-            trad_eff -= single_eff.TradEff;
-            power_eff -= single_eff.PowerEff;
-        }
-        if (manu_eff < -Util.Epsilon || trad_eff < -Util.Epsilon || power_eff < -Util.Epsilon) {
-            return simu;
-        }
-        if (Util.Equals(manu_eff, 0) && Util.Equals(trad_eff, 0) && Util.Equals(power_eff, 0)) {
-            return simu;
-        }
-        Results.Add((comb, eff, new Efficiency(trad_eff, manu_eff, power_eff)));
-        return simu;
-    }
-    public static List<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> Enumerate(JsonDocument json) {
-        Clear();
-        var result = EnumerateImpl(json).ToList();
-        Clear();
-        return result;
-    }
     public static void Enumerate(JsonDocument json, Utf8JsonWriter writer) {
-        Clear();
-        var result = EnumerateImpl(json);
+        var result = new EnumerateContext().Enumerate(json);
         writer.WriteStartArray();
         foreach (var (comb, eff, extra_eff) in result) {
             writer.WriteStartObject();
@@ -86,68 +45,22 @@ public static class EnumerateHelper {
         }
         writer.WriteEndArray();
         writer.Flush();
-        Clear();
         return;
     }
 
-    //class Comparer : IComparer<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> {
-    //    public int Compare((OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) x, (OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) y) {
-    //        double x_score = x.eff.GetScore(), y_score = y.eff.GetScore();
-    //        if (!Util.Equals(x_score, y_score)) return x_score - y_score < 0 ? -1 : 1;
-    //        x_score = x.extra_eff.GetScore() / x.comb.Length;
-    //        y_score = y.extra_eff.GetScore() / y.comb.Length;
-    //        if (!Util.Equals(x_score, y_score)) return x_score - y_score < 0 ? -1 : 1;
-    //        return 0;
-    //    }
-    //}
-    static IOrderedEnumerable<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> EnumerateImpl(JsonDocument json) {
-        var root = json.RootElement;
-        var preset = root.GetProperty("preset");
-        var simu = InitSimulator(preset);
-        Baseline = simu.GetEfficiency();
-
-        var ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(Options);
-        foreach (var data in ops) {
-            SingleEfficiency[$"{data.Name}_{data.Fac}"] = TestSingle(simu, data);
-        }
-
-        var max_size = ops.Length;
-        if (root.TryGetProperty("max_size", out var max_size_elem)) {
-            max_size = Math.Min(max_size, root.GetProperty("max_size").GetInt32());
-        }
-        for (int i = 2; i <= max_size; i++) {
-            var combs = new Combination<OpEnumData>(ops, i);
-            var enumerable = combs
-                .ToEnumerable()
-                .Where(comb => comb.DistinctBy(op => op.Name).Count() == i)
-                .Select(comb => comb.ToArray());
-            Parallel.ForEach(enumerable, () => InitSimulator(preset), Proc, simu => { });
-        }
-
-        //return Results.OrderDescending(new Comparer());
-        return Results.OrderByDescending(v => v.extra_eff.GetScore() / v.comb.Length);
-    }
-    static Simulator InitSimulator(JsonElement elem) {
-        var simu = new Simulator();
-        foreach (var prop in elem.EnumerateObject()) {
-            simu.SetFacilityState(prop.Name, prop.Value);
-        }
-        simu.FillTestOp();
-        return simu;
-    }
-    static Efficiency GetEfficiency(this Simulator simu) {
+    internal static Efficiency GetEfficiency(this Simulator simu) {
         simu.Resolve();
         return new Efficiency(
             simu.TradingEfficiency,
             simu.ManufacturingEfficiency,
             simu.DronesEfficiency);
     }
-    static void FillTestOp(this Simulator simu) {
+    internal static void FillTestOp(this Simulator simu) {
         foreach (var fac in simu.Facilities) {
             fac?.FillTestOp();
         }
     }
-    static void FillTestOp(this FacilityBase fac) {
+    internal static void FillTestOp(this FacilityBase fac) {
         for (int i = 0; i < fac.AcceptOperatorNums; i++) {
             if (fac._operators[i]?.Name != "测试干员") {
                 fac.RemoveAt(i);
@@ -155,7 +68,7 @@ public static class EnumerateHelper {
             }
         }
     }
-    static bool AnyOp(this FacilityBase fac) {
+    internal static bool AnyOp(this FacilityBase fac) {
         for (int i = 0; i < fac.AcceptOperatorNums; i++) {
             if (fac._operators[i]?.Name != "测试干员") {
                 return true;
@@ -163,7 +76,7 @@ public static class EnumerateHelper {
         }
         return false;
     }
-    static bool TestAssign(this FacilityBase fac, OperatorBase op) {
+    internal static bool TestAssign(this FacilityBase fac, OperatorBase op) {
         for (int i = 0; i < fac.AcceptOperatorNums; i++) {
             var opInFac = fac._operators[i];
             if (opInFac == null || opInFac.Name == "测试干员") {
@@ -174,7 +87,7 @@ public static class EnumerateHelper {
         }
         return false;
     }
-    static void Assign(this Simulator simu, OpEnumData data) {
+    internal static void Assign(this Simulator simu, OpEnumData data) {
         var op = simu.GetOperator(data.Name);
         var facName = data.Fac.ToLower();
         FacilityBase? fac = facName switch {
@@ -249,24 +162,5 @@ public static class EnumerateHelper {
             }
         }
         throw new Exception("未识别的设施或没有足够位置拜访干员");
-    }
-    static Efficiency TestSingle(Simulator simu, OpEnumData data) {
-        simu.Assign(data);
-        var diff = simu.GetEfficiency() - Baseline;
-        var op = simu.GetOperator(data.Name);
-        op.Facility?.FillTestOp();
-        return diff;
-    }
-    static Efficiency TestMany(Simulator simu, IEnumerable<OpEnumData> datas) {
-        try {
-            foreach (var data in datas) {
-                simu.Assign(data);
-            }
-            var diff = simu.GetEfficiency() - Baseline;
-            return diff;
-        }
-        finally {
-            simu.FillTestOp();
-        }
     }
 }
