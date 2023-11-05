@@ -95,10 +95,9 @@ internal class EnumerateContext {
     }
 
     void Proc(OpEnumData[] comb, Simulator simu, Efficiency base_eff) {
-        var gid = GetGroupId(comb);
-
-        Efficiency eff = base_eff;
         if (comb.Length > 1) {
+            Efficiency eff;
+            var gid = GetGroupId(comb);
             if (!results.TryAdd(gid, (comb, default, default))) {
                 return;
             }
@@ -108,31 +107,35 @@ internal class EnumerateContext {
                 return;
             }
             var extra_eff = eff - base_eff;
-            if (extra_eff.TradEff < -Util.Epsilon || extra_eff.ManuEff < -Util.Epsilon || extra_eff.PowerEff < -Util.Epsilon) {
+            if (extra_eff.TradEff < -Util.Epsilon
+                || extra_eff.ManuEff < -Util.Epsilon
+                || extra_eff.PowerEff < -Util.Epsilon
+                || extra_eff.IsZero()
+               ) {
                 return;
             }
-            if (extra_eff.IsZero()) {
-                return;
-            }
-
             var tot_extra_eff = eff;
             foreach (var op in comb) {
                 tot_extra_eff -= op.SingleEfficiency;
             }
             results[gid] = (comb, eff, tot_extra_eff);
-        }
 
-        var f = new BitArray(ucnt);
-        foreach (var op in comb) {
-            f[op.uid] = true;
-        }
-        if (comb.Length < max_size) {
+            if (comb.Length >= max_size) return;
+            var f = new BitArray(ucnt);
+            foreach (var op in comb) {
+                f[op.uid] = true;
+            }
             foreach (var op in ops) {
                 if (f[op.uid]) continue;
                 var new_comb = new OpEnumData[comb.Length + 1];
                 Array.Copy(comb, new_comb, comb.Length);
                 new_comb[comb.Length] = op;
                 Proc(new_comb, simu, eff);
+            }
+        } else {
+            foreach (var op in ops) {
+                if (op.uid == comb[0].uid) continue;
+                Proc(new OpEnumData[2] { comb[0], op }, simu, base_eff);
             }
         }
     }
