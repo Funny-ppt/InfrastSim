@@ -106,7 +106,7 @@ internal class EnumerateContext {
             } catch {
                 return;
             }
-            var extra_eff = eff - base_eff;
+            var extra_eff = eff - base_eff - comb.Last().SingleEfficiency;
             if (extra_eff.TradEff < -Util.Epsilon
                 || extra_eff.ManuEff < -Util.Epsilon
                 || extra_eff.PowerEff < -Util.Epsilon
