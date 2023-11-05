@@ -18,13 +18,13 @@ internal static class Helper
     /// 适用于 基建中xxx组干员的数量, 考虑红脸
     /// </summary>
     public static int GroupMemberCount(this Simulator simu, string group) {
-        return simu.WorkingOperators.Where(op => group.Contains(op.Name)).Count();
+        return simu.WorkingOperators.Where(op => op.HasGroup(group)).Count();
     }
     /// <summary>
     /// 适用于 设施中xxx组干员, 考虑红脸
     /// </summary>
     public static IEnumerable<OperatorBase> GroupMembers(this FacilityBase facility, string group) {
-        return facility.WorkingOperators.Where(op => op.Groups.Contains(group));
+        return facility.WorkingOperators.Where(op => op.HasGroup(group));
     }
     /// <summary>
     /// 适用于 设施中是否有xxx组干员, 考虑红脸
