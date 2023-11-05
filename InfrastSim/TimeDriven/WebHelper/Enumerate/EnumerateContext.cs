@@ -113,7 +113,12 @@ internal class EnumerateContext {
         if (Util.Equals(extra_eff.TradEff, 0) && Util.Equals(extra_eff.ManuEff, 0) && Util.Equals(extra_eff.PowerEff, 0)) {
             return;
         }
-        results[gid] = (comb, eff, extra_eff);
+
+        var tot_extra_eff = eff;
+        foreach (var op in comb) {
+            tot_extra_eff -= op.SingleEfficiency;
+        }
+        results[gid] = (comb, eff, tot_extra_eff);
 
         var f = new BitArray(ucnt);
         foreach (var op in comb) {

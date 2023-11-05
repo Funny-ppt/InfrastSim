@@ -9,7 +9,7 @@ public class OpEnumData {
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public int prime { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
-    public Efficiency SingleEfficiency { get; set; } = null!;
+    public Efficiency SingleEfficiency { get; set; }
 
 
     public string Name { get; set; } = null!;
