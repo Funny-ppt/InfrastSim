@@ -132,7 +132,7 @@ internal class EnumerateContext {
                 var new_comb = new OpEnumData[comb.Length + 1];
                 Array.Copy(comb, new_comb, comb.Length);
                 new_comb[comb.Length] = op;
-                Proc(comb, simu, eff);
+                Proc(new_comb, simu, eff);
             }
         }
     }
