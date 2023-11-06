@@ -1,0 +1,60 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build-linux-and-wasm:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Publish
+      run: |
+        # 执行 Linux 平台的发布操作
+        dotnet publish -c Release InfrastSimExports
+        # 在这里可以添加发布到服务器的命令，例如 scp 或 rsync
+    - name: PublishWasm
+      run: |
+        # 执行 Wasm 平台的发布操作
+        dotnet publish -c Release InfrastSimWasm
+        # 在这里可以添加发布到服务器的命令，例如 scp 或 rsync
+
+  build-and-publish:
+  
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Publish
+      run: |
+        # 执行 Windows 平台的发布操作
+        dotnet publish -r linux-x64 InfrastSimExports
+        # 在这里可以添加发布到服务器的命令，例如 scp 或 rsync
