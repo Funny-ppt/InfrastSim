@@ -43,10 +43,12 @@ jobs:
     - name: Upload Wasm AppBundle
       uses: actions/upload-artifact@v3
       with:
+        name: AppBundle
         path: InfrastSimWasm/bin/Release/net8.0/browser-wasm/AppBundle/
     - name: Upload clib
       uses: actions/upload-artifact@v3
       with:
+        name: CLib
         path: InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSim.so
         
 
