@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace InfrastSim.TimeDriven.WebHelper;
@@ -17,14 +18,17 @@ public static partial class Helper {
         return ((Dormitory?)simu.Dormitories[dormIndex])?.Vip?.Name;
     }
 
-    static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + label[3] - '0' - 1;
+    /// <summary>
+    /// 返回门牌号对应与simu.Facilities中的下标
+    /// </summary>
+    static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + (label[3] - '0' - 1) + 9;
     static Regex _roomLabelRegex = RoomLabelRegex();
     static Regex _roomNameRegex = RoomNameWithOptionalIndexRegex();
     static FacilityBase? GetFacilityByName(this Simulator simu, string fac) {
         fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
         if (_roomLabelRegex.IsMatch(fac)) {
             var index = LabelToIndex(fac);
-            return simu.ModifiableFacilities[index];
+            return simu.Facilities[index];
         }
         var match = _roomNameRegex.Match(fac);
         var fac_name = match.Groups[1].Value;
@@ -129,8 +133,21 @@ public static partial class Helper {
                 if (_roomLabelRegex.IsMatch(fac)) {
                     var index = LabelToIndex(fac);
                     facility.RemoveAll();
-                    simu.Facilities[9 + index] = null;
+                    simu.Facilities[index] = null;
                     return;
+                }
+            }
+            if (elem.TryGetProperty("refactor", out var refactor)) {
+                if (_roomLabelRegex.IsMatch(fac)) {
+                    var index = LabelToIndex(fac);
+                    FacilityBase new_fac = refactor.GetString() switch {
+                        "Trading" => new TradingStation(),
+                        "Manufacturing" => new ManufacturingStation(),
+                        "Power" => new PowerStation(),
+                        _ => throw new ArgumentException("未知或不受支持的设施类型")
+                    }; 
+                    simu.Facilities[index]?.RemoveAll();
+                    simu.Facilities[index] = new_fac;
                 }
             }
             if (elem.TryGetProperty("level", out var level)) {
@@ -175,7 +192,7 @@ public static partial class Helper {
             if (_roomLabelRegex.IsMatch(fac)) {
                 var index = LabelToIndex(fac);
                 facility = FacilityBase.FromJson(elem, simu);
-                simu.Facilities[index + 9] = facility;
+                simu.Facilities[index] = facility;
             } else {
                 fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
                 var match = _roomNameRegex.Match(fac);

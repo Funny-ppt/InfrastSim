@@ -1,6 +1,7 @@
 using InfrastSim.TimeDriven;
 using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 using System.Text;
@@ -83,6 +84,14 @@ public static unsafe partial class SimulatorService {
         simu.SetFacilityState(facility, doc.RootElement);
     }
 
+    [JSExport]
+    public static void SetFacilitiesState(int id, string json) {
+        var simu = GetSimulator(id);
+        var doc = JsonDocument.Parse(json);
+        foreach (var prop in doc.RootElement.EnumerateObject()) {
+            simu.SetFacilityState(prop.Name, prop.Value);
+        }
+    }
 
     [JSExport]
     public static string GetOperators(int id) {
@@ -159,6 +168,17 @@ public static unsafe partial class SimulatorService {
         using var writer2 = new Utf8JsonWriter(ms);
         node.WriteTo(writer2);
         writer.Flush();
+        return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
+    }
+
+
+    [JSExport]
+    public static string EnumerateGroup(string json) {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        var doc = JsonDocument.Parse(json);
+
+        EnumerateHelper.Enumerate(doc, writer);
         return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
 }
