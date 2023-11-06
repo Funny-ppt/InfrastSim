@@ -34,7 +34,7 @@ jobs:
         # 执行 Linux 平台的发布操作
         dotnet publish -c Release -r linux-x64 InfrastSimExports
         # 在这里可以添加发布到服务器的命令，例如 scp 或 rsync
-        cp InfrastSimExports\bin\Release\net8.0\linux-x64\publish\InfrastSimExports.so InfrastSimExports\bin\Release\net8.0\linux-x64\publish\InfrastSim.so
+        cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.so InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSim.so
     - name: Publish Wasm
       run: |
         # 执行 Wasm 平台的发布操作
@@ -44,12 +44,12 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: WasmAppBundle
-        path: InfrastSimWasm\bin\Release\net8.0\browser-wasm\AppBundle
+        path: InfrastSimWasm/bin/Release/net8.0/browser-wasm/AppBundle
     - name: Upload clib
       uses: actions/upload-artifact@v3
       with:
         name: clib
-        path: InfrastSimExports\bin\Release\net8.0\linux-x64\publish\InfrastSimExports.so
+        path: InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.so
         
 
  # build-windows:
