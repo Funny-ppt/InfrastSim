@@ -15,10 +15,9 @@ internal class EnumerateContext {
     ConcurrentDictionary<int, (OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> results = new();
 
     Efficiency TestSingle(Simulator simu, OpEnumData data) {
-        simu.Assign(data);
+        var op = simu.Assign(data);
         var diff = simu.GetEfficiency() - baseline;
-        var op = simu.GetOperator(data.Name);
-        op.Facility?.FillTestOp();
+        op.ReplaceByTestOp();
         return diff;
     }
     Efficiency TestMany(Simulator simu, IEnumerable<OpEnumData> datas) {
@@ -72,7 +71,7 @@ internal class EnumerateContext {
         var tasks = new Task[ops.Length];
         foreach (var op in ops) {
             tasks[op.id] = Task.Run(() => {
-                Proc(new[] { op }, InitSimulator(preset), op.SingleEfficiency);
+                InitProc(op, InitSimulator(preset));
             });
         }
         Task.WaitAll(tasks);
@@ -94,49 +93,70 @@ internal class EnumerateContext {
         return (comb.Length << 24) | (int)f;
     }
 
-    void Proc(OpEnumData[] comb, Simulator simu, Efficiency base_eff) {
-        if (comb.Length > 1) {
-            Efficiency eff;
-            var gid = GetGroupId(comb);
-            if (!results.TryAdd(gid, (comb, default, default))) {
-                return;
-            }
-            try {
-                eff = TestMany(simu, comb);
-            } catch {
-                return;
-            }
-            var extra_eff = eff - base_eff - comb.Last().SingleEfficiency;
-            if (extra_eff.TradEff < -Util.Epsilon
-                || extra_eff.ManuEff < -Util.Epsilon
-                || extra_eff.PowerEff < -Util.Epsilon
-                || extra_eff.IsZero()
-               ) {
-                return;
-            }
-            var tot_extra_eff = eff;
-            foreach (var op in comb) {
-                tot_extra_eff -= op.SingleEfficiency;
-            }
-            results[gid] = (comb, eff, tot_extra_eff);
+    void InitProc(OpEnumData op, Simulator simu) {
+        var relevants = ops.Where(o => op.RelevantOps.Contains(o.Name)).ToArray();
+        for (int i = 1; i <= relevants.Length; i++) {
+            var combs = new Combination<OpEnumData>(relevants, i);
+            foreach (var e in combs.ToEnumerable()) {
+                var c = (OpEnumData[])e;
+                var comb = new OpEnumData[i + 1];
+                Array.Copy(c, comb, c.Length);
+                comb[^1] = op;
 
-            if (comb.Length >= max_size) return;
-            var f = new BitArray(ucnt);
-            foreach (var op in comb) {
-                f[op.uid] = true;
-            }
-            foreach (var op in ops) {
-                if (f[op.uid]) continue;
-                var new_comb = new OpEnumData[comb.Length + 1];
-                Array.Copy(comb, new_comb, comb.Length);
-                new_comb[comb.Length] = op;
-                Proc(new_comb, simu, eff);
-            }
-        } else {
-            foreach (var op in ops) {
-                if (op.uid == comb[0].uid) continue;
-                Proc(new OpEnumData[2] { comb[0], op }, simu, base_eff);
+                Efficiency eff;
+                try {
+                    eff = TestMany(simu, comb);
+                } catch {
+                    continue;
+                }
+                RecursivelyProc(comb, simu, eff);
             }
         }
+        RecursivelyProc(new[] { op }, simu, op.SingleEfficiency);
+    }
+    void RecursivelyProc(OpEnumData[] comb, Simulator simu, Efficiency eff) {
+        var f = new BitArray(ucnt);
+        foreach (var op in comb) {
+            f[op.uid] = true;
+        }
+        foreach (var op in ops) {
+            if (f[op.uid]) continue;
+            var new_comb = new OpEnumData[comb.Length + 1];
+            Array.Copy(comb, new_comb, comb.Length);
+            new_comb[comb.Length] = op;
+            Proc(new_comb, simu, eff);
+        }
+    }
+    void Proc(OpEnumData[] comb, Simulator simu, Efficiency base_eff) {
+        var gid = GetGroupId(comb);
+        if (!results.TryAdd(gid, (comb, default, default))) {
+            return;
+        }
+        var op_data = comb.Last();
+        OperatorBase op;
+        try {
+            op = simu.Assign(op_data);
+        } catch {
+            return; // 失败，所以不需要移除
+        }
+        var eff = simu.GetEfficiency();
+        var extra_eff = eff - base_eff - op_data.SingleEfficiency;
+        if (extra_eff.TradEff < -Util.Epsilon
+            || extra_eff.ManuEff < -Util.Epsilon
+            || extra_eff.PowerEff < -Util.Epsilon
+            || extra_eff.IsZero()
+           ) {
+            return;
+        }
+        var tot_extra_eff = eff;
+        foreach (var opd in comb) {
+            tot_extra_eff -= opd.SingleEfficiency;
+        }
+        results[gid] = (comb, eff, tot_extra_eff);
+
+        if (comb.Length < max_size) {
+            RecursivelyProc(comb, simu, base_eff);
+        }
+        op.ReplaceByTestOp(); // 递归完毕，移除
     }
 }

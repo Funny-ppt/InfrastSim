@@ -20,28 +20,28 @@ public static class EnumerateHelper {
         foreach (var (comb, eff, extra_eff) in result) {
             if (eff.IsZero()) continue;
             writer.WriteStartObject();
-              writer.WritePropertyName("comb");
-              writer.WriteRawValue(JsonSerializer.Serialize(comb, Options));
-              //writer.WriteStartArray();
-              //  foreach (var data in comb) {
-              //      writer.WriteStartObject();
-              //      writer.WriteString("name", data.Name);
-              //      writer.WriteEndObject();
-              //  }
-              //writer.WriteEndArray();
+            writer.WritePropertyName("comb");
+            writer.WriteRawValue(JsonSerializer.Serialize(comb, Options));
+            //writer.WriteStartArray();
+            //  foreach (var data in comb) {
+            //      writer.WriteStartObject();
+            //      writer.WriteString("name", data.Name);
+            //      writer.WriteEndObject();
+            //  }
+            //writer.WriteEndArray();
 
-              writer.WritePropertyName("eff");
-              writer.WriteStartObject();
-                writer.WriteNumber("manu_eff", eff.ManuEff);
-                writer.WriteNumber("trad_eff", eff.TradEff);
-                writer.WriteNumber("power_eff", eff.PowerEff);
-              writer.WriteEndObject();
-              writer.WritePropertyName("extra_eff");
-              writer.WriteStartObject();
-                writer.WriteNumber("manu_eff", extra_eff.ManuEff);
-                writer.WriteNumber("trad_eff", extra_eff.TradEff);
-                writer.WriteNumber("power_eff", extra_eff.PowerEff);
-              writer.WriteEndObject();
+            writer.WritePropertyName("eff");
+            writer.WriteStartObject();
+            writer.WriteNumber("manu_eff", eff.ManuEff);
+            writer.WriteNumber("trad_eff", eff.TradEff);
+            writer.WriteNumber("power_eff", eff.PowerEff);
+            writer.WriteEndObject();
+            writer.WritePropertyName("extra_eff");
+            writer.WriteStartObject();
+            writer.WriteNumber("manu_eff", extra_eff.ManuEff);
+            writer.WriteNumber("trad_eff", extra_eff.TradEff);
+            writer.WriteNumber("power_eff", extra_eff.PowerEff);
+            writer.WriteEndObject();
             writer.WriteEndObject();
         }
         writer.WriteEndArray();
@@ -55,6 +55,14 @@ public static class EnumerateHelper {
             simu.TradingEfficiency,
             simu.ManufacturingEfficiency,
             simu.DronesEfficiency);
+    }
+    internal static void ReplaceByTestOp(this OperatorBase op) {
+        var fac = op.Facility;
+        if (fac != null) {
+            var index = fac.IndexOf(op);
+            fac.RemoveAt(index);
+            fac.AssignAt(TestOp.Clone(), index);
+        }
     }
     internal static void FillTestOp(this Simulator simu) {
         foreach (var fac in simu.Facilities) {
@@ -88,7 +96,7 @@ public static class EnumerateHelper {
         }
         return false;
     }
-    internal static void Assign(this Simulator simu, OpEnumData data) {
+    internal static OperatorBase Assign(this Simulator simu, OpEnumData data) {
         var op = simu.GetOperator(data.Name);
         var facName = data.Fac.ToLower();
         FacilityBase? fac = facName switch {
@@ -103,9 +111,9 @@ public static class EnumerateHelper {
             _ => null
         };
         if (fac != null) {
-            if (!fac.TestAssign(simu.GetOperator(data.Name)))
+            if (!fac.TestAssign(op))
                 throw new Exception("没有足够的位置摆放干员");
-            return;
+            return op;
         }
         if (facName == "trading" || facName == "贸易站") {
             TradingStation.OrderStrategy? strategy = data.Strategy switch {
@@ -123,12 +131,12 @@ public static class EnumerateHelper {
                     if (!trading.AnyOp()) {
                         trading.TestAssign(op);
                         trading.Strategy = strategy.Value;
-                        return;
+                        return op;
                     } else if (trading.Strategy == strategy) {
-                        if (trading.TestAssign(op)) return;
+                        if (trading.TestAssign(op)) return op;
                     }
                 } else {
-                    if (trading.TestAssign(op)) return;
+                    if (trading.TestAssign(op)) return op;
                 }
             }
         }
@@ -143,25 +151,40 @@ public static class EnumerateHelper {
                     if (!manufacturing.AnyOp()) {
                         manufacturing.TestAssign(op);
                         manufacturing.ChangeProduct(product);
-                        return;
+                        return op;
                     } else if (manufacturing.Product == product) {
-                        if (manufacturing.TestAssign(op)) return;
+                        if (manufacturing.TestAssign(op)) return op;
                     }
                 } else {
-                    if (manufacturing.TestAssign(op)) return;
+                    if (manufacturing.TestAssign(op)) return op;
                 }
             }
         }
         if (facName == "power" || facName == "发电站") {
             foreach (var power in simu.PowerStations) {
-                if (power.TestAssign(op)) return;
+                if (power.TestAssign(op)) return op;
             }
         }
         if (facName.StartsWith("dorm") || facName == "宿舍") {
             foreach (var dorm in simu.Dormitories) {
-                if (dorm?.TestAssign(op) ?? false) return;
+                if (dorm?.TestAssign(op) ?? false) return op;
             }
         }
         throw new Exception("未识别的设施或没有足够位置拜访干员");
+    }
+    internal static OperatorBase[]? AssignMany(this Simulator simu, OpEnumData[] data) {
+        var op_arr = new OperatorBase[data.Length];
+        int i = 0;
+        try {
+            for (; i < data.Length; i++) {
+                op_arr[i] = simu.Assign(data[i]);
+            }
+            return op_arr;
+        } catch {
+            while (i > 0) {
+                op_arr[--i].ReplaceByTestOp();
+            }
+            return null;
+        }
     }
 }

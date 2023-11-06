@@ -18,4 +18,5 @@ public class OpEnumData {
     public string? Product { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Strategy { get; set; }
+    public string[] RelevantOps { get; set; } = null!;
 }
