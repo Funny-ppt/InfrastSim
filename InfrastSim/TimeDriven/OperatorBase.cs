@@ -57,7 +57,9 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
                     }
                 }
             } else {
-                if (MaxMood - Mood > Util.Epsilon) {
+                if (MoodConsumeRate.GetValue("芬芳疗养beta") != 0 && 18.0 - Mood > Util.Epsilon) {
+                    hours = (Mood - 18) / MoodConsumeRate;
+                } else if (MaxMood - Mood > Util.Epsilon) {
                     hours = (Mood - MaxMood) / MoodConsumeRate;
                 }
             }
