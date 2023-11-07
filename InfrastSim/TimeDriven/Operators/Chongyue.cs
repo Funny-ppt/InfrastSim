@@ -10,7 +10,7 @@ internal class Chongyue : OperatorBase {
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {
             MoodConsumeRate.SetValue(Name, 0.5);
             var count = simu.GroupMemberCount("岁");
-            simu.Renjianyanhuo.SetValue(Name, Math.Max(count, 5) * 5);
+            simu.Renjianyanhuo.SetValue(Name, Math.Min(count, 5) * 5);
 
             if (Upgraded >= 2) {
                 simu.Delay(simu => {
