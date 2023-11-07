@@ -19,4 +19,8 @@ public class OpEnumData {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Strategy { get; set; }
     public string[]? RelevantOps { get; set; }
+    public int MoodLow { get; set; } = 0;
+    public int MoodHigh { get; set; } = 24;
+    public bool WarmUp { get; set; } = false;
+
 }

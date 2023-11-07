@@ -98,6 +98,9 @@ public static class EnumerateHelper {
     }
     internal static OperatorBase Assign(this Simulator simu, OpEnumData data) {
         var op = simu.GetOperator(data.Name);
+        op.SetMood((data.MoodLow + data.MoodHigh) >> 1);
+        op.WorkingTime = data.WarmUp ? TimeSpan.FromHours(10) : TimeSpan.Zero;
+
         var facName = data.Fac.ToLower();
         FacilityBase? fac = facName switch {
             "控制中枢" => simu.ControlCenter,
