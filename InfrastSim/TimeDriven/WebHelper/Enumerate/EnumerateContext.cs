@@ -13,7 +13,7 @@ internal class EnumerateContext {
     int max_size;
     int ucnt = 0;
     OpEnumData[] ops = null!;
-    Simulator simu = null!;
+    Simulator simu1 = null!;
     Efficiency baseline;
     ConcurrentDictionary<int, EnumResult> results = new();
 
@@ -40,7 +40,7 @@ internal class EnumerateContext {
 
         var comb = result.comb;
         for (int i = 0; i < result.init_size; i++) {
-            var eff = TestMany(simu, comb.Where(o => o != comb[i]));
+            var eff = TestMany(simu1, comb.Where(o => o != comb[i]));
             var div_eff = eff + comb[i].SingleEfficiency;
             var diff_eff = eff - div_eff;
             if (!diff_eff.IsPositive()) return false;
@@ -61,8 +61,8 @@ internal class EnumerateContext {
     public IOrderedEnumerable<EnumResult> Enumerate(JsonDocument json) {
         var root = json.RootElement;
         var preset = root.GetProperty("preset");
-        simu = InitSimulator(preset);
-        baseline = simu.GetEfficiency();
+        simu1 = InitSimulator(preset);
+        baseline = simu1.GetEfficiency();
         ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(EnumerateHelper.Options);
 
         var uidmap = new Dictionary<string, int>();
@@ -75,7 +75,7 @@ internal class EnumerateContext {
             }
             op.id = i;
             op.prime = primes[i];
-            op.SingleEfficiency = TestSingle(simu, op);
+            op.SingleEfficiency = TestSingle(simu1, op);
         }
 
         max_size = Math.Min(32, ops.Length);
@@ -109,11 +109,6 @@ internal class EnumerateContext {
     }
 
     void InitProc(OpEnumData op, Simulator simu) {
-        try {
-            simu.Assign(op); // 该模拟器仅用于该过程
-        } catch {
-            return;
-        }
         RecursivelyProc(new[] { op }, 1, simu, op.SingleEfficiency);
 
         if (op.RelevantOps == null) {
@@ -128,13 +123,7 @@ internal class EnumerateContext {
                 Array.Copy(c, comb, c.Length);
                 comb[^1] = op;
 
-                var comb_ops = simu.AssignMany(comb); // 进驻
-                if (comb_ops != null) {
-                    RecursivelyProc(comb, comb.Length, simu, simu.GetEfficiency());
-                    foreach (var comb_op in comb_ops) {
-                        comb_op.ReplaceByTestOp();    // 弹出
-                    }
-                }
+                RecursivelyProc(comb, comb.Length, simu, simu.GetEfficiency());
             }
         }
     }
@@ -156,17 +145,14 @@ internal class EnumerateContext {
         if (!results.TryAdd(gid, default)) {
             return;
         }
-        var op_data = comb.Last();
-        OperatorBase op;
+        Efficiency eff;
         try {
-            op = simu.Assign(op_data);
+            eff = TestMany(simu, comb);
         } catch {
-            return; // 失败，所以不需要移除
+            return;
         }
-        var eff = simu.GetEfficiency();
-        var extra_eff = eff - base_eff - op_data.SingleEfficiency;
+        var extra_eff = eff - base_eff - comb.Last().SingleEfficiency;
         if (!extra_eff.IsPositive()) {
-            op.ReplaceByTestOp();
             return;
         }
         var tot_extra_eff = eff;
@@ -178,6 +164,5 @@ internal class EnumerateContext {
         if (comb.Length < max_size) {
             RecursivelyProc(comb, init_size, simu, eff);
         }
-        op.ReplaceByTestOp(); // 递归完毕，移除
     }
 }
