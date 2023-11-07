@@ -42,7 +42,7 @@ internal class EnumerateContext {
         for (int i = 0; i < result.init_size; i++) {
             var eff = TestMany(simu1, comb.Where(o => o != comb[i]));
             var div_eff = eff + comb[i].SingleEfficiency;
-            var diff_eff = eff - div_eff;
+            var diff_eff = result.eff - div_eff;
             if (!diff_eff.IsPositive()) return false;
         }
         return true;
