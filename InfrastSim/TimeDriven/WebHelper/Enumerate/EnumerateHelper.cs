@@ -18,6 +18,7 @@ public static class EnumerateHelper {
         var results = new EnumerateContext().Enumerate(json);
         writer.WriteStartArray();
         foreach (var r in results) {
+            if (r.eff.IsZero()) continue;
             writer.WriteStartObject();
             writer.WritePropertyName("comb");
             writer.WriteRawValue(JsonSerializer.Serialize(r.comb, Options));

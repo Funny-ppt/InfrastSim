@@ -109,7 +109,13 @@ internal class EnumerateContext {
     }
 
     void InitProc(OpEnumData op, Simulator simu) {
+        try {
+            simu.Assign(op);
+        } catch {
+            return;
+        }
         RecursivelyProc(new[] { op }, 1, simu, op.SingleEfficiency);
+
         if (op.RelevantOps == null) {
             return;
         }
@@ -122,13 +128,13 @@ internal class EnumerateContext {
                 Array.Copy(c, comb, c.Length);
                 comb[^1] = op;
 
-                Efficiency eff;
-                try {
-                    eff = TestMany(simu, comb);
-                } catch {
-                    continue;
+                var comb_ops = simu.AssignMany(comb);
+                if (comb_ops != null) {
+                    RecursivelyProc(comb, comb.Length, simu, simu.GetEfficiency());
+                    foreach (var comb_op in comb_ops) {
+                        comb_op.ReplaceByTestOp();
+                    }
                 }
-                RecursivelyProc(comb, comb.Length, simu, eff);
             }
         }
     }
@@ -160,6 +166,7 @@ internal class EnumerateContext {
         var eff = simu.GetEfficiency();
         var extra_eff = eff - base_eff - op_data.SingleEfficiency;
         if (!extra_eff.IsPositive()) {
+            op.ReplaceByTestOp();
             return;
         }
         var tot_extra_eff = eff;
