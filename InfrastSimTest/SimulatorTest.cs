@@ -215,6 +215,164 @@ namespace InfrastSimTest {
                 ]
             }
             """;
+
+            var input2 = """
+            {
+                "preset": {
+                    "Control Center": {
+                        "level": 5
+                    },
+                    "B103": {
+                        "type": "Power",
+                        "level": 3
+                    },
+                    "B203": {
+                        "type": "Power",
+                        "level": 3
+                    },
+                    "B101": {
+                        "type": "Trading",
+                        "level": 1
+                    },
+                    "B102": {
+                        "type": "Trading",
+                        "level": 1
+                    },
+                    "B201": {
+                        "type": "Manufacturing",
+                        "level": 3
+                    },
+                    "B202": {
+                        "type": "Manufacturing",
+                        "level": 3
+                    },
+                    "B301": {
+                        "type": "Manufacturing",
+                        "level": 3
+                    },
+                    "B302": {
+                        "type": "Manufacturing",
+                        "level": 3
+                    },
+                    "B303": {
+                        "type": "Manufacturing",
+                        "level": 3
+                    },
+                    "Dormitory 1": {
+                        "level": 1
+                    },
+                    "Dormitory 2": {
+                        "level": 1
+                    },
+                    "Dormitory 3": {
+                        "level": 1
+                    },
+                    "Reception": {
+                        "level": 3
+                    },
+                    "Crafting": {
+                        "level": 3
+                    },
+                    "Office": {
+                        "level": 3
+                    },
+                    "Training": {
+                        "level": 3
+                    }
+                },
+                "ops": [
+                {
+                    "name": "森蚺",
+                    "positions": [
+                        "制造站",
+                        "控制中枢"
+                    ],
+                    "groups": [
+                        "依赖设施数量",
+                        "虚拟发电站"
+                    ],
+                    "relevant": [
+                        "依赖设施数量",
+                        "Lancet-2"
+                    ],
+                    "relevant_ops": [
+                        "Lancet-2"
+                    ]
+                },
+                {
+                    "name": "清流",
+                    "positions": [
+                        "制造站"
+                    ],
+                    "groups": [
+                        "依赖设施数量"
+                    ],
+                    "relevant": [
+                        "依赖设施数量"
+                    ]
+                },
+                {
+                    "name": "温蒂",
+                    "positions": [
+                        "制造站"
+                    ],
+                    "groups": [
+                        "依赖设施数量"
+                    ],
+                    "relevant": [
+                        "依赖设施数量"
+                    ]
+                },
+                {
+                    "name": "承曦格雷伊",
+                    "positions": [
+                        "发电站"
+                    ],
+                    "groups": [
+                        "作业平台",
+                        "异格",
+                        "虚拟发电站"
+                    ],
+                    "relevant": [
+                        "作业平台",
+                        "异格"
+                    ]
+                },
+                {
+                    "name": "Castle-3",
+                    "positions": [
+                        "制造站",
+                        "发电站"
+                    ],
+                    "prefer_product": [
+                        [
+                            "初级作战记录",
+                            0.3
+                        ]
+                    ],
+                    "groups": [
+                        "作业平台"
+                    ],
+                    "relevant": [
+                        "作业平台"
+                    ]
+                },
+                {
+                    "name": "Lancet-2",
+                    "positions": [
+                        "发电站",
+                        "宿舍"
+                    ],
+                    "groups": [
+                        "作业平台"
+                    ],
+                    "relevant": [
+                        "作业平台"
+                    ]
+                }
+            ]
+            }
+            """;
             using var ms = new MemoryStream();
             using var writer = new Utf8JsonWriter(ms);
             EnumerateHelper.Enumerate(JsonDocument.Parse(input), writer);

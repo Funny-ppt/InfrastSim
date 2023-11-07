@@ -142,7 +142,7 @@ internal class EnumerateContext {
     }
     void Proc(OpEnumData[] comb, int init_size, Simulator simu, Efficiency base_eff) {
         var gid = GetGroupId(comb);
-        if (!results.TryAdd(gid, default)) {
+        if (comb.Length != init_size && !results.TryAdd(gid, default)) {
             return;
         }
         Efficiency eff;
