@@ -109,6 +109,10 @@ internal class EnumerateContext {
     }
 
     void InitProc(OpEnumData op, Simulator simu) {
+        RecursivelyProc(new[] { op }, 1, simu, op.SingleEfficiency);
+        if (op.RelevantOps == null) {
+            return;
+        }
         var relevants = ops.Where(o => op.RelevantOps.Contains(o.Name)).ToArray();
         for (int i = 1; i <= relevants.Length; i++) {
             var combs = new Combination<OpEnumData>(relevants, i);
@@ -127,7 +131,6 @@ internal class EnumerateContext {
                 RecursivelyProc(comb, comb.Length, simu, eff);
             }
         }
-        RecursivelyProc(new[] { op }, 1, simu, op.SingleEfficiency);
     }
     void RecursivelyProc(OpEnumData[] comb, int init_size, Simulator simu, Efficiency eff) {
         var f = new BitArray(ucnt);
