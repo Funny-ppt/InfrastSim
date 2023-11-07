@@ -123,7 +123,13 @@ internal class EnumerateContext {
                 Array.Copy(c, comb, c.Length);
                 comb[^1] = op;
 
-                RecursivelyProc(comb, comb.Length, simu, simu.GetEfficiency());
+                Efficiency eff;
+                try {
+                    eff = TestMany(simu, comb);
+                } catch {
+                    continue;
+                }
+                RecursivelyProc(comb, comb.Length, simu, eff);
             }
         }
     }
