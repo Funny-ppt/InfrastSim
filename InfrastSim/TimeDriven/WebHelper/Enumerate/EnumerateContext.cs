@@ -35,9 +35,9 @@ internal class EnumerateContext {
         }
     }
     bool ValidateResult(in EnumResult result) {
-        if (result.init_size == 1) {
-            return !result.eff.IsZero();
-        }
+        if (!result.eff.IsZero()) return false;
+        if (result.init_size == 1) return true;
+
         var comb = result.comb;
         for (int i = 0; i < result.init_size; i++) {
             var eff = TestMany(simu, comb.Where(o => o != comb[i]));
