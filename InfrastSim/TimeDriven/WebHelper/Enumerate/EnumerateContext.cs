@@ -110,7 +110,7 @@ internal class EnumerateContext {
 
     void InitProc(OpEnumData op, Simulator simu) {
         try {
-            simu.Assign(op);
+            simu.Assign(op); // 该模拟器仅用于该过程
         } catch {
             return;
         }
@@ -128,11 +128,11 @@ internal class EnumerateContext {
                 Array.Copy(c, comb, c.Length);
                 comb[^1] = op;
 
-                var comb_ops = simu.AssignMany(comb);
+                var comb_ops = simu.AssignMany(comb); // 进驻
                 if (comb_ops != null) {
                     RecursivelyProc(comb, comb.Length, simu, simu.GetEfficiency());
                     foreach (var comb_op in comb_ops) {
-                        comb_op.ReplaceByTestOp();
+                        comb_op.ReplaceByTestOp();    // 弹出
                     }
                 }
             }
@@ -176,7 +176,7 @@ internal class EnumerateContext {
         results[gid] = new(comb, init_size, eff, tot_extra_eff);
 
         if (comb.Length < max_size) {
-            RecursivelyProc(comb, init_size, simu, base_eff);
+            RecursivelyProc(comb, init_size, simu, eff);
         }
         op.ReplaceByTestOp(); // 递归完毕，移除
     }
