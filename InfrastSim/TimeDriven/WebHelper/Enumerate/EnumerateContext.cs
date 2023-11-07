@@ -1,6 +1,8 @@
 using InfrastSim.Algorithms;
+using InfrastSim.TimeDriven.WebHelper.Enumerate;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven.WebHelper;
@@ -11,8 +13,9 @@ internal class EnumerateContext {
     int max_size;
     int ucnt = 0;
     OpEnumData[] ops = null!;
+    Simulator simu = null!;
     Efficiency baseline;
-    ConcurrentDictionary<int, (OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> results = new();
+    ConcurrentDictionary<int, EnumResult> results = new();
 
     Efficiency TestSingle(Simulator simu, OpEnumData data) {
         var op = simu.Assign(data);
@@ -31,6 +34,19 @@ internal class EnumerateContext {
             simu.FillTestOp();
         }
     }
+    bool ValidateResult(in EnumResult result) {
+        if (result.init_size == 1) {
+            return !result.eff.IsZero();
+        }
+        var comb = result.comb;
+        for (int i = 0; i < result.init_size; i++) {
+            var eff = TestMany(simu, comb.Where(o => o != comb[i]));
+            var div_eff = eff + comb[i].SingleEfficiency;
+            var diff_eff = eff - div_eff;
+            if (!diff_eff.IsPositive()) return false;
+        }
+        return true;
+    }
 
     //class Comparer : IComparer<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> {
     //    public int Compare((OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) x, (OpEnumData[] comb, Efficiency eff, Efficiency extra_eff) y) {
@@ -42,11 +58,10 @@ internal class EnumerateContext {
     //        return 0;
     //    }
     //}
-    public IOrderedEnumerable<(OpEnumData[] comb, Efficiency eff, Efficiency extra_eff)> Enumerate(JsonDocument json) {
+    public IOrderedEnumerable<EnumResult> Enumerate(JsonDocument json) {
         var root = json.RootElement;
         var preset = root.GetProperty("preset");
-        var simu = InitSimulator(preset);
-
+        simu = InitSimulator(preset);
         baseline = simu.GetEfficiency();
         ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(EnumerateHelper.Options);
 
@@ -75,7 +90,7 @@ internal class EnumerateContext {
             });
         }
         Task.WaitAll(tasks);
-        return results.Values.OrderByDescending(v => v.eff.GetScore());
+        return results.Values.Where(v => ValidateResult(v)).OrderByDescending(v => v.eff.GetScore());
     }
     static Simulator InitSimulator(JsonElement elem) {
         var simu = new Simulator();
@@ -109,12 +124,12 @@ internal class EnumerateContext {
                 } catch {
                     continue;
                 }
-                RecursivelyProc(comb, simu, eff);
+                RecursivelyProc(comb, comb.Length, simu, eff);
             }
         }
-        RecursivelyProc(new[] { op }, simu, op.SingleEfficiency);
+        RecursivelyProc(new[] { op }, 1, simu, op.SingleEfficiency);
     }
-    void RecursivelyProc(OpEnumData[] comb, Simulator simu, Efficiency eff) {
+    void RecursivelyProc(OpEnumData[] comb, int init_size, Simulator simu, Efficiency eff) {
         var f = new BitArray(ucnt);
         foreach (var op in comb) {
             f[op.uid] = true;
@@ -124,12 +139,12 @@ internal class EnumerateContext {
             var new_comb = new OpEnumData[comb.Length + 1];
             Array.Copy(comb, new_comb, comb.Length);
             new_comb[comb.Length] = op;
-            Proc(new_comb, simu, eff);
+            Proc(new_comb, init_size, simu, eff);
         }
     }
-    void Proc(OpEnumData[] comb, Simulator simu, Efficiency base_eff) {
+    void Proc(OpEnumData[] comb, int init_size, Simulator simu, Efficiency base_eff) {
         var gid = GetGroupId(comb);
-        if (!results.TryAdd(gid, (comb, default, default))) {
+        if (!results.TryAdd(gid, default)) {
             return;
         }
         var op_data = comb.Last();
@@ -141,21 +156,17 @@ internal class EnumerateContext {
         }
         var eff = simu.GetEfficiency();
         var extra_eff = eff - base_eff - op_data.SingleEfficiency;
-        if (extra_eff.TradEff < -Util.Epsilon
-            || extra_eff.ManuEff < -Util.Epsilon
-            || extra_eff.PowerEff < -Util.Epsilon
-            || extra_eff.IsZero()
-           ) {
+        if (!extra_eff.IsPositive()) {
             return;
         }
         var tot_extra_eff = eff;
         foreach (var opd in comb) {
             tot_extra_eff -= opd.SingleEfficiency;
         }
-        results[gid] = (comb, eff, tot_extra_eff);
+        results[gid] = new(comb, init_size, eff, tot_extra_eff);
 
         if (comb.Length < max_size) {
-            RecursivelyProc(comb, simu, base_eff);
+            RecursivelyProc(comb, init_size, simu, base_eff);
         }
         op.ReplaceByTestOp(); // 递归完毕，移除
     }

@@ -15,13 +15,12 @@ public static class EnumerateHelper {
     }
 
     public static void Enumerate(JsonDocument json, Utf8JsonWriter writer) {
-        var result = new EnumerateContext().Enumerate(json);
+        var results = new EnumerateContext().Enumerate(json);
         writer.WriteStartArray();
-        foreach (var (comb, eff, extra_eff) in result) {
-            if (eff.IsZero()) continue;
+        foreach (var r in results) {
             writer.WriteStartObject();
             writer.WritePropertyName("comb");
-            writer.WriteRawValue(JsonSerializer.Serialize(comb, Options));
+            writer.WriteRawValue(JsonSerializer.Serialize(r.comb, Options));
             //writer.WriteStartArray();
             //  foreach (var data in comb) {
             //      writer.WriteStartObject();
@@ -32,15 +31,15 @@ public static class EnumerateHelper {
 
             writer.WritePropertyName("eff");
             writer.WriteStartObject();
-            writer.WriteNumber("manu_eff", eff.ManuEff);
-            writer.WriteNumber("trad_eff", eff.TradEff);
-            writer.WriteNumber("power_eff", eff.PowerEff);
+            writer.WriteNumber("manu_eff", r.eff.ManuEff);
+            writer.WriteNumber("trad_eff", r.eff.TradEff);
+            writer.WriteNumber("power_eff", r.eff.PowerEff);
             writer.WriteEndObject();
             writer.WritePropertyName("extra_eff");
             writer.WriteStartObject();
-            writer.WriteNumber("manu_eff", extra_eff.ManuEff);
-            writer.WriteNumber("trad_eff", extra_eff.TradEff);
-            writer.WriteNumber("power_eff", extra_eff.PowerEff);
+            writer.WriteNumber("manu_eff", r.extra_eff.ManuEff);
+            writer.WriteNumber("trad_eff", r.extra_eff.TradEff);
+            writer.WriteNumber("power_eff", r.extra_eff.PowerEff);
             writer.WriteEndObject();
             writer.WriteEndObject();
         }
