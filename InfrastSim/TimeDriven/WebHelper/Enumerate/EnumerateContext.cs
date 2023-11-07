@@ -35,7 +35,7 @@ internal class EnumerateContext {
         }
     }
     bool ValidateResult(in EnumResult result) {
-        if (!result.eff.IsZero()) return false;
+        if (result.eff.IsZero()) return false;
         if (result.init_size == 1) return true;
 
         var comb = result.comb;
