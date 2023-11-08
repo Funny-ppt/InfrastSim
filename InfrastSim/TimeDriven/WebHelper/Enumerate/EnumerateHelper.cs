@@ -61,7 +61,7 @@ public static class EnumerateHelper {
         if (fac != null) {
             var index = fac.IndexOf(op);
             fac.RemoveAt(index);
-            fac.AssignAt(TestOp.Clone(), index);
+            fac.AssignAt(TestOp, index);
         }
     }
     internal static void FillTestOp(this Simulator simu) {
@@ -73,7 +73,7 @@ public static class EnumerateHelper {
         for (int i = 0; i < fac.AcceptOperatorNums; i++) {
             if (fac._operators[i]?.Name != "测试干员") {
                 fac.RemoveAt(i);
-                fac.AssignAt(TestOp.Clone(), i);
+                fac.AssignAt(TestOp, i);
             }
         }
     }

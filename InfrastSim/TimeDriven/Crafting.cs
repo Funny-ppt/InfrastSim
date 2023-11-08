@@ -10,7 +10,7 @@ public class Crafting : FacilityBase {
 
     public override bool IsWorking => false;
 
-    public override double MoodConsumeModifier => 0; // TODO
+    public override double MoodConsumeModifier => 0;
 
-    public override double EffiencyModifier => 0; // TODO
+    public override double EffiencyModifier => 0;
 }
