@@ -15,12 +15,13 @@ internal class Shamare : OperatorBase {
                 simu.Delay(simu => {
                     foreach (var op in trading.Operators) {
                         if (op != this) {
+                            op.EfficiencyModifier.MinValue = 0;
                             op.EfficiencyModifier.MaxValue = 0;
                         }
                         op.MoodConsumeRate.SetValue(Name, 0.25);
                     }
                     EfficiencyModifier.SetValue(Name, (trading.Operators.Count() - 1) * 0.45);
-                }, 150);
+                }, Priority.Shamare);
             }
         }
     }
