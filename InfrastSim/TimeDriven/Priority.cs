@@ -3,4 +3,5 @@ internal static class Priority {
     public const int PropConversion = 20;
     public const int Common = 100;
     public const int AccordingToFacilityAmount = 110;
+    public const int Facility = 200;
 }
