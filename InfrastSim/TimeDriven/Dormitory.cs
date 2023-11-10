@@ -63,11 +63,13 @@ public class Dormitory : FacilityBase {
                 .FirstOrDefault();
         }
 
-        foreach (var op in Operators) {
-            op.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
-            op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier + -0.0004 * Atmosphere);
-            op.MoodConsumeRate.Disable("control-center-mod");
-            op.MoodConsumeRate.Disable("control-center-extra");
-        }
+        simu.Delay((simu) => {
+            foreach (var op in Operators) {
+                op.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
+                op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier + -0.0004 * Atmosphere);
+                op.MoodConsumeRate.Disable("control-center-mod");
+                op.MoodConsumeRate.Disable("control-center-extra");
+            }
+        }, Priority.Facility);
     }
 }

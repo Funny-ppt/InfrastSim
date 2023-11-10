@@ -327,6 +327,16 @@ public class Simulator : ISimulator, IJsonSerializable {
         writer.WriteEndObject();
     }
 
+    public Simulator Clone() {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        writer.WriteItemValue(this);
+        writer.Flush();
+        ms.Position = 0;
+        using var doc = JsonDocument.Parse(ms);
+        return new Simulator(doc.RootElement);
+    }
+
     /// <summary>
     /// 该方法仅供测试使用：
     /// 如果没有干员访问这两个属性，在Resolve中就不会产生，但Update中制造站和贸易站始终会访问这两个值，
