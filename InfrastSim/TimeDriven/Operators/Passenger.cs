@@ -19,7 +19,7 @@ internal class Passenger : OperatorBase {
                         op.EfficiencyModifier.MaxValue = 0;
                     }
                 }
-                EfficiencyModifier.SetValue(Name, 0.05 * simu.GetPowerStations());
+                EfficiencyModifier.SetValue(Name, 0.05 * simu.PowerStationsCount());
             }, Priority.AccordingToFacilityAmount);
         }
     }

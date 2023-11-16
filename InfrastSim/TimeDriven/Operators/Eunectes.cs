@@ -19,7 +19,7 @@ internal class Eunectes : OperatorBase {
                         op.EfficiencyModifier.MaxValue = 0;
                     }
                 }
-                EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 0.1 : 0.05) * simu.GetPowerStations());
+                EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 0.1 : 0.05) * simu.PowerStationsCount());
             }, Priority.AccordingToFacilityAmount);
         }
     }

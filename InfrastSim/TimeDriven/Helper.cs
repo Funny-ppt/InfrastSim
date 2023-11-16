@@ -58,7 +58,7 @@ internal static class Helper {
         return (int)simu.ExtraGoldProductionLine + simu.GetRealGoldProductionLine();
     }
 
-    public static int GetPowerStations(this Simulator simu)
+    public static int PowerStationsCount(this Simulator simu)
     {
         return (int)simu.ExtraPowerStation + simu.PowerStations.Count();
     }
