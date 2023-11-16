@@ -124,7 +124,7 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
         writer.WriteString("name", Name);
         writer.WriteNumber("upgraded", Upgraded);
         writer.WriteNumber("mood", Mood);
-        writer.WriteNumber("mood-internal", MoodTicks);
+        writer.WriteNumber("mood-ticks", MoodTicks);
         writer.WriteNumber("working-time", WorkingTime.Ticks);
 
         if (detailed) {
@@ -155,8 +155,8 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
         if (elem.TryGetProperty("mood", out var mood)) {
             op.SetMood(MoodToTicks(mood.GetDouble()));
         }
-        if (elem.TryGetProperty("mood-internal", out var moodInternal)) {
-            op.SetMood(moodInternal.GetInt32());
+        if (elem.TryGetProperty("mood-ticks", out var moodTicks)) {
+            op.SetMood(moodTicks.GetInt32());
         }
         if (elem.TryGetProperty("working-time", out var workingTime)) {
             op.WorkingTime = new TimeSpan(workingTime.GetInt64());
