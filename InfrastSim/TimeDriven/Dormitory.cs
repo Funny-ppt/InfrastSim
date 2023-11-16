@@ -44,8 +44,8 @@ public class Dormitory : FacilityBase {
             if (x.DormVipPriority != y.DormVipPriority) {
                 return y.DormVipPriority - x.DormVipPriority;
             }
-            if (x.Mood != y.Mood) {
-                return x.Mood - y.Mood < 0 ? -1 : 1;
+            if (x.MoodTicks != y.MoodTicks) {
+                return x.MoodTicks - y.MoodTicks;
             }
             return x.WorkingTime < y.WorkingTime ? -1 : 1;
         }

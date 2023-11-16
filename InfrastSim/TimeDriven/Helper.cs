@@ -2,8 +2,15 @@ using System.Text;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
-internal static class Helper
-{
+internal static class Helper {
+    public static bool VisibleToLookupSkill(this OperatorBase op) {
+        if (op.Facility == null) return false;
+        if (op.Facility.IsWorking) {
+            return !op.IsTired;
+        } else {
+            return !op.IsExausted;
+        }
+    }
     public static OperatorBase? FindOp(this FacilityBase facility, string opName)
     {
         return facility.Operators.Where(op => op.Name == opName).FirstOrDefault();
@@ -18,13 +25,13 @@ internal static class Helper
     /// 适用于 基建中xxx组干员的数量, 考虑红脸
     /// </summary>
     public static int GroupMemberCount(this Simulator simu, string group) {
-        return simu.WorkingOperators.Where(op => op.HasGroup(group)).Count();
+        return simu.OperatorsInFacility.Where(op => op.VisibleToLookupSkill() && op.HasGroup(group)).Count();
     }
     /// <summary>
     /// 适用于 设施中xxx组干员, 考虑红脸
     /// </summary>
     public static IEnumerable<OperatorBase> GroupMembers(this FacilityBase facility, string group) {
-        return facility.WorkingOperators.Where(op => op.HasGroup(group));
+        return facility.Operators.Where(op => op.VisibleToLookupSkill() && op.HasGroup(group));
     }
     /// <summary>
     /// 适用于 设施中是否有xxx组干员, 考虑红脸

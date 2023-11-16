@@ -8,7 +8,7 @@ internal class Eunectes : OperatorBase {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired && Upgraded >= 2) {
-            if (simu.PowerStations.Any(power => power.Operators.First().Name == "Lancet-2")) {
+            if (simu.IsOpInFacility("Lancet-2", FacilityType.Power)) {
                 simu.ExtraPowerStation.SetValue(Name, 2);
             }
         }
