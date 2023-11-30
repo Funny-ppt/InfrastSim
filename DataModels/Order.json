@@ -1,0 +1,8 @@
+/// type: Order
+{
+    "produce-time": 165600000000,   // 订单时间, 单位为C# TimeSpan的tick, 1s = 10000000 ticks
+    "consume": "赤金",              // 订单消耗的材料名称
+    "consume-count": 4,             // 订单消耗的材料数量
+    "earn": "龙门币",               // 订单获得的材料名称
+    "earn-count": 2500              // 订单获得的材料数量
+}

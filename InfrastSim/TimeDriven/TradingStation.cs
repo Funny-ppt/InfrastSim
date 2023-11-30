@@ -163,7 +163,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
             writer.WriteNumber("remains", RemainsTime.TotalSeconds);
             writer.WriteNumber("base-capacity", BaseCapacity);
             writer.WriteNumber("capacity", CapacityN);
-            writer.WriteNumber("capacity-details", Capacity);
+            writer.WriteItem("capacity-details", Capacity);
             var args = Level switch {
                 1 => new GoldOrderPendingArgs(new(1), new(max: 0), new(max: 0)),
                 2 => new GoldOrderPendingArgs(new(0.6), new(0.4), new(max: 0)),

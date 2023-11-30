@@ -1,0 +1,161 @@
+/// type: Facility
+[
+    /// 适用于输入和 detailed=false 时 GetData() 的输出
+    {
+                            //          对应: 控制中枢,       办公室,  制造站,        贸易站,   制造站,   训练室,    宿舍,      发电站
+        "type": "Trading",  // 设施类型, 包括: ControlCenter, Office, Manufacturing, Trading, Crafting, Training, Dormitory, Power
+        "level": 3,         // 设施等级
+        "operators": [      // 入住干员名字列表, 长度应该和最大可入住人数匹配
+            "孑",
+            null,           // null 表示该位置为空
+            "琳琅诗怀雅"
+        ],
+        "current-order": {                  // 仅当 type 为 Trading, JSON类型为 Order, 表示当前正在获取的订单
+            "produce-time": 86400000000,
+            "consume": "赤金",
+            "consume-count": 2,
+            "earn": "龙门币",
+            "earn-count": 1000
+        },
+        "progress": 0.12499999999999922,    // 仅当 type 为 Trading 或 Manufacturing, 订单或产品完成进度, 0表示初始进度, 1表示完成
+        "strategy": "Gold",                 // 仅当 type 为 Trading, 订单策略, "Gold" 表示 龙门商法, "OriginStone" 表示 开采协力
+        "orders": [                         // 仅当 type 为 Trading, JSON类型为 Order[], 已经获得但未提交的订单列表
+            {
+                "produce-time": 126000000000,
+                "consume": "赤金",
+                "consume-count": 3,
+                "earn": "龙门币",
+                "earn-count": 1500
+            },
+            {
+                "produce-time": 126000000000,
+                "consume": "赤金",
+                "consume-count": 3,
+                "earn": "龙门币",
+                "earn-count": 1500
+            },
+            {
+                "produce-time": 165600000000,
+                "consume": "赤金",
+                "consume-count": 4,
+                "earn": "龙门币",
+                "earn-count": 2500
+            }
+        ],
+        "product-index": 3,                 // 仅当 type 为 Manufacturing, 内部数据, 用于表示产物类型
+        "product-count": 0                  // 仅当 type 为 Manufacturing, 已完成的产品数量
+    },
+
+    /// 适用于 detailed=true 时 GetData() 的输出
+    {
+        "type": "Manufacturing",
+        "level": 2,
+        "operators": [
+            {
+                "name": "多萝西",
+                "upgraded": 2,
+                "mood": 16.50000000000682,
+                "working-time": 360000000000,
+                "working-time-seconds": 36000,
+                "mood-consume-rate": 0.75,
+                "mood-consume-rate-details": {
+                    "value": 0.75,
+                    "base-value": 1,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "control-center",
+                            "value": -0.2,
+                            "disabled": false
+                        },
+                        {
+                            "tag": "facility",
+                            "value": -0.05,
+                            "disabled": false
+                        }
+                    ]
+                },
+                "efficiency": 0.35,
+                "efficiency-details": {
+                    "value": 0.35,
+                    "base-value": 0,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "多萝西",
+                            "value": 0.35,
+                            "disabled": false
+                        }
+                    ]
+                },
+                "index": 0
+            },
+            {
+                "name": "赫默",
+                "upgraded": 2,
+                "mood": 16.50000000000682,
+                "working-time": 360000000000,
+                "working-time-seconds": 36000,
+                "mood-consume-rate": 0.75,
+                "mood-consume-rate-details": {
+                    "value": 0.75,
+                    "base-value": 1,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "control-center",
+                            "value": -0.2,
+                            "disabled": false
+                        },
+                        {
+                            "tag": "facility",
+                            "value": -0.05,
+                            "disabled": false
+                        }
+                    ]
+                },
+                "efficiency": 0.25,
+                "efficiency-details": {
+                    "value": 0.25,
+                    "base-value": 0,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "赫默",
+                            "value": 0.25,
+                            "disabled": false
+                        }
+                    ]
+                },
+                "index": 1
+            }
+        ],
+        "product-index": 3,
+        "progress": 0.4999999999999912,
+        "product-count": 13,
+        "product": "赤金",              // 额外参数，表示当前制造的产品名称
+        "remains": 2160,               //  额外参数，表示订单/制造剩余时间（未计算效率）
+        "base-capacity": 36,            // 额外参数，表示制造站/贸易站的基础容量
+        "capacity": 36,                 // 额外参数，表示制造站/贸易站的当前容量
+        "capacity-details": {           // 额外参数，表示当前容量的详细信息
+            "value": 36,
+            "base-value": 0,
+            "min-value": 1,
+            "max-value": 1000,
+            "details": [
+                {
+                    "tag": "base",
+                    "value": 36,
+                    "disabled": false
+                }
+            ]
+        },
+        "base-efficiency": 1.02,        // 额外参数，表示制造站/贸易站基于人数提供的基础效率
+        "operators-efficiency": 0.6     // 额外参数，表示制造站/贸易站干员的站内效率综合
+                                        // 注意，以上两个参数均不包含全局制造站/贸易站收益
+    }
+]

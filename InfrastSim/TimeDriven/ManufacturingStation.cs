@@ -114,7 +114,7 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
             writer.WriteNumber("remains", RemainsTime.TotalSeconds);
             writer.WriteNumber("base-capacity", BaseCapacity);
             writer.WriteNumber("capacity", CapacityN);
-            writer.WriteNumber("capacity-details", Capacity);
+            writer.WriteItem("capacity-details", Capacity);
         }
     }
     protected override void ReadDerivedContent(JsonElement elem) {

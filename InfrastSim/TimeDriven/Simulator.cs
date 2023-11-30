@@ -21,40 +21,73 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public Simulator(in JsonElement elem) {
-        Now = elem.GetProperty("time").GetDateTime();
-        Random = new XoshiroRandom(elem.GetProperty("random"));
-        _drones = elem.GetProperty("drones").GetDouble();
-        _refresh = elem.GetProperty("refresh").GetDouble();
+        if (elem.TryGetProperty("time", out JsonElement timeElem) && timeElem.TryGetDateTime(out var now)) {
+            Now = now;
+        }
 
-        foreach (var prop in elem.GetProperty("materials").EnumerateObject()) {
-            _materials.Add(prop.Name, prop.Value.GetInt32());
+        if (elem.TryGetProperty("random", out JsonElement randomElem)) {
+            Random = new XoshiroRandom(randomElem);
+        } else {
+            Random = new XoshiroRandom();
+        }
+
+        if (elem.TryGetProperty("drones", out JsonElement dronesElem)) {
+            _drones = dronesElem.GetDouble();
+        }
+
+        if (elem.TryGetProperty("refresh", out JsonElement refreshElem)) {
+            _refresh = refreshElem.GetDouble();
+        }
+
+        if (elem.TryGetProperty("materials", out JsonElement materialsElem)) {
+            foreach (var prop in materialsElem.EnumerateObject()) {
+                _materials.Add(prop.Name, prop.Value.GetInt32());
+            }
         }
 
         var operators = new Dictionary<string, OperatorBase>();
-        foreach (var op_elem in elem.GetProperty("operators").EnumerateArray()) {
-            var name = op_elem.GetProperty("name").GetString();
-            operators[name] = OperatorBase.FromJson(op_elem);
+        if (elem.TryGetProperty("operators", out JsonElement operatorsElem)) {
+            foreach (var opElem in operatorsElem.EnumerateArray()) {
+                var name = opElem.GetProperty("name").GetString();
+                operators[name] = OperatorBase.FromJson(opElem);
+            }
         }
-        var newops = OperatorInstances.Operators
+        var newOps = OperatorInstances.Operators
             .ExceptBy(operators.Keys, kvp => kvp.Key);
-        foreach (var kvp in newops) {
+        foreach (var kvp in newOps) {
             operators[kvp.Key] = kvp.Value.Clone();
         }
         Operators = operators.ToFrozenDictionary();
 
-        Facilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center"), this) as ControlCenter;
-        Facilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office"), this) as Office;
-        Facilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception"), this) as Reception;
-        Facilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training"), this) as Training;
-        Facilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting"), this) as Crafting;
-        int i = 5;
-        foreach (var dormElem in elem.GetProperty("dormitories").EnumerateArray()) {
-            var dorm = FacilityBase.FromJson(dormElem, this);
-            Facilities[i++] = dorm;
+        JsonElement facElem;
+        if (elem.TryGetProperty("control-center", out facElem)) {
+            ControlCenter = FacilityBase.FromJson(facElem, this) as ControlCenter ?? new ControlCenter();
         }
-        foreach (var facElem in elem.GetProperty("modifiable-facilities").EnumerateArray()) {
-            var fac = FacilityBase.FromJson(facElem, this);
-            Facilities[i++] = fac;
+        if (elem.TryGetProperty("office", out facElem)) {
+            Office = FacilityBase.FromJson(facElem, this) as Office ?? new Office();
+        }
+        if (elem.TryGetProperty("reception", out facElem)) {
+            Reception = FacilityBase.FromJson(facElem, this) as Reception ?? new Reception();
+        }
+        if (elem.TryGetProperty("training", out facElem)) {
+            Training = FacilityBase.FromJson(facElem, this) as Training ?? new Training();
+        }
+        if (elem.TryGetProperty("crafting", out facElem)) {
+            Crafting = FacilityBase.FromJson(facElem, this) as Crafting ?? new Crafting();
+        }
+
+        int i = 5;
+        if (elem.TryGetProperty("dormitories", out JsonElement dormitoriesElem)) {
+            foreach (var dormElem in dormitoriesElem.EnumerateArray()) {
+                var dorm = FacilityBase.FromJson(dormElem, this);
+                Facilities[i++] = dorm;
+            }
+        }
+        if (elem.TryGetProperty("modifiable-facilities", out JsonElement modFacilitiesElem)) {
+            foreach (var mfacElem in modFacilitiesElem.EnumerateArray()) {
+                var fac = FacilityBase.FromJson(mfacElem, this);
+                Facilities[i++] = fac;
+            }
         }
     }
 

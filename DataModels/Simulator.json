@@ -1,0 +1,157 @@
+/// type: Simulator
+/// 作为输入时，所有字段均为可选
+/// 适用于 detailed=false 时 GetData() 的输出
+{
+  "time": "2023-11-30T08:27:00.5807501Z", // 模拟器内部时间
+  "random": [
+    10121254011370060799,
+    10127188974506345722,
+    4523505144750447391,
+    9475112547226926619
+  ],              // 四个 int64 维持的随机数状态
+  "drones": 0,    // 无人机数量
+  "refresh": 0,   // 公招刷新次数
+  "operators": [  // 干员状态列表；未出现的干员视为满心情、精英二、0工作时间
+    {
+      "name": "苍苔",   // 干员名称
+      "upgraded": 2,    // 精英化等级
+      "mood": 24,       // 心情，浮点数，24为满心情
+      "working-time": 0 // 工作时间，单位为C# TimeSpan的tick，1s = 10000000 ticks
+    },
+    {
+      "name": "清流",
+      "upgraded": 2,
+      "mood": 24,
+      "working-time": 0
+    },
+    {
+      "name": "戴菲恩",
+      "upgraded": 2,
+      "mood": 24,
+      "working-time": 0
+    }
+  ],
+  "materials": {  // 素材列表；名称-数量的字典；素材全部采用中文名
+    "赤金": 0
+  },
+  "control-center": { // JSON类型为 Facility, 控制中枢状态
+    "type": "ControlCenter",
+    "level": 5,
+    "operators": [
+      "令",
+      "重岳",
+      "夕",
+      "阿米娅",
+      null
+    ]
+  },
+  "office": {        // JSON类型为 Facility, 办公室状态
+    "type": "Office",
+    "level": 0,
+    "operators": [
+      null
+    ]
+  },
+  "reception": {    // JSON类型为 Facility, 会客室状态
+    "type": "Reception",
+    "level": 0,
+    "operators": [
+      null,
+      null
+    ]
+  },
+  "training": {     // JSON类型为 Facility, 训练室状态
+    "type": "Training",
+    "level": 0,
+    "operators": [
+      null,
+      null
+    ]
+  },
+  "crafting": {     // JSON类型为 Facility, 制造站状态
+    "type": "Crafting",
+    "level": 0,
+    "operators": [
+      null
+    ]
+  },
+  "dormitories": [  // JSON类型为 Facility[], 长度固定为4, 全部宿舍状态
+    {
+      "type": "Dormitory",
+      "level": 0,
+      "operators": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Dormitory",
+      "level": 0,
+      "operators": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Dormitory",
+      "level": 0,
+      "operators": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Dormitory",
+      "level": 0,
+      "operators": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    }
+  ],
+  "modifiable-facilities": [  // JSON类型为 Facility[], 长度固定为9, 全部左侧设施状态
+    {
+      "type": "Trading",
+      "level": 3,
+      "operators": [
+        "乌有",
+        "巫恋",
+        "龙舌兰"
+      ],
+      "current-order": null,
+      "progress": 0,
+      "strategy": "Gold",
+      "orders": []
+    },
+    {
+      "type": "Manufacturing",
+      "level": 2,
+      "operators": [
+        "多萝西",
+        "赫默"
+      ],
+      "product-index": 3,
+      "progress": 0,
+      "product-count": 0
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ]
+}
