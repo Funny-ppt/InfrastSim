@@ -21,7 +21,7 @@ internal class Ling : OperatorBase {
             });
 
             if (Upgraded >= 2) {
-                if (Mood >= 12) {
+                if (MoodTicks >= 12 * 360000) {
                     simu.Renjianyanhuo.SetValue(Name, 15);
                 } else {
                     simu.Ganzhixinxi.SetValue(Name, 10);

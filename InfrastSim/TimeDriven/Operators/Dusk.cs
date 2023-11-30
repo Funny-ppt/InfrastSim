@@ -13,7 +13,7 @@ internal class Dusk : OperatorBase {
             center.ExtraMoodModifier.SetValue(Name, -0.05);
             MoodConsumeRate.SetValue(Name, 0.5);
 
-            if (Mood >= 12) {
+            if (MoodTicks >= 12 * 360000) {
                 simu.Ganzhixinxi.SetValue(Name, 10);
             } else {
                 simu.Renjianyanhuo.SetValue(Name, 15);

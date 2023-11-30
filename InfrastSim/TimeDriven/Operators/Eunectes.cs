@@ -8,7 +8,7 @@ internal class Eunectes : OperatorBase {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired && Upgraded >= 2) {
-            if (simu.PowerStations.Any(power => power.Operators.First().Name == "Lancet-2")) {
+            if (simu.IsOpInFacility("Lancet-2", FacilityType.Power)) {
                 simu.ExtraPowerStation.SetValue(Name, 2);
             }
         }
@@ -19,7 +19,7 @@ internal class Eunectes : OperatorBase {
                         op.EfficiencyModifier.MaxValue = 0;
                     }
                 }
-                EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 0.1 : 0.05) * simu.GetPowerStations());
+                EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 0.1 : 0.05) * simu.PowerStationsCount());
             }, Priority.AccordingToFacilityAmount);
         }
     }
