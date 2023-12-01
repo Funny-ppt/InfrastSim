@@ -61,11 +61,11 @@ public class Dormitory : FacilityBase {
                 .OrderBy(op => op, new VipPriorityComparer())
                 .Where(op => !op.IsFullOfEnergy)
                 .FirstOrDefault();
+            Vip?.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
         }
 
         simu.Delay((simu) => {
             foreach (var op in Operators) {
-                op.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
                 op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier + -0.0004 * Atmosphere);
                 op.MoodConsumeRate.Disable("control-center-mod");
                 op.MoodConsumeRate.Disable("control-center-extra");
