@@ -275,21 +275,23 @@ public class Simulator : ISimulator, IJsonSerializable {
     #endregion
 
     #region 全局效率
-    public AggregateValue GlobalManufacturingEfficiency => GetGlobalValue(nameof(GlobalManufacturingEfficiency));
-    public AggregateValue GlobalTradingEfficiency => GetGlobalValue(nameof(GlobalTradingEfficiency));
+    public AggregateValue GlobalManufacturingEfficiency => GetGlobalValue("全局制造站效率");
+    public AggregateValue GlobalTradingEfficiency => GetGlobalValue("全局贸易站效率");
     public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
     public double OfficeEfficiency => 1 + Office.TotalEffiencyModifier;
     public double ManufacturingEfficiency {
         get {
-            var count = ManufacturingStations.Count();
-            var eff = ManufacturingStations.Sum(fac => fac.TotalEffiencyModifier);
+            var workingFacilities = ManufacturingStations.Where(fac => fac.Operators.Any());
+            var count = workingFacilities.Count();
+            var eff = workingFacilities.Sum(fac => fac.TotalEffiencyModifier);
             return count * (1 + GlobalManufacturingEfficiency) + eff;
         }
     }
     public double TradingEfficiency {
         get {
-            var count = TradingStations.Count();
-            var eff = TradingStations.Sum(fac => fac.TotalEffiencyModifier);
+            var workingFacilities = TradingStations.Where(fac => fac.Operators.Any());
+            var count = workingFacilities.Count();
+            var eff = workingFacilities.Sum(fac => fac.TotalEffiencyModifier);
             return count * (1 + GlobalTradingEfficiency) + eff;
         }
     }
