@@ -128,7 +128,7 @@ public class MowerHelper {
         newfac["total_efficiency"] =
                 fac["base-efficiency"]!.GetValue<double>()
               + fac["operators-efficiency"]!.GetValue<double>()
-              + simu.GlobalManufacturingEffiency;
+              + simu.GlobalManufacturingEfficiency;
         newfac["finished_product"] = fac["product-count"]!.DeepClone();
         newfac["product"] = fac["product"]?.DeepClone() ?? null;
         newfac["progress"] = fac["progress"]!.DeepClone();
@@ -152,7 +152,7 @@ public class MowerHelper {
         newfac["total_efficiency"] =
                 fac["base-efficiency"]!.GetValue<double>()
               + fac["operators-efficiency"]!.GetValue<double>()
-              + simu.GlobalTradingEffiency;
+              + simu.GlobalTradingEfficiency;
         newfac["order_chance"] = fac["order-chance"]!.DeepClone();
         newfac["orders"] = orders;
 

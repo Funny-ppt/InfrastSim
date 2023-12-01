@@ -103,7 +103,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
         base.Resolve(simu);
     }
     public override void QueryInterest(Simulator simu) {
-        var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
+        var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
         var remains = RemainsTime / effiency;
         simu.SetInterest(this, remains);
 
@@ -114,7 +114,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
             if (CurrentOrder == null) {
                 PendingNewOrder(simu.Random);
             }
-            var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
+            var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
             var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;

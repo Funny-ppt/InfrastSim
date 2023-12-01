@@ -275,22 +275,22 @@ public class Simulator : ISimulator, IJsonSerializable {
     #endregion
 
     #region 全局效率
-    public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
-    public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
+    public AggregateValue GlobalManufacturingEfficiency => GetGlobalValue(nameof(GlobalManufacturingEfficiency));
+    public AggregateValue GlobalTradingEfficiency => GetGlobalValue(nameof(GlobalTradingEfficiency));
     public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
     public double OfficeEfficiency => 1 + Office.TotalEffiencyModifier;
     public double ManufacturingEfficiency {
         get {
             var count = ManufacturingStations.Count();
             var eff = ManufacturingStations.Sum(fac => fac.TotalEffiencyModifier);
-            return count * (1 + GlobalManufacturingEffiency) + eff;
+            return count * (1 + GlobalManufacturingEfficiency) + eff;
         }
     }
     public double TradingEfficiency {
         get {
             var count = TradingStations.Count();
             var eff = TradingStations.Sum(fac => fac.TotalEffiencyModifier);
-            return count * (1 + GlobalTradingEffiency) + eff;
+            return count * (1 + GlobalTradingEfficiency) + eff;
         }
     }
     #endregion
@@ -387,7 +387,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     /// 进而导致出现默认的值，使得序列化、反序列化结果不一致（尽管没有任何影响）
     /// </summary>
     public void EnsurePropExists() {
-        var p1 = GlobalManufacturingEffiency;
-        var p2 = GlobalTradingEffiency;
+        var p1 = GlobalManufacturingEfficiency;
+        var p2 = GlobalTradingEfficiency;
     }
 }
