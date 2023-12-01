@@ -163,11 +163,11 @@ public static partial class Helper {
                 }
             }
             if (elem.TryGetProperty("product", out var prod)) {
-                var product = prod.GetString();
                 if (facility is ManufacturingStation manufacturing) {
+                    var product = prod.GetString();
                     Product newProduct;
                     if (product.StartsWith("源石碎片")) {
-                        var splits = product.Split(",_， ", StringSplitOptions.RemoveEmptyEntries);
+                        var splits = product.Split('_', StringSplitOptions.RemoveEmptyEntries);
                         var consumes = splits[1];
                         newProduct = Product.AllProducts
                             .Where(p => p.Name == "源石碎片" && p.Consumes[1].Name == consumes)
