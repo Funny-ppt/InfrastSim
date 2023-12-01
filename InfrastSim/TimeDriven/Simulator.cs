@@ -75,6 +75,11 @@ public class Simulator : ISimulator, IJsonSerializable {
         if (elem.TryGetProperty("crafting", out facElem)) {
             Crafting = FacilityBase.FromJson(facElem, this) as Crafting ?? new Crafting();
         }
+        ControlCenter ??= new ControlCenter();
+        Office ??= new Office();
+        Reception ??= new Reception();
+        Training ??= new Training();
+        Crafting ??= new Crafting();
 
         int i = 5;
         if (elem.TryGetProperty("dormitories", out JsonElement dormitoriesElem)) {
@@ -118,6 +123,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         _delayActions.Clear();
     }
     void QueryInterest() {
+        _nextInterest = TimeSpan.FromHours(1);
         foreach (var facility in Facilities) {
             facility?.QueryInterest(this);
         }
