@@ -236,7 +236,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     public int Drones => (int)Math.Floor(_drones);
     public void AddDrones(double amount) => _drones = Math.Min(200, _drones + amount);
 
-    internal void RemoveDrones(int amount) => _drones -= Math.Max(Drones, amount);
+    internal void RemoveDrones(int amount) => _drones -= Math.Min(Drones, amount);
     internal void RemoveMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
     }

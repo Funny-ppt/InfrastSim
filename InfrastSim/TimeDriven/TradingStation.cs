@@ -112,8 +112,11 @@ public class TradingStation : FacilityBase, IApplyDrones {
     public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
             if (CurrentOrder == null) {
-                PendingNewOrder(simu.Random);
+                if (!PendingNewOrder(simu.Random)) {
+                    return;
+                }
             }
+            Debug.Assert(CurrentOrder != null);
             var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
             var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
@@ -121,7 +124,6 @@ public class TradingStation : FacilityBase, IApplyDrones {
 
                 InsertCurrentOrder();
                 if (PendingNewOrder(simu.Random)) {
-                    Debug.Assert(CurrentOrder != null);
                     Progress += remains / CurrentOrder.ProduceTime;
                 }
             } else {
