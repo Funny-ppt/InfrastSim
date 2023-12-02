@@ -9,7 +9,7 @@ internal class Lumen : OperatorBase {
             simu.Delay(simu => {
                 foreach (var op in dorm.Operators) {
                     var amount = simu.PowerStationsCount() * -0.05 + (Upgraded >= 2 ? -0.15 : -0.1);
-                    op.MoodConsumeRate.SetIfLesser("dorm-extra", amount + -0.0004 * dorm.Atmosphere);
+                    op.MoodConsumeRate.SetIfLesser("dorm-extra", amount);
                 }
             });
         }

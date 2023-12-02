@@ -66,8 +66,9 @@ public class Dormitory : FacilityBase {
 
         simu.Delay((simu) => {
             foreach (var op in Operators) {
-                op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier + -0.0004 * Atmosphere);
-                op.MoodConsumeRate.Disable("control-center-mod");
+                op.MoodConsumeRate.SetValue("dorm-atmosphere", -0.0004 * Atmosphere);
+                op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier);
+                op.MoodConsumeRate.Disable("control-center");
                 op.MoodConsumeRate.Disable("control-center-extra");
             }
         }, Priority.Facility);
