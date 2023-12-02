@@ -84,11 +84,14 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
     }
 
     public int ApplyDrones(Simulator simu, int amount) {
+        if (Product == null) return 0;
+
         amount = Math.Min(amount, simu.Drones);
         var time = TimeSpan.FromMinutes(3 * amount);
 
         while (CanStoreMore && time >= RemainsTime) {
             time -= RemainsTime;
+            Progress = 0;
             ProductCount += 1;
         }
 

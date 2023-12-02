@@ -133,8 +133,10 @@ public class TradingStation : FacilityBase, IApplyDrones {
     }
 
     public int ApplyDrones(Simulator simu, int amount) {
+        if (CurrentOrder == null) return 0;
+
         int max = (int)Math.Ceiling(RemainsTime / TimeSpan.FromMinutes(3));
-        amount = Math.Min(amount, Math.Min(simu.Drones, max));
+        amount = ((int[]) [amount, simu.Drones, max]).Min();
         var time = TimeSpan.FromMinutes(3 * amount);
 
         if (time >= RemainsTime) {

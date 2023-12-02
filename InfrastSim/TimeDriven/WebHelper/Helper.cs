@@ -186,11 +186,6 @@ public static partial class Helper {
                 var operators = ops.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
                 facility.AssignMany(operators);
             }
-            // 为了和一些以前的代码兼容，暂时保留该代码不删除
-            if (elem.TryGetProperty("operators-force-replace", out ops)) {
-                var operators = ops.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
-                facility.AssignMany(operators);
-            }
             if (elem.TryGetProperty("drone", out var drone)) {
                 (facility as IApplyDrones ?? throw new ArgumentException($"{fac} 未建造或不是可以使用无人机的设施"))
                     .ApplyDrones(simu, drone.GetInt32());

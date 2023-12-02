@@ -278,7 +278,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     public AggregateValue GlobalManufacturingEfficiency => GetGlobalValue("全局制造站效率");
     public AggregateValue GlobalTradingEfficiency => GetGlobalValue("全局贸易站效率");
     public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
-    public double OfficeEfficiency => 1 + Office.TotalEffiencyModifier;
+    public double OfficeEfficiency => (Office.WorkingOperators.Any() ? 1 : 0) + Office.TotalEffiencyModifier;
     public double ManufacturingEfficiency {
         get {
             var workingFacilities = ManufacturingStations.Where(fac => fac.Operators.Any());
