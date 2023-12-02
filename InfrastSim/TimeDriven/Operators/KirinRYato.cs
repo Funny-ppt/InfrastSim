@@ -13,7 +13,7 @@ internal class KirinRYato : OperatorBase {
 
             if (Upgraded >= 2) {
                 if (Facility.GroupMemberCount("怪物猎人小队") >= 2) {
-                    simu.GlobalManufacturingEffiency.SetIfGreater(0.02);
+                    simu.GlobalManufacturingEfficiency.SetIfGreater(0.02);
                 }
             }
         }

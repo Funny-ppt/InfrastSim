@@ -7,7 +7,7 @@ internal class Swire : OperatorBase {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {
-            simu.GlobalTradingEffiency.SetIfGreater(0.07);
+            simu.GlobalTradingEfficiency.SetIfGreater(0.07);
         }
 
         // TODO: missing skill 2

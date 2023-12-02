@@ -103,7 +103,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
         base.Resolve(simu);
     }
     public override void QueryInterest(Simulator simu) {
-        var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
+        var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
         var remains = RemainsTime / effiency;
         simu.SetInterest(this, remains);
 
@@ -112,16 +112,18 @@ public class TradingStation : FacilityBase, IApplyDrones {
     public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
             if (CurrentOrder == null) {
-                PendingNewOrder(simu.Random);
+                if (!PendingNewOrder(simu.Random)) {
+                    return;
+                }
             }
-            var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEffiency;
+            Debug.Assert(CurrentOrder != null);
+            var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
             var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;
 
                 InsertCurrentOrder();
                 if (PendingNewOrder(simu.Random)) {
-                    Debug.Assert(CurrentOrder != null);
                     Progress += remains / CurrentOrder.ProduceTime;
                 }
             } else {
@@ -133,8 +135,10 @@ public class TradingStation : FacilityBase, IApplyDrones {
     }
 
     public int ApplyDrones(Simulator simu, int amount) {
+        if (CurrentOrder == null) return 0;
+
         int max = (int)Math.Ceiling(RemainsTime / TimeSpan.FromMinutes(3));
-        amount = Math.Min(amount, Math.Min(simu.Drones, max));
+        amount = ((int[]) [amount, simu.Drones, max]).Min();
         var time = TimeSpan.FromMinutes(3 * amount);
 
         if (time >= RemainsTime) {
@@ -163,7 +167,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
             writer.WriteNumber("remains", RemainsTime.TotalSeconds);
             writer.WriteNumber("base-capacity", BaseCapacity);
             writer.WriteNumber("capacity", CapacityN);
-            writer.WriteNumber("capacity-details", Capacity);
+            writer.WriteItem("capacity-details", Capacity);
             var args = Level switch {
                 1 => new GoldOrderPendingArgs(new(1), new(max: 0), new(max: 0)),
                 2 => new GoldOrderPendingArgs(new(0.6), new(0.4), new(max: 0)),

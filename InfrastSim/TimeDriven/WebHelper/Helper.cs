@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace InfrastSim.TimeDriven.WebHelper;
@@ -17,14 +18,17 @@ public static partial class Helper {
         return ((Dormitory?)simu.Dormitories[dormIndex])?.Vip?.Name;
     }
 
-    static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + label[3] - '0' - 1;
+    /// <summary>
+    /// 返回门牌号对应与simu.Facilities中的下标
+    /// </summary>
+    static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + (label[3] - '0' - 1) + 9;
     static Regex _roomLabelRegex = RoomLabelRegex();
     static Regex _roomNameRegex = RoomNameWithOptionalIndexRegex();
     static FacilityBase? GetFacilityByName(this Simulator simu, string fac) {
         fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
         if (_roomLabelRegex.IsMatch(fac)) {
             var index = LabelToIndex(fac);
-            return simu.ModifiableFacilities[index];
+            return simu.Facilities[index];
         }
         var match = _roomNameRegex.Match(fac);
         var fac_name = match.Groups[1].Value;
@@ -111,13 +115,16 @@ public static partial class Helper {
 
     public static TradingStation.OrderStrategy ToStrategy(string text) {
         return text switch {
+            "龙门商法" => TradingStation.OrderStrategy.Gold,
             "赤金" => TradingStation.OrderStrategy.Gold,
             "龙门币" => TradingStation.OrderStrategy.Gold,
             "gold" => TradingStation.OrderStrategy.Gold,
             "lmb" => TradingStation.OrderStrategy.Gold,
+            "开采协力" => TradingStation.OrderStrategy.OriginStone,
             "源石" => TradingStation.OrderStrategy.OriginStone,
             "合成玉" => TradingStation.OrderStrategy.OriginStone,
             "originium" => TradingStation.OrderStrategy.OriginStone,
+            "originstone" => TradingStation.OrderStrategy.OriginStone,
             _ => throw new ApplicationException($"未知的订单类型 {text}")
         };
     }
@@ -125,12 +132,25 @@ public static partial class Helper {
     public static void SetFacilityState(this Simulator simu, string fac, JsonElement elem) {
         var facility = simu.GetFacilityByName(fac);
         if (facility != null) {
-            if (elem.TryGetProperty("destroy", out var _)) {
+            if (elem.TryGetProperty("destroy", out _)) {
                 if (_roomLabelRegex.IsMatch(fac)) {
                     var index = LabelToIndex(fac);
                     facility.RemoveAll();
-                    simu.Facilities[9 + index] = null;
+                    simu.Facilities[index] = null;
                     return;
+                }
+            }
+            if (elem.TryGetProperty("refactor", out var refactor)) {
+                if (_roomLabelRegex.IsMatch(fac)) {
+                    var index = LabelToIndex(fac);
+                    FacilityBase new_fac = refactor.GetString() switch {
+                        "Trading" => new TradingStation(),
+                        "Manufacturing" => new ManufacturingStation(),
+                        "Power" => new PowerStation(),
+                        _ => throw new ArgumentException("未知或不受支持的设施类型")
+                    }; 
+                    simu.Facilities[index]?.RemoveAll();
+                    simu.Facilities[index] = new_fac;
                 }
             }
             if (elem.TryGetProperty("level", out var level)) {
@@ -143,39 +163,41 @@ public static partial class Helper {
                 }
             }
             if (elem.TryGetProperty("product", out var prod)) {
-                var product = prod.GetString();
                 if (facility is ManufacturingStation manufacturing) {
-                    var newProduct = Product.AllProducts.Where(p => p.Name == product).FirstOrDefault()
-                        ?? throw new ApplicationException($"未知的产品名称 {product}");
+                    var product = prod.GetString();
+                    Product newProduct;
+                    if (product.StartsWith("源石碎片")) {
+                        var splits = product.Split('_', StringSplitOptions.RemoveEmptyEntries);
+                        var consumes = splits[1];
+                        newProduct = Product.AllProducts
+                            .Where(p => p.Name == "源石碎片" && p.Consumes[1].Name == consumes)
+                            .FirstOrDefault() ?? throw new ApplicationException($"未知的源石碎片材料 {consumes}");
+                    }
+                    else {
+                        newProduct = Product.AllProducts
+                            .Where(p => p.Name == product)
+                            .FirstOrDefault() ?? throw new ApplicationException($"未知的产品名称 {product}");
+                    }
                     Collect(simu, manufacturing);
                     manufacturing.ChangeProduct(newProduct);
                 }
             }
             if (elem.TryGetProperty("operators", out var ops)) {
-                var opNames = ops.EnumerateArray().Select(e => e.GetString());
-                foreach (var op in facility.Operators) {
-                    if (!opNames.Contains(op.Name)) {
-                        facility.Remove(op);
-                    }
-                }
-                foreach (var opName in opNames) {
-                    var op = simu.GetOperator(opName);
-                    facility.Assign(op);
-                }
-            }
-            if (elem.TryGetProperty("operators-force-replace", out var ops2)) {
-                var operators = ops2.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
+                var operators = ops.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
                 facility.AssignMany(operators);
             }
             if (elem.TryGetProperty("drone", out var drone)) {
                 (facility as IApplyDrones ?? throw new ArgumentException($"{fac} 未建造或不是可以使用无人机的设施"))
                     .ApplyDrones(simu, drone.GetInt32());
             }
+            if (elem.TryGetProperty("collect", out var collect_idx)) {
+                Collect(simu, facility, collect_idx.GetInt32());
+            }
         } else {
             if (_roomLabelRegex.IsMatch(fac)) {
                 var index = LabelToIndex(fac);
                 facility = FacilityBase.FromJson(elem, simu);
-                simu.Facilities[index + 9] = facility;
+                simu.Facilities[index] = facility;
             } else {
                 fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
                 var match = _roomNameRegex.Match(fac);
@@ -197,8 +219,8 @@ public static partial class Helper {
                 }
             }
             if (elem.TryGetProperty("product", out var prod)) {
-                var product = prod.GetString();
                 if (facility is ManufacturingStation manufacturing) {
+                    var product = prod.GetString();
                     var newProduct = Product.AllProducts.Where(p => p.Name == product).FirstOrDefault()
                         ?? throw new ApplicationException($"未知的产品名称 {product}");
                     Collect(simu, manufacturing);

@@ -31,7 +31,10 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         op.Facility = this;
     }
     internal void RemoveAt(int index) {
-        _operators[index]?.LeaveFacility();
+        var op = _operators[index];
+        if (op != null) {
+            op.Facility = null;
+        }
         _operators[index] = null;
     }
 

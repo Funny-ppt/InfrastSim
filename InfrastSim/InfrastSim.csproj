@@ -16,7 +16,4 @@
 		<ProjectReference Include="..\InfrastSimSourceGenerator\InfrastSimSourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\RandomEx\RandomEx.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="TimeDriven\Enumerate\" />
-	</ItemGroup>
 </Project>

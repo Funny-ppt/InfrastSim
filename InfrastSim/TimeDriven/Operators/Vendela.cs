@@ -10,7 +10,7 @@ internal class Vendela : OperatorBase {
 
             if (Upgraded >= 2) {
                 foreach (var op in Facility.Operators) {
-                    if (op.Mood <= 18) {
+                    if (op.MoodTicks <= 18 * 360000) {
                         op.MoodConsumeRate.SetIfLesser("芬芳疗养beta", -0.1);
                     }
                 }

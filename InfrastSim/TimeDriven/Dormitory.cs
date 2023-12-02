@@ -44,8 +44,8 @@ public class Dormitory : FacilityBase {
             if (x.DormVipPriority != y.DormVipPriority) {
                 return y.DormVipPriority - x.DormVipPriority;
             }
-            if (x.Mood != y.Mood) {
-                return x.Mood - y.Mood < 0 ? -1 : 1;
+            if (x.MoodTicks != y.MoodTicks) {
+                return x.MoodTicks - y.MoodTicks;
             }
             return x.WorkingTime < y.WorkingTime ? -1 : 1;
         }
@@ -61,13 +61,15 @@ public class Dormitory : FacilityBase {
                 .OrderBy(op => op, new VipPriorityComparer())
                 .Where(op => !op.IsFullOfEnergy)
                 .FirstOrDefault();
+            Vip?.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
         }
 
-        foreach (var op in Operators) {
-            op.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
-            op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier + -0.0004 * Atmosphere);
-            op.MoodConsumeRate.Disable("control-center-mod");
-            op.MoodConsumeRate.Disable("control-center-extra");
-        }
+        simu.Delay((simu) => {
+            foreach (var op in Operators) {
+                op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier + -0.0004 * Atmosphere);
+                op.MoodConsumeRate.Disable("control-center-mod");
+                op.MoodConsumeRate.Disable("control-center-extra");
+            }
+        }, Priority.Facility);
     }
 }

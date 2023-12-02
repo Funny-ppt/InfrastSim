@@ -12,7 +12,7 @@ internal class Muelsyse : OperatorBase {
             dorm.SetDormMoodModifier(-0.1);
         }
         if (Facility is PowerStation && !IsTired) {
-            var amount = simu.GroupMemberCount("莱茵生命");
+            var amount = simu.GroupMemberCount("莱茵生命") - 1;
             EfficiencyModifier.SetValue(Name, 0.1 + Math.Min(0.15, 0.03 * amount));
         }
     }

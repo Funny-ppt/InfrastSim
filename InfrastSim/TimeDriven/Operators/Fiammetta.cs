@@ -10,8 +10,8 @@ internal class Fiammetta : OperatorBase {
             for (int i = index + 1; i < arr.Length; i++) {
                 var op = arr[i];
                 if (!op.IsFullOfEnergy) {
-                    SetMood(op.Mood);
-                    op.SetMood(24);
+                    SetMood(op.MoodTicks);
+                    op.SetMood(MaxTicks);
                     break;
                 }
             }

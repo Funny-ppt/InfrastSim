@@ -12,15 +12,17 @@ internal class WaaiFu : OperatorBase {
                 foreach (var op in manufacturing.Operators) {
                     if (op == this) continue;
 
+                    var eff = 0.0;
                     foreach (var name in names) {
-                        op.MoodConsumeRate.Disable(op.Name);
+                        op.MoodConsumeRate.Disable(name);
+                        eff += op.EfficiencyModifier.GetValue(name);
                     }
                     if (Upgraded >= 2) {
-                        EfficiencyModifier.AddValue(Name, Math.Max(0, Util.Align(op.EfficiencyModifier, 0.05)));
+                        EfficiencyModifier.AddValue(Name, Math.Max(0, Util.Align(eff, 0.05)));
                     }
                 }
                 EfficiencyModifier.SetIfLesser(Name, 0.4);
-            }, 120);
+            }, Priority.WaaiFu);
         }
     }
 }

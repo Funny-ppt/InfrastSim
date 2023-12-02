@@ -21,40 +21,83 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public Simulator(in JsonElement elem) {
-        Now = elem.GetProperty("time").GetDateTime();
-        Random = new XoshiroRandom(elem.GetProperty("random"));
-        _drones = elem.GetProperty("drones").GetDouble();
-        _refresh = elem.GetProperty("refresh").GetDouble();
+        if (elem.TryGetProperty("time", out JsonElement timeElem) && timeElem.TryGetDateTime(out var now)) {
+            Now = now;
+        }
 
-        foreach (var prop in elem.GetProperty("materials").EnumerateObject()) {
-            _materials.Add(prop.Name, prop.Value.GetInt32());
+        if (elem.TryGetProperty("random", out JsonElement randomElem)) {
+            Random = new XoshiroRandom(randomElem);
+        } else {
+            Random = new XoshiroRandom();
+        }
+
+        if (elem.TryGetProperty("drones", out JsonElement dronesElem)) {
+            _drones = dronesElem.GetDouble();
+        }
+
+        if (elem.TryGetProperty("refresh", out JsonElement refreshElem)) {
+            _refresh = refreshElem.GetDouble();
+        }
+
+        if (elem.TryGetProperty("materials", out JsonElement materialsElem)) {
+            foreach (var prop in materialsElem.EnumerateObject()) {
+                _materials.Add(prop.Name, prop.Value.GetInt32());
+            }
         }
 
         var operators = new Dictionary<string, OperatorBase>();
-        foreach (var op_elem in elem.GetProperty("operators").EnumerateArray()) {
-            var name = op_elem.GetProperty("name").GetString();
-            operators[name] = OperatorBase.FromJson(op_elem);
+        if (elem.TryGetProperty("operators", out JsonElement operatorsElem)) {
+            foreach (var opElem in operatorsElem.EnumerateArray()) {
+                var name = opElem.GetProperty("name").GetString();
+                operators[name] = OperatorBase.FromJson(opElem);
+            }
         }
-        var newops = OperatorInstances.Operators
+        var newOps = OperatorInstances.Operators
             .ExceptBy(operators.Keys, kvp => kvp.Key);
-        foreach (var kvp in newops) {
+        foreach (var kvp in newOps) {
             operators[kvp.Key] = kvp.Value.Clone();
         }
         Operators = operators.ToFrozenDictionary();
 
-        Facilities[0] = ControlCenter = FacilityBase.FromJson(elem.GetProperty("control-center"), this) as ControlCenter;
-        Facilities[1] = Office = FacilityBase.FromJson(elem.GetProperty("office"), this) as Office;
-        Facilities[2] = Reception = FacilityBase.FromJson(elem.GetProperty("reception"), this) as Reception;
-        Facilities[3] = Training = FacilityBase.FromJson(elem.GetProperty("training"), this) as Training;
-        Facilities[4] = Crafting = FacilityBase.FromJson(elem.GetProperty("crafting"), this) as Crafting;
-        int i = 5;
-        foreach (var dormElem in elem.GetProperty("dormitories").EnumerateArray()) {
-            var dorm = FacilityBase.FromJson(dormElem, this);
-            Facilities[i++] = dorm;
+        JsonElement facElem;
+        if (elem.TryGetProperty("control-center", out facElem)) {
+            ControlCenter = FacilityBase.FromJson(facElem, this) as ControlCenter ?? new ControlCenter();
+        } else {
+            ControlCenter = new ControlCenter();
         }
-        foreach (var facElem in elem.GetProperty("modifiable-facilities").EnumerateArray()) {
-            var fac = FacilityBase.FromJson(facElem, this);
-            Facilities[i++] = fac;
+        if (elem.TryGetProperty("office", out facElem)) {
+            Office = FacilityBase.FromJson(facElem, this) as Office ?? new Office();
+        } else {
+            Office = new Office();
+        }
+        if (elem.TryGetProperty("reception", out facElem)) {
+            Reception = FacilityBase.FromJson(facElem, this) as Reception ?? new Reception();
+        } else {
+            Reception = new Reception();
+        }
+        if (elem.TryGetProperty("training", out facElem)) {
+            Training = FacilityBase.FromJson(facElem, this) as Training ?? new Training();
+        } else {
+            Training = new Training();
+        }
+        if (elem.TryGetProperty("crafting", out facElem)) {
+            Crafting = FacilityBase.FromJson(facElem, this) as Crafting ?? new Crafting();
+        } else {
+            Crafting = new Crafting();
+        }
+
+        int i = 5;
+        if (elem.TryGetProperty("dormitories", out JsonElement dormitoriesElem)) {
+            foreach (var dormElem in dormitoriesElem.EnumerateArray()) {
+                var dorm = FacilityBase.FromJson(dormElem, this);
+                Facilities[i++] = dorm;
+            }
+        }
+        if (elem.TryGetProperty("modifiable-facilities", out JsonElement modFacilitiesElem)) {
+            foreach (var mfacElem in modFacilitiesElem.EnumerateArray()) {
+                var fac = FacilityBase.FromJson(mfacElem, this);
+                Facilities[i++] = fac;
+            }
         }
     }
 
@@ -85,6 +128,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         _delayActions.Clear();
     }
     void QueryInterest() {
+        _nextInterest = TimeSpan.FromHours(1);
         foreach (var facility in Facilities) {
             facility?.QueryInterest(this);
         }
@@ -192,7 +236,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     public int Drones => (int)Math.Floor(_drones);
     public void AddDrones(double amount) => _drones = Math.Min(200, _drones + amount);
 
-    internal void RemoveDrones(int amount) => _drones -= Math.Max(Drones, amount);
+    internal void RemoveDrones(int amount) => _drones -= Math.Min(Drones, amount);
     internal void RemoveMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
     }
@@ -231,22 +275,24 @@ public class Simulator : ISimulator, IJsonSerializable {
     #endregion
 
     #region 全局效率
-    public AggregateValue GlobalManufacturingEffiency => GetGlobalValue(nameof(GlobalManufacturingEffiency));
-    public AggregateValue GlobalTradingEffiency => GetGlobalValue(nameof(GlobalTradingEffiency));
+    public AggregateValue GlobalManufacturingEfficiency => GetGlobalValue("全局制造站效率");
+    public AggregateValue GlobalTradingEfficiency => GetGlobalValue("全局贸易站效率");
     public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
-    public double OfficeEfficiency => 1 + Office.TotalEffiencyModifier;
+    public double OfficeEfficiency => (Office.WorkingOperators.Any() ? 1 : 0) + Office.TotalEffiencyModifier;
     public double ManufacturingEfficiency {
         get {
-            var count = ManufacturingStations.Count();
-            var eff = ManufacturingStations.Sum(fac => fac.TotalEffiencyModifier);
-            return count * (1 + GlobalManufacturingEffiency) + eff;
+            var workingFacilities = ManufacturingStations.Where(fac => fac.Operators.Any());
+            var count = workingFacilities.Count();
+            var eff = workingFacilities.Sum(fac => fac.TotalEffiencyModifier);
+            return count * (1 + GlobalManufacturingEfficiency) + eff;
         }
     }
     public double TradingEfficiency {
         get {
-            var count = TradingStations.Count();
-            var eff = TradingStations.Sum(fac => fac.TotalEffiencyModifier);
-            return count * (1 + GlobalTradingEffiency) + eff;
+            var workingFacilities = TradingStations.Where(fac => fac.Operators.Any());
+            var count = workingFacilities.Count();
+            var eff = workingFacilities.Sum(fac => fac.TotalEffiencyModifier);
+            return count * (1 + GlobalTradingEfficiency) + eff;
         }
     }
     #endregion
@@ -327,13 +373,23 @@ public class Simulator : ISimulator, IJsonSerializable {
         writer.WriteEndObject();
     }
 
+    public Simulator Clone() {
+        using var ms = new MemoryStream();
+        using var writer = new Utf8JsonWriter(ms);
+        writer.WriteItemValue(this);
+        writer.Flush();
+        ms.Position = 0;
+        using var doc = JsonDocument.Parse(ms);
+        return new Simulator(doc.RootElement);
+    }
+
     /// <summary>
     /// 该方法仅供测试使用：
     /// 如果没有干员访问这两个属性，在Resolve中就不会产生，但Update中制造站和贸易站始终会访问这两个值，
     /// 进而导致出现默认的值，使得序列化、反序列化结果不一致（尽管没有任何影响）
     /// </summary>
     public void EnsurePropExists() {
-        var p1 = GlobalManufacturingEffiency;
-        var p2 = GlobalTradingEffiency;
+        var p1 = GlobalManufacturingEfficiency;
+        var p2 = GlobalTradingEfficiency;
     }
 }

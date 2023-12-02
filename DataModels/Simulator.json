@@ -1,0 +1,1136 @@
+/// type: Simulator
+[
+  /// 作为输入时，所有字段均为可选
+  /// 适用于 detailed=false 时 GetData() 的输出
+  {
+    "time": "2023-11-30T08:27:00.5807501Z", // 模拟器内部时间
+    "random": [
+      10121254011370060799,
+      10127188974506345722,
+      4523505144750447391,
+      9475112547226926619
+    ],              // 四个 int64 维持的随机数状态
+    "drones": 0,    // 无人机数量
+    "refresh": 0,   // 公招刷新次数
+    "operators": [  // 干员状态列表；未出现的干员视为满心情、精英二、0工作时间
+      {
+        "name": "苍苔",   // 干员名称
+        "upgraded": 2,    // 精英化等级
+        "mood": 24,       // 心情，浮点数，24为满心情
+        "working-time": 0 // 工作时间，单位为C# TimeSpan的tick，1s = 10000000 ticks
+      },
+      {
+        "name": "清流",
+        "upgraded": 2,
+        "mood": 24,
+        "working-time": 0
+      },
+      {
+        "name": "戴菲恩",
+        "upgraded": 2,
+        "mood": 24,
+        "working-time": 0
+      }
+    ],
+    "materials": {  // 素材列表；名称-数量的字典；素材全部采用中文名
+      "赤金": 0
+    },
+    "control-center": { // JSON类型为 Facility, 控制中枢状态
+      "type": "ControlCenter",
+      "level": 5,
+      "operators": [
+        "令",
+        "重岳",
+        "夕",
+        "阿米娅",
+        null
+      ]
+    },
+    "office": {        // JSON类型为 Facility, 办公室状态
+      "type": "Office",
+      "level": 0,
+      "operators": [
+        null
+      ]
+    },
+    "reception": {    // JSON类型为 Facility, 会客室状态
+      "type": "Reception",
+      "level": 0,
+      "operators": [
+        null,
+        null
+      ]
+    },
+    "training": {     // JSON类型为 Facility, 训练室状态
+      "type": "Training",
+      "level": 0,
+      "operators": [
+        null,
+        null
+      ]
+    },
+    "crafting": {     // JSON类型为 Facility, 制造站状态
+      "type": "Crafting",
+      "level": 0,
+      "operators": [
+        null
+      ]
+    },
+    "dormitories": [  // JSON类型为 Facility[], 长度固定为4, 全部宿舍状态
+      {
+        "type": "Dormitory",
+        "level": 0,
+        "operators": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "type": "Dormitory",
+        "level": 0,
+        "operators": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "type": "Dormitory",
+        "level": 0,
+        "operators": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      {
+        "type": "Dormitory",
+        "level": 0,
+        "operators": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      }
+    ],
+    "modifiable-facilities": [  // JSON类型为 Facility[], 长度固定为9, 全部左侧设施状态
+      {
+        "type": "Trading",
+        "level": 3,
+        "operators": [
+          "乌有",
+          "巫恋",
+          "龙舌兰"
+        ],
+        "current-order": null,
+        "progress": 0,
+        "strategy": "Gold",
+        "orders": []
+      },
+      {
+        "type": "Manufacturing",
+        "level": 2,
+        "operators": [
+          "多萝西",
+          "赫默"
+        ],
+        "product-index": 3,
+        "progress": 0,
+        "product-count": 0
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+
+  
+  /// 适用于 detailed=true 时 GetData() 的输出
+  {
+    "time": "2023-12-01T14:03:02.8508313Z",
+    "random": [
+        6780416498917712842,
+        4941479912116752672,
+        12160827486841943632,
+        9346336670434386275
+    ],
+    "drones": 10,
+    "refresh": 0.08333333333333333,
+    "drones-efficiency": 1,
+    "office-efficiency": 1,
+    "manufacturing-efficiency": 1.62,
+    "trading-efficiency": 3.75,
+    "operators": [
+      // 本应有所有干员的详情，此处省略
+    ],
+    "materials": {},
+    "control-center": {
+        "type": "ControlCenter",
+        "level": 5,
+        "operators": [
+            {
+                "name": "令",
+                "upgraded": 2,
+                "mood": 23.200005555555556,
+                "mood-ticks": 8352002,
+                "working-time": 36000000003,
+                "working-time-seconds": 3600.0000003,
+                "mood-consume-rate": 0.8,
+                "mood-consume-rate-details": {
+                    "value": 0.8,
+                    "base-value": 1,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "control-center",
+                            "value": -0.2,
+                            "disabled": false
+                        },
+                        {
+                            "tag": "control-center-extra",
+                            "value": -0.05,
+                            "disabled": true
+                        }
+                    ]
+                },
+                "efficiency": 0,
+                "efficiency-details": {
+                    "value": 0,
+                    "base-value": 0,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": []
+                },
+                "index": 0
+            },
+            {
+                "name": "重岳",
+                "upgraded": 2,
+                "mood": 23.200005555555556,
+                "mood-ticks": 8352002,
+                "working-time": 36000000002,
+                "working-time-seconds": 3600.0000002,
+                "mood-consume-rate": 0.8,
+                "mood-consume-rate-details": {
+                    "value": 0.8,
+                    "base-value": 1,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "重岳",
+                            "value": 0.5,
+                            "disabled": true
+                        },
+                        {
+                            "tag": "control-center",
+                            "value": -0.2,
+                            "disabled": false
+                        },
+                        {
+                            "tag": "control-center-extra",
+                            "value": -0.05,
+                            "disabled": true
+                        }
+                    ]
+                },
+                "efficiency": 0,
+                "efficiency-details": {
+                    "value": 0,
+                    "base-value": 0,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": []
+                },
+                "index": 1
+            },
+            {
+                "name": "夕",
+                "upgraded": 2,
+                "mood": 23.200005555555556,
+                "mood-ticks": 8352002,
+                "working-time": 36000000001,
+                "working-time-seconds": 3600.0000001,
+                "mood-consume-rate": 0.8,
+                "mood-consume-rate-details": {
+                    "value": 0.8,
+                    "base-value": 1,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "夕",
+                            "value": 0.5,
+                            "disabled": true
+                        },
+                        {
+                            "tag": "control-center",
+                            "value": -0.2,
+                            "disabled": false
+                        },
+                        {
+                            "tag": "control-center-extra",
+                            "value": -0.05,
+                            "disabled": true
+                        }
+                    ]
+                },
+                "efficiency": 0,
+                "efficiency-details": {
+                    "value": 0,
+                    "base-value": 0,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": []
+                },
+                "index": 2
+            },
+            {
+                "name": "阿米娅",
+                "upgraded": 2,
+                "mood": 23.250005555555553,
+                "mood-ticks": 8370002,
+                "working-time": 36000000000,
+                "working-time-seconds": 3600,
+                "mood-consume-rate": 0.75,
+                "mood-consume-rate-details": {
+                    "value": 0.75,
+                    "base-value": 1,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": [
+                        {
+                            "tag": "control-center",
+                            "value": -0.2,
+                            "disabled": false
+                        },
+                        {
+                            "tag": "control-center-extra",
+                            "value": -0.05,
+                            "disabled": false
+                        }
+                    ]
+                },
+                "efficiency": 0,
+                "efficiency-details": {
+                    "value": 0,
+                    "base-value": 0,
+                    "min-value": -1.7976931348623157E+308,
+                    "max-value": 1.7976931348623157E+308,
+                    "details": []
+                },
+                "index": 3
+            },
+            null
+        ],
+        "base-efficiency": 1,
+        "operators-efficiency": 0
+    },
+    "office": {
+        "type": "Office",
+        "level": 0,
+        "operators": [
+            null
+        ],
+        "base-efficiency": 1,
+        "operators-efficiency": 0
+    },
+    "reception": {
+        "type": "Reception",
+        "level": 0,
+        "operators": [
+            null,
+            null
+        ],
+        "base-efficiency": 1,
+        "operators-efficiency": 0
+    },
+    "training": {
+        "type": "Training",
+        "level": 0,
+        "operators": [
+            null,
+            null
+        ],
+        "base-efficiency": 1,
+        "operators-efficiency": 0
+    },
+    "crafting": {
+        "type": "Crafting",
+        "level": 0,
+        "operators": [
+            null
+        ],
+        "base-efficiency": 1,
+        "operators-efficiency": 0
+    },
+    "dormitories": [
+        {
+            "type": "Dormitory",
+            "level": 3,
+            "operators": [
+                {
+                    "name": "桃金娘",
+                    "upgraded": 2,
+                    "mood": 24,
+                    "mood-ticks": 8640000,
+                    "working-time": 36000000003,
+                    "working-time-seconds": 3600.0000003,
+                    "mood-consume-rate": -3.45,
+                    "mood-consume-rate-details": {
+                        "value": -3.45,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -2.8,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "dorm-extra",
+                                "value": -1.45,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0,
+                    "efficiency-details": {
+                        "value": 0,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": []
+                    },
+                    "index": 0
+                },
+                {
+                    "name": "杜林",
+                    "upgraded": 2,
+                    "mood": 24,
+                    "mood-ticks": 8640000,
+                    "working-time": 36000000002,
+                    "working-time-seconds": 3600.0000002,
+                    "mood-consume-rate": -3.3499999999999996,
+                    "mood-consume-rate-details": {
+                        "value": -3.3499999999999996,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "杜林",
+                                "value": 0.1,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -2.8,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "dorm-extra",
+                                "value": -1.45,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0,
+                    "efficiency-details": {
+                        "value": 0,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": []
+                    },
+                    "index": 1
+                },
+                {
+                    "name": "褐果",
+                    "upgraded": 2,
+                    "mood": 24,
+                    "mood-ticks": 8640000,
+                    "working-time": 36000000001,
+                    "working-time-seconds": 3600.0000001,
+                    "mood-consume-rate": -3.45,
+                    "mood-consume-rate-details": {
+                        "value": -3.45,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -2.8,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "dorm-extra",
+                                "value": -1.45,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0,
+                    "efficiency-details": {
+                        "value": 0,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": []
+                    },
+                    "index": 2
+                },
+                {
+                    "name": "至简",
+                    "upgraded": 2,
+                    "mood": 24,
+                    "mood-ticks": 8640000,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": -3.45,
+                    "mood-consume-rate-details": {
+                        "value": -3.45,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -2.8,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "dorm-extra",
+                                "value": -1.45,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0,
+                    "efficiency-details": {
+                        "value": 0,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": []
+                    },
+                    "index": 3
+                },
+                null
+            ],
+            "base-efficiency": 1,
+            "operators-efficiency": 0
+        },
+        {
+            "type": "Dormitory",
+            "level": 0,
+            "operators": [
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            "base-efficiency": 1,
+            "operators-efficiency": 0
+        },
+        {
+            "type": "Dormitory",
+            "level": 0,
+            "operators": [
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            "base-efficiency": 1,
+            "operators-efficiency": 0
+        },
+        {
+            "type": "Dormitory",
+            "level": 0,
+            "operators": [
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            "base-efficiency": 1,
+            "operators-efficiency": 0
+        }
+    ],
+    "modifiable-facilities": [
+        {
+            "type": "Trading",
+            "level": 3,
+            "operators": [
+                {
+                    "name": "乌有",
+                    "upgraded": 2,
+                    "mood": 23.050005555555554,
+                    "mood-ticks": 8298002,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.95,
+                    "mood-consume-rate-details": {
+                        "value": 0.95,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.1,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "巫恋",
+                                "value": 0.25,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0,
+                    "efficiency-details": {
+                        "value": 0,
+                        "base-value": 0,
+                        "min-value": 0,
+                        "max-value": 0,
+                        "details": [
+                            {
+                                "tag": "乌有",
+                                "value": 0.34,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "index": 0
+                },
+                {
+                    "name": "巫恋",
+                    "upgraded": 2,
+                    "mood": 23.050005555555554,
+                    "mood-ticks": 8298002,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.95,
+                    "mood-consume-rate-details": {
+                        "value": 0.95,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "巫恋",
+                                "value": 0.25,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.1,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0.9,
+                    "efficiency-details": {
+                        "value": 0.9,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "巫恋",
+                                "value": 0.9,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "index": 1
+                },
+                {
+                    "name": "龙舌兰",
+                    "upgraded": 2,
+                    "mood": 23.300002777777777,
+                    "mood-ticks": 8388001,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.7,
+                    "mood-consume-rate-details": {
+                        "value": 0.7,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "龙舌兰",
+                                "value": -0.25,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.1,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "巫恋",
+                                "value": 0.25,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0,
+                    "efficiency-details": {
+                        "value": 0,
+                        "base-value": 0,
+                        "min-value": 0,
+                        "max-value": 0,
+                        "details": []
+                    },
+                    "index": 2
+                }
+            ],
+            "current-order": {
+                "produce-time": 126000000000,
+                "consume": "赤金",
+                "consume-count": 3,
+                "earn": "龙门币",
+                "earn-count": 1500
+            },
+            "progress": 0.5714285714285714,
+            "strategy": "Gold",
+            "orders": [],
+            "remains": 5400,
+            "base-capacity": 10,
+            "capacity": 10,
+            "capacity-details": {
+                "value": 10,
+                "base-value": 0,
+                "min-value": 1,
+                "max-value": 64,
+                "details": [
+                    {
+                        "tag": "base",
+                        "value": 10,
+                        "disabled": false
+                    }
+                ]
+            },
+            "order-chance": {
+                "2": 0.3,
+                "3": 0.5,
+                "4": 0.42333333333333334
+            },
+            "base-efficiency": 1.03,
+            "operators-efficiency": 0.9
+        },
+        {
+            "type": "Manufacturing",
+            "level": 2,
+            "operators": [
+                {
+                    "name": "多萝西",
+                    "upgraded": 2,
+                    "mood": 23.250005555555553,
+                    "mood-ticks": 8370002,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.75,
+                    "mood-consume-rate-details": {
+                        "value": 0.75,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.05,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0.35,
+                    "efficiency-details": {
+                        "value": 0.35,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "多萝西",
+                                "value": 0.35,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "index": 0
+                },
+                {
+                    "name": "赫默",
+                    "upgraded": 2,
+                    "mood": 23.250005555555553,
+                    "mood-ticks": 8370002,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.75,
+                    "mood-consume-rate-details": {
+                        "value": 0.75,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.05,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0.25,
+                    "efficiency-details": {
+                        "value": 0.25,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "赫默",
+                                "value": 0.25,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "index": 1
+                }
+            ],
+            "product-index": 3,
+            "progress": 0.35,
+            "product-count": 1,
+            "product": "赤金",
+            "remains": 2808,
+            "base-capacity": 36,
+            "capacity": 36,
+            "capacity-details": {
+                "value": 36,
+                "base-value": 0,
+                "min-value": 1,
+                "max-value": 1000,
+                "details": [
+                    {
+                        "tag": "base",
+                        "value": 36,
+                        "disabled": false
+                    }
+                ]
+            },
+            "base-efficiency": 1.02,
+            "operators-efficiency": 0.6
+        },
+        {
+            "type": "Trading",
+            "level": 3,
+            "operators": [
+                {
+                    "name": "绮良",
+                    "upgraded": 2,
+                    "mood": 23.300002777777777,
+                    "mood-ticks": 8388001,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.7,
+                    "mood-consume-rate-details": {
+                        "value": 0.7,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.1,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0.05,
+                    "efficiency-details": {
+                        "value": 0.05,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "绮良",
+                                "value": 0.05,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "index": 0
+                },
+                {
+                    "name": "鸿雪",
+                    "upgraded": 2,
+                    "mood": 23.300002777777777,
+                    "mood-ticks": 8388001,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.7,
+                    "mood-consume-rate-details": {
+                        "value": 0.7,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.1,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0.25,
+                    "efficiency-details": {
+                        "value": 0.25,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "鸿雪",
+                                "value": 0.25,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "index": 1
+                },
+                {
+                    "name": "图耶",
+                    "upgraded": 2,
+                    "mood": 23.300002777777777,
+                    "mood-ticks": 8388001,
+                    "working-time": 36000000000,
+                    "working-time-seconds": 3600,
+                    "mood-consume-rate": 0.7,
+                    "mood-consume-rate-details": {
+                        "value": 0.7,
+                        "base-value": 1,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "control-center",
+                                "value": -0.2,
+                                "disabled": false
+                            },
+                            {
+                                "tag": "facility",
+                                "value": -0.1,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "efficiency": 0.35,
+                    "efficiency-details": {
+                        "value": 0.35,
+                        "base-value": 0,
+                        "min-value": -1.7976931348623157E+308,
+                        "max-value": 1.7976931348623157E+308,
+                        "details": [
+                            {
+                                "tag": "图耶",
+                                "value": 0.35,
+                                "disabled": false
+                            }
+                        ]
+                    },
+                    "index": 2
+                }
+            ],
+            "current-order": {
+                "produce-time": 126000000000,
+                "consume": "赤金",
+                "consume-count": 3,
+                "earn": "龙门币",
+                "earn-count": 1500
+            },
+            "progress": 0.5,
+            "strategy": "Gold",
+            "orders": [],
+            "remains": 6300,
+            "base-capacity": 10,
+            "capacity": 10,
+            "capacity-details": {
+                "value": 10,
+                "base-value": 0,
+                "min-value": 1,
+                "max-value": 64,
+                "details": [
+                    {
+                        "tag": "base",
+                        "value": 10,
+                        "disabled": false
+                    }
+                ]
+            },
+            "order-chance": {
+                "2": 0.3,
+                "3": 0.5,
+                "4": 0.2
+            },
+            "base-efficiency": 1.03,
+            "operators-efficiency": 0.6499999999999999
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+    ],
+    "global-props": {
+        "人间烟火": {
+            "value": 34,
+            "base-value": 0,
+            "min-value": 0,
+            "max-value": 1.7976931348623157E+308,
+            "details": [
+                {
+                    "tag": "令",
+                    "value": 15,
+                    "disabled": false
+                },
+                {
+                    "tag": "重岳",
+                    "value": 15,
+                    "disabled": false
+                },
+                {
+                    "tag": "乌有",
+                    "value": 4,
+                    "disabled": false
+                }
+            ]
+        },
+        "感知信息": {
+            "value": 10,
+            "base-value": 0,
+            "min-value": 0,
+            "max-value": 1.7976931348623157E+308,
+            "details": [
+                {
+                    "tag": "夕",
+                    "value": 10,
+                    "disabled": false
+                }
+            ]
+        },
+        "全局贸易站效率": {
+            "value": 0.07,
+            "base-value": 0,
+            "min-value": 0,
+            "max-value": 1.7976931348623157E+308,
+            "details": [
+                {
+                    "tag": "common",
+                    "value": 0.07,
+                    "disabled": false
+                }
+            ]
+        },
+        "虚拟赤金线": {
+            "value": 4,
+            "base-value": 0,
+            "min-value": 0,
+            "max-value": 1.7976931348623157E+308,
+            "details": [
+                {
+                    "tag": "鸿雪",
+                    "value": 4,
+                    "disabled": false
+                }
+            ]
+        },
+        "全局制造站效率": {
+            "value": 0,
+            "base-value": 0,
+            "min-value": 0,
+            "max-value": 1.7976931348623157E+308,
+            "details": []
+        }
+    }
+  }
+]

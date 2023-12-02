@@ -86,6 +86,17 @@ public static class SimulatorService {
         simu.SetFacilityState(facility.ToString(), doc.RootElement);
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "SetFacilitiesState")]
+    public static void SetFacilitesState(int id, IntPtr pJson) {
+        var simu = GetSimulator(id);
+
+        var json = Marshal.PtrToStringUTF8(pJson) ?? string.Empty;
+        var doc = JsonDocument.Parse(json);
+        foreach (var prop in doc.RootElement.EnumerateObject()) {
+            simu.SetFacilityState(prop.Name, prop.Value);
+        }
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "SetUpgraded")]
     public static void SetUpgraded(int id, IntPtr pJson) {
         var simu = GetSimulator(id);

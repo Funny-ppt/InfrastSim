@@ -1,0 +1,52 @@
+// 伪函数的定义，各种接入方式的实际接口稍有不同
+// 这主要是因为C DLL输入输出字符串不方便且有性能损耗
+// 而web中查询参数不适合输入大量文本数据，有时数据使用POST提交
+
+// 创建新的模拟器并返回模拟器id
+int Create();
+
+// 使用给定的数据创建模拟器并返回模拟器id
+// json: JSON类型为 Simulator
+// newRandom: 是否使用新的随机数生成器, 默认值为否
+int CreateWithData(string json, bool newRandom = false);
+
+// 销毁指定id的模拟器
+bool Destroy(int id);
+
+// 返回指定id模拟器的当前状态
+// detailed: 为 false 时, 仅返回关键状态, 可用于存储以便使用CreateWithData加载； 为 true 时返回详细数据，可以用于分析和计算
+// 返回值: JSON类型为 Simulator
+string GetData(int id, bool detailed = true);
+
+// 使指定id模拟器模拟seconds秒
+void Simulate(int id, int seconds = 60);
+
+// 设置指定id模拟器中指定设施的状态
+// facility: 设施的ID，具体请参考所使用接口版本的文档
+// json: JSON类型为 FastOperateData 或 Facility (如果目标设施为空)
+void SetFacilityState(int id, enum:Facility facility, string json);
+
+// 设置指定id模拟器中一些设施的状态
+// json: JSON类型为 键为设施ID，值为JSON类型为FastOperateData的字典
+void SetFacilitiesState(int id, string json);
+
+// 设置指定id模拟器中一些干员的精英化等级
+// json: JSON类型为 键为干员名称，值为精英化等级的字典
+void SetUpgraded(int id, string json);
+
+// 指定id模拟器中收取所有可收取的产品、提交所有待提交的订单
+void CollectAll(int id);
+
+// 指定id模拟器中获取amount数量的无人机
+void Sanity(int id, int amount);
+
+
+
+
+
+
+
+// **该接口更有可能改变**
+// json: 所有参与枚举的干员信息
+// 返回值: 分组结果，包含组效率、组成员详细信息、组额外效率等属性
+// string EnumerateGroup(string json);

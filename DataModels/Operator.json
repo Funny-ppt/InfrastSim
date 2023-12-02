@@ -1,0 +1,52 @@
+/// type: Operator
+[
+    /// 适用于输入和 detailed=false 时 GetData() 的输出
+    {
+        "name": "重岳",                 // 干员中文名
+        "upgraded": 2,                  // 精英化进度
+        "mood": 16.00000000001154,      // 心情，0为下限度（注意，很多时候不会到0也算做疲惫），24为上限
+        "working-time": 360000000002    // 工作时间, 单位为C# TimeSpan的tick, 1s = 10000000 ticks
+    },
+
+    /// 适用于 detailed=true 时 GetData() 的输出
+    {
+        "name": "重岳",
+        "upgraded": 2,
+        "mood": 16.00000000001154,
+        "working-time": 360000000002,
+        "working-time-seconds": 36000.0000002,      // 以秒为单位的工作时间
+        "mood-consume-rate": 0.8,                   // 每小时心情消耗量
+        "mood-consume-rate-details": {              // 每小时心情消耗量的详情
+            "value": 0.8,
+            "base-value": 1,
+            "min-value": -1.7976931348623157E+308,
+            "max-value": 1.7976931348623157E+308,
+            "details": [
+                {
+                    "tag": "重岳",
+                    "value": 0.5,
+                    "disabled": true
+                },
+                {
+                    "tag": "control-center",
+                    "value": -0.2,
+                    "disabled": false
+                },
+                {
+                    "tag": "control-center-extra",
+                    "value": -0.05,
+                    "disabled": true
+                }
+            ]
+        },
+        "efficiency": 0,                            // 当前干员提供的站内效率
+        "efficiency-details": {                     // 当前干员提供的站内效率详情
+            "value": 0,
+            "base-value": 0,
+            "min-value": -1.7976931348623157E+308,
+            "max-value": 1.7976931348623157E+308,
+            "details": []
+        },
+        "index": 1                                  // 干员在站内的序号, 0 为第一个
+    }
+]
