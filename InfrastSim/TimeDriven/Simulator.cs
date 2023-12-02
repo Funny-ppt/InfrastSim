@@ -105,7 +105,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     public XoshiroRandom Random { get; set; }
     ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
-    TimeSpan _minSpan = TimeSpan.FromSeconds(2);
+    static readonly TimeSpan MinSpan = TimeSpan.FromSeconds(2);
     internal void SetInterest(ITimeDrivenObject o, TimeSpan span) {
         if (span < _nextInterest) {
             _interestSource = o;
@@ -148,14 +148,13 @@ public class Simulator : ISimulator, IJsonSerializable {
             QueryInterest();
             var span = dateTime - Now;
 
-            if (span < _minSpan) {
+            if (span < MinSpan) {
                 SimulateImpl(span);
                 return;
             }
 
             if (_nextInterest < span) span = _nextInterest;
-            if (_minSpan > span) span = _minSpan;
-            SimulateImpl(span);
+            SimulateImpl(span + MinSpan);
         }
     }
 

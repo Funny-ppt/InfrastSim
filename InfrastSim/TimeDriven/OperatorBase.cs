@@ -90,6 +90,7 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
                 foreach (var threshold in WorkingTimeThresholds) {
                     if (threshold > WorkingTime) {
                         ticks = Math.Min(ticks, TimeSpanToTicks(threshold - WorkingTime));
+                        break;
                     }
                 }
             }
