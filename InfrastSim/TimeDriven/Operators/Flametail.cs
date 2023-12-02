@@ -9,7 +9,7 @@ internal class Flametail : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ControlCenter control && !IsTired) {
-            control.ExtraMoodModifier.SetValue(Name, 0.05);
+            control.ExtraMoodModifier.SetValue(Name, -0.05);
 
             if (Upgraded >= 2) {
                 foreach (var op in simu.ManufacturingStations.SelectMany(t => t.WorkingOperators)) {
