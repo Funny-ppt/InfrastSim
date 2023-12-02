@@ -178,7 +178,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
     public Reception Reception {
         get => (Reception)Facilities[2]!;
-        private set => Facilities[3] = value;
+        private set => Facilities[2] = value;
     }
     public Training Training {
         get => (Training)Facilities[3]!;
