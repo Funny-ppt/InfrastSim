@@ -6,7 +6,7 @@ internal class Hibiscus : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(0.55);
+            dorm.SetVipMoodModifier(-0.55);
         }
 
         // TODO: missing skill 2

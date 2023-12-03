@@ -56,13 +56,13 @@ public class Dormitory : FacilityBase {
         if (VipMoodModifier == 0 || Vip != null && (Vip.Facility != this || Vip.IsFullOfEnergy)) {
             Vip = null;
         }
-        if (VipMoodModifier > 0 && Vip == null) {
+        if (VipMoodModifier < 0 && Vip == null) {
             Vip = Operators
                 .OrderBy(op => op, new VipPriorityComparer())
                 .Where(op => !op.IsFullOfEnergy)
                 .FirstOrDefault();
-            Vip?.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
         }
+        Vip?.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
 
         simu.Delay((simu) => {
             foreach (var op in Operators) {
