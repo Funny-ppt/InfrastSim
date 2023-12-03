@@ -53,7 +53,7 @@ public class Dormitory : FacilityBase {
     public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
-        if (VipMoodModifier == 0 || Vip != null && Vip.Facility != this) {
+        if (VipMoodModifier == 0 || Vip != null && (Vip.Facility != this || Vip.IsFullOfEnergy)) {
             Vip = null;
         }
         if (VipMoodModifier > 0 && Vip == null) {
