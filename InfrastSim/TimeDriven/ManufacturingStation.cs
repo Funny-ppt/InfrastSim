@@ -58,7 +58,7 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
         base.Resolve(simu);
     }
     public override void QueryInterest(Simulator simu) {
-        var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
+        var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEfficiency;
         var remains = RemainsTime / effiency;
         simu.SetInterest(this, remains);
 
@@ -66,7 +66,7 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
     }
     public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
-            var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEffiency;
+            var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEfficiency;
             var equivTime = info.TimeElapsed * effiency;
             if (equivTime >= RemainsTime) {
                 var remains = equivTime - RemainsTime;
@@ -84,11 +84,14 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
     }
 
     public int ApplyDrones(Simulator simu, int amount) {
+        if (Product == null) return 0;
+
         amount = Math.Min(amount, simu.Drones);
         var time = TimeSpan.FromMinutes(3 * amount);
 
         while (CanStoreMore && time >= RemainsTime) {
             time -= RemainsTime;
+            Progress = 0;
             ProductCount += 1;
         }
 

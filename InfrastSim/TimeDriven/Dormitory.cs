@@ -53,21 +53,22 @@ public class Dormitory : FacilityBase {
     public override void Resolve(Simulator simu) {
         base.Resolve(simu);
 
-        if (VipMoodModifier == 0 || Vip != null && Vip.Facility != this) {
+        if (VipMoodModifier == 0 || Vip != null && (Vip.Facility != this || Vip.IsFullOfEnergy)) {
             Vip = null;
         }
-        if (VipMoodModifier > 0 && Vip == null) {
+        if (VipMoodModifier < 0 && Vip == null) {
             Vip = Operators
                 .OrderBy(op => op, new VipPriorityComparer())
                 .Where(op => !op.IsFullOfEnergy)
                 .FirstOrDefault();
         }
+        Vip?.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
 
         simu.Delay((simu) => {
             foreach (var op in Operators) {
-                op.MoodConsumeRate.SetValue("dorm-vip", VipMoodModifier);
-                op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier + -0.0004 * Atmosphere);
-                op.MoodConsumeRate.Disable("control-center-mod");
+                op.MoodConsumeRate.SetValue("dorm-atmosphere", -0.0004 * Atmosphere);
+                op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier);
+                op.MoodConsumeRate.Disable("control-center");
                 op.MoodConsumeRate.Disable("control-center-extra");
             }
         }, Priority.Facility);

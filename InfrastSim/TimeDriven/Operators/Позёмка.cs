@@ -10,7 +10,13 @@ internal class Позёмка : OperatorBase {
 
         if (Facility is TradingStation trading && !IsTired) {
             simu.Delay(simu => {
-                EfficiencyModifier.SetValue(Name, simu.GetGoldProductionLine() * 0.05);
+                var productLines = simu.GetGoldProductionLine();
+                var kirara = trading.Operators.FirstOrDefault(op => op is Kirara);
+                if (kirara != null && trading.IndexOf(this) < trading.IndexOf(kirara)) {
+                    productLines -= simu.GetRealGoldProductionLine() / (kirara.Upgraded >= 2 ? 2 : 4) * 2;
+                }
+
+                EfficiencyModifier.SetValue(Name, productLines * 0.05);
             });
 
             if (Upgraded >= 2) {

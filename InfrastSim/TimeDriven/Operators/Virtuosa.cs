@@ -10,7 +10,7 @@ internal class Virtuosa : OperatorBase {
 
             if (Upgraded >= 2) {
                 simu.Delay(simu => {
-                    dorm.SetDormMoodModifier(0.2 + (int)simu.Wushenggongming / 5 * 0.01);
+                    dorm.SetDormMoodModifier(-0.2 - (int)simu.Wushenggongming / 5 * 0.01);
                 });
             }
         }

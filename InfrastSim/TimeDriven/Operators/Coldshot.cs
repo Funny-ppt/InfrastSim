@@ -13,7 +13,7 @@ internal class Coldshot : OperatorBase {
             var count = dorm.Operators.Where(op => !op.IsFullOfEnergy).Count();
             if (count == 1) {
                 dorm.SetVipMoodModifier(-0.8);
-            } else {
+            } else if (count > 1) {
                 var amount = -0.8 / count;
                 dorm.SetDormMoodModifier(amount);
             }

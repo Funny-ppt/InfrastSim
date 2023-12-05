@@ -132,7 +132,7 @@ public static partial class Helper {
     public static void SetFacilityState(this Simulator simu, string fac, JsonElement elem) {
         var facility = simu.GetFacilityByName(fac);
         if (facility != null) {
-            if (elem.TryGetProperty("destroy", out var _)) {
+            if (elem.TryGetProperty("destroy", out _)) {
                 if (_roomLabelRegex.IsMatch(fac)) {
                     var index = LabelToIndex(fac);
                     facility.RemoveAll();
@@ -186,14 +186,12 @@ public static partial class Helper {
                 var operators = ops.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
                 facility.AssignMany(operators);
             }
-            // 为了和一些以前的代码兼容，暂时保留该代码不删除
-            if (elem.TryGetProperty("operators-force-replace", out ops)) {
-                var operators = ops.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
-                facility.AssignMany(operators);
-            }
             if (elem.TryGetProperty("drone", out var drone)) {
                 (facility as IApplyDrones ?? throw new ArgumentException($"{fac} 未建造或不是可以使用无人机的设施"))
                     .ApplyDrones(simu, drone.GetInt32());
+            }
+            if (elem.TryGetProperty("collect", out var collect_idx)) {
+                Collect(simu, facility, collect_idx.GetInt32());
             }
         } else {
             if (_roomLabelRegex.IsMatch(fac)) {

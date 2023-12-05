@@ -15,17 +15,18 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public const double MaxMood = 24.0;
     public const double MinMood = 0.0;
     public const int MaxTicks = 8640000;
+    public const int TiredTicks = 50;
     public const int MinTicks = 0;
     public const long TimeSpanTicksPerSimuTick = 100000L;
 
     static int MoodToTicks(double mood) {
         return (int)(mood / MaxMood * MaxTicks);
     }
-    static int TimeSpanToTicks(TimeSpan timeSpan, double factor = 1.0) {
-        return (int)(timeSpan.Ticks / TimeSpanTicksPerSimuTick * factor);
+    static int TimeSpanToTicks(TimeSpan timeSpan) {
+        return (int)(timeSpan.Ticks / TimeSpanTicksPerSimuTick);
     }
-    static TimeSpan TicksToTimeSpan(long ticks, double divide = 1.0) {
-        return new TimeSpan((long)(ticks * TimeSpanTicksPerSimuTick / divide));
+    static TimeSpan TicksToTimeSpan(long ticks) {
+        return new TimeSpan((long)(ticks * TimeSpanTicksPerSimuTick));
     }
 
     public int Upgraded { get; set; } = 2;
@@ -42,7 +43,7 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     static readonly TimeSpan[] DefaultWorkingTimeThreshold = Array.Empty<TimeSpan>();
     public virtual TimeSpan[] WorkingTimeThresholds => DefaultWorkingTimeThreshold;
 
-    public bool IsTired => MoodTicks <= 50;
+    public bool IsTired => MoodTicks <= TiredTicks;
     public bool IsExausted => MoodTicks == MinTicks;
     public bool IsFullOfEnergy => MoodTicks == MaxTicks;
     public virtual int DormVipPriority => 1;
@@ -77,22 +78,23 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
                 // PS: 方舟自身的代码似乎也不检查心情过界技能的触发 @孤独的人
                 // 尝试保持行为和方舟一致。
 
-                if (MoodTicks > 50) {
-                    ticks = MoodTicks - 50;
+                if (MoodTicks > TiredTicks) {
+                    ticks = (int)((MoodTicks - TiredTicks) / MoodConsumeRate);
                 }
             } else {
                 if (MaxTicks > MoodTicks) {
-                    ticks = MoodTicks - MaxTicks;
+                    ticks = (int)((MoodTicks - MaxTicks) / MoodConsumeRate);
                 }
             }
             if (Facility is not Dormitory && !IsTired) {
                 foreach (var threshold in WorkingTimeThresholds) {
                     if (threshold > WorkingTime) {
                         ticks = Math.Min(ticks, TimeSpanToTicks(threshold - WorkingTime));
+                        break;
                     }
                 }
             }
-            simu.SetInterest(this, TicksToTimeSpan(ticks, MoodConsumeRate));
+            simu.SetInterest(this, TicksToTimeSpan(ticks));
             // TEST REQUIRED: 该方法未经测试，可能有重大bug
         }
     }
@@ -100,7 +102,8 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public virtual void Update(Simulator simu, TimeElapsedInfo info) {
         Debug.Assert(Facility != null);
         if (Facility.IsWorking) { // 如果 Update 被调用，则 Facility 必不为null
-            MoodTicks = Math.Max(50, MoodTicks - TimeSpanToTicks(info.TimeElapsed, MoodConsumeRate));
+            int consumes = (int)(TimeSpanToTicks(info.TimeElapsed) * MoodConsumeRate);
+            MoodTicks = Math.Clamp(MoodTicks - consumes, TiredTicks, MaxTicks);
             WorkingTime += info.TimeElapsed;
         }
         if (IsTired) {

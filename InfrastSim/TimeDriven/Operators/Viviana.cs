@@ -7,7 +7,7 @@ internal class Viviana : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ControlCenter control && !IsTired) {
-            control.ExtraMoodModifier.SetValue(Name, 0.05);
+            control.ExtraMoodModifier.SetValue(Name, -0.05);
 
             if (Upgraded >= 2) {
                 var ops = simu.ManufacturingStations.SelectMany(fac => fac.WorkingOperators);

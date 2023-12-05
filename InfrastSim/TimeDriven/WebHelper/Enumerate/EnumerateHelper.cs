@@ -3,11 +3,9 @@ using System.Text.Json;
 
 namespace InfrastSim.TimeDriven.WebHelper;
 public static class EnumerateHelper {
-    static readonly OperatorBase TestOp;
     internal static readonly JsonSerializerOptions Options;
 
     static EnumerateHelper() {
-        TestOp = new TestOp();
         Options = new JsonSerializerOptions {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
@@ -61,7 +59,7 @@ public static class EnumerateHelper {
         if (fac != null) {
             var index = fac.IndexOf(op);
             fac.RemoveAt(index);
-            fac.AssignAt(TestOp, index);
+            fac.AssignAt(new TestOp(), index);
         }
     }
     internal static void FillTestOp(this Simulator simu) {
@@ -73,7 +71,7 @@ public static class EnumerateHelper {
         for (int i = 0; i < fac.AcceptOperatorNums; i++) {
             if (fac._operators[i]?.Name != "测试干员") {
                 fac.RemoveAt(i);
-                fac.AssignAt(TestOp, i);
+                fac.AssignAt(new TestOp(), i);
             }
         }
     }
@@ -98,7 +96,7 @@ public static class EnumerateHelper {
     }
     internal static OperatorBase Assign(this Simulator simu, OpEnumData data) {
         var op = simu.GetOperator(data.Name);
-        op.SetMood((data.MoodLow + data.MoodHigh) >> 1);
+        op.SetMood((double)((data.MoodLow + data.MoodHigh) >> 1));
         op.WorkingTime = data.WarmUp ? TimeSpan.FromHours(10) : TimeSpan.Zero;
 
         var facName = data.Fac.ToLower();

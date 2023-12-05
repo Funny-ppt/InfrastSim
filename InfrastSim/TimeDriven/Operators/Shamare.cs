@@ -18,7 +18,7 @@ internal class Shamare : OperatorBase {
                             op.EfficiencyModifier.MinValue = 0;
                             op.EfficiencyModifier.MaxValue = 0;
                         }
-                        op.MoodConsumeRate.SetValue(Name, 0.25);
+                        op.MoodConsumeRate.AddValue(Name, 0.25);
                     }
                     EfficiencyModifier.SetValue(Name, (trading.Operators.Count() - 1) * 0.45);
                 }, Priority.Shamare);
