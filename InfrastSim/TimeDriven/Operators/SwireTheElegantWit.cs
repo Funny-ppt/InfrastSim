@@ -15,7 +15,7 @@ internal class SwireTheElegantWit : OperatorBase {
                 simu.Delay(simu => {
                     var diff = trading.Capacity - trading.BaseCapacity;
                     EfficiencyModifier.AddValue(Name, diff * 0.04);
-                });
+                }, Priority.Swire);
             }
         }
     }

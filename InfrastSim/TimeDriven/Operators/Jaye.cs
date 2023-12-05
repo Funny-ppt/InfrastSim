@@ -18,7 +18,7 @@ internal class Jaye : OperatorBase {
                     var total = trading.Operators.Sum(op => op.EfficiencyModifier);
                     trading.Capacity.SetValue(Name, -Math.Floor(total / 0.1));
                     EfficiencyModifier.SetValue(Name, trading.Capacity * 0.04);
-                }, 130);
+                }, Priority.Jaye);
             }
         }
     }
