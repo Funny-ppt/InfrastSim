@@ -4,8 +4,9 @@ internal static class Priority {
     public const int Common = 100;
     public const int AccordingToFacilityAmount = 110;
     public const int WaaiFu = 120;
-    public const int Jaye = 130;
-    public const int Swire = 140;
-    public const int Shamare = 150;
-    public const int Facility = 200;
+    public const int Degenbrecher = 160;
+    public const int Jaye = 170;
+    public const int Swire = 180;
+    public const int Shamare = 190;
+    public const int Facility = 1000;
 }

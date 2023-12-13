@@ -262,6 +262,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     #region 全局参数
     public AggregateValue SilverVine => GetGlobalValue("木天蓼");
     public AggregateValue Renjianyanhuo => GetGlobalValue("人间烟火");
+    public AggregateValue Wushujiejing => GetGlobalValue("巫术结晶");
     public AggregateValue Ganzhixinxi => GetGlobalValue("感知信息");
     public AggregateValue Wushenggongming => GetGlobalValue("无声共鸣");
     public AggregateValue Siweilianhuan => GetGlobalValue("思维链环");
