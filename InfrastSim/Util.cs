@@ -9,7 +9,7 @@ public static class Util {
         return Math.Abs(self - other) < epsilon;
     }
     public static double Align(double a, double b) {
-        return Math.Floor(a / b) * b;
+        return Math.Floor(a / b + Epsilon) * b;
     }
 
 
