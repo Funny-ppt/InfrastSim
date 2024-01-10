@@ -39,6 +39,22 @@ public class Simulator : ISimulator, IJsonSerializable {
             _refresh = refreshElem.GetDouble();
         }
 
+        if (elem.TryGetProperty("total-manu-product", out JsonElement totManuProdElem)) {
+            _totalManuProduct = totManuProdElem.GetDouble();
+        }
+
+        if (elem.TryGetProperty("total-trad-product", out JsonElement totTradProdElem)) {
+            _totalTradProduct = totTradProdElem.GetDouble();
+        }
+
+        if (elem.TryGetProperty("total-office-product", out JsonElement totOfficeProdElem)) {
+            _totalOfficeProduct = totOfficeProdElem.GetDouble();
+        }
+
+        if (elem.TryGetProperty("total-drones-product", out JsonElement totDronesProdElem)) {
+            _totalDronesProduct = totDronesProdElem.GetDouble();
+        }
+
         if (elem.TryGetProperty("materials", out JsonElement materialsElem)) {
             foreach (var prop in materialsElem.EnumerateObject()) {
                 _materials.Add(prop.Name, prop.Value.GetInt32());
@@ -140,6 +156,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         }
         AddDrones(DronesEfficiency * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
         _refresh += OfficeEfficiency * (info.TimeElapsed / TimeSpan.FromHours(12));
+        _totalOfficeProduct += OfficeEfficiency * (info.TimeElapsed.Ticks / 100000); 
         Now += span;
     }
     public void SimulateUntil(DateTime dateTime) {
@@ -219,8 +236,20 @@ public class Simulator : ISimulator, IJsonSerializable {
     public double NextDroneTimeInSeconds =>
         (Math.Ceiling(_drones) - _drones) * 360 / DronesEfficiency;
 
+
+    // 这两个参数本来应该由脚本执行器维护，为了方便直接实现到模拟器类
+    // 更好的做法是模拟器实现一种扩展方法来管理这些额外的变量的生命周期
+    public string SelectedFacilityString { get; set; }
+    public FacilityBase? SelectedFacilityCache { get; set; }
+
     double _drones;
     double _refresh;
+    double _totalManuProduct;
+    double _totalTradProduct;
+    double _totalOfficeProduct;
+    double _totalDronesProduct;
+
+
     Dictionary<string, int> _materials = new();
     Dictionary<string, AggregateValue> _globalValues = new();
     SortedDictionary<int, Action<Simulator>> _delayActions = new();
@@ -233,8 +262,10 @@ public class Simulator : ISimulator, IJsonSerializable {
         }
     }
     public int Drones => (int)Math.Floor(_drones);
-    public void AddDrones(double amount) => _drones = Math.Min(200, _drones + amount);
-
+    public void AddDrones(double amount) {
+        _drones = Math.Min(200, _drones + amount);
+        _totalDronesProduct += amount;
+    } 
     internal void RemoveDrones(int amount) => _drones -= Math.Min(Drones, amount);
     internal void RemoveMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
@@ -247,6 +278,15 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
     internal void AddMaterial(string name, int amount) {
         _materials[name] = _materials.GetValueOrDefault(name) + amount;
+    }
+    internal void AddManuProduct(double amount) {
+        _totalManuProduct += amount;
+    }
+    internal void AddTradProduct(double amount) {
+        _totalTradProduct += amount;
+    }
+    internal void AddOfficeProduct(double amount) {
+        _totalOfficeProduct += amount;
     }
 
     public AggregateValue GetGlobalValue(string name) {
@@ -312,6 +352,10 @@ public class Simulator : ISimulator, IJsonSerializable {
         Random.ToJson(writer);
         writer.WriteNumber("drones", _drones);
         writer.WriteNumber("refresh", _refresh);
+        writer.WriteNumber("total-manu-product", _totalManuProduct);
+        writer.WriteNumber("total-trad-product", _totalTradProduct);
+        writer.WriteNumber("total-office-product", _totalOfficeProduct);
+        writer.WriteNumber("total-drones-product", _totalDronesProduct);
         if (detailed) {
             writer.WriteNumber("drones-efficiency", DronesEfficiency);
             writer.WriteNumber("office-efficiency", OfficeEfficiency);

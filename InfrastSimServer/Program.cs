@@ -110,11 +110,6 @@ namespace InfrastSimServer {
             .WithDescription("接受JSON数据并快速设置设施状态（含降级、升级、创建设施、快速调整干员位置等） strategy表示切贸易站策略;product表示改变制造站产品;level代表升降级设施，但不会计算无人机消耗")
             .WithOpenApi();
 
-            app.MapPost("/simulator/{id}/{facility}/operators", simulatorService.SelectOperators)
-            .WithName("SelectOperators")
-            .WithDescription("设定某设施的干员列表")
-            .WithOpenApi();
-
             app.MapDelete("/simulator/{id}/{facility}/operators/{idx}", simulatorService.RemoveOperator)
             .WithName("RemoveOperator")
             .WithDescription("撤出某设施的第idx个干员(从1开始计数)")

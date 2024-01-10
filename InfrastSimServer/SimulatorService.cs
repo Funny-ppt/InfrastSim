@@ -100,11 +100,6 @@ public class SimulatorService : IDisposable {
         }
     }
 
-    public void SelectOperators(HttpContext httpContext, int id, SelectOperatorsData data) {
-        var simu = GetSimulator(id);
-        simu.SelectOperators(data.Facility, data.Operators);
-    }
-
     public void RemoveOperator(HttpContext httpContext, int id, string facility, int idx) {
         var simu = GetSimulator(id);
         simu.RemoveOperator(facility, idx);

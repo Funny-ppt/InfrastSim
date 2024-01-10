@@ -1,3 +1,4 @@
+using InfrastSim.Script;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -21,37 +22,35 @@ public static partial class Helper {
     /// <summary>
     /// 返回门牌号对应与simu.Facilities中的下标
     /// </summary>
-    static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + (label[3] - '0' - 1) + 9;
-    static Regex _roomLabelRegex = RoomLabelRegex();
-    static Regex _roomNameRegex = RoomNameWithOptionalIndexRegex();
-    static FacilityBase? GetFacilityByName(this Simulator simu, string fac) {
+    internal static int LabelToIndex(string label) => (label[1] - '0' - 1) * 3 + (label[3] - '0' - 1) + 9;
+    internal static Regex RoomLabelRegex = GenRoomLabelRegex();
+    internal static Regex RoomNameRegex = GenRoomNameWithOptionalIndexRegex();
+    public static FacilityBase? GetFacilityByName(this Simulator simu, string fac) {
         fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
-        if (_roomLabelRegex.IsMatch(fac)) {
+        if (RoomLabelRegex.IsMatch(fac)) {
             var index = LabelToIndex(fac);
             return simu.Facilities[index];
         }
-        var match = _roomNameRegex.Match(fac);
+        var match = RoomNameRegex.Match(fac);
         var fac_name = match.Groups[1].Value;
         if (fac_name == "dormitory") {
             var index = int.Parse(match.Groups[2].Value.Trim()) - 1;
             return simu.Dormitories[index];
         } else {
             return fac_name switch {
+                "控制中枢" => simu.ControlCenter,
                 "controlcenter" => simu.ControlCenter,
                 "control center" => simu.ControlCenter,
+                "会客室" => simu.Reception,
                 "reception" => simu.Reception,
+                "制造站" => simu.Crafting,
                 "crafting" => simu.Crafting,
+                "办公室" => simu.Office,
                 "office" => simu.Office,
+                "训练站" => simu.Training,
                 "training" => simu.Training,
                 _ => throw new ArgumentException($"{fac} 名称不存在对应的设施")
             };
-        }
-    }
-    public static void SelectOperators(this Simulator simu, string fac, string[] ops) {
-        var facility = GetFacilityByName(simu, fac)
-            ?? throw new ArgumentException($"{fac} 名称对应的设施未建造");
-        foreach (var op in ops) {
-            facility.Assign(simu.GetOperator(op));
         }
     }
     public static void RemoveOperator(this Simulator simu, string fac, int idx) {
@@ -71,7 +70,35 @@ public static partial class Helper {
             throw new ArgumentException($"{fac} 未建造或不是可以使用无人机的设施");
         }
     }
-    static void Collect(Simulator simu, FacilityBase? fac, int idx = 0) {
+    internal static void SetProduct(Simulator simu, FacilityBase? fac, string productName) {
+        if (fac is not ManufacturingStation manu) {
+            throw new ArgumentException($"设施不是一个制造站");
+        }
+        Product product;
+        if (productName.StartsWith("源石碎片")) {
+            var splits = productName.Split('_', StringSplitOptions.RemoveEmptyEntries);
+            if (splits.Length != 2) {
+                throw new ArgumentException("无效的源石碎片材料");
+            }
+            var consumes = splits[1];
+            product = Product.AllProducts
+                .Where(p => p.Name == "源石碎片" && p.Consumes![1].Name == consumes)
+                .FirstOrDefault() ?? throw new ArgumentException($"无效源石碎片材料 {consumes}");
+        } else {
+            product = Product.AllProducts
+                .Where(p => p.Name == productName)
+                .FirstOrDefault() ?? throw new ArgumentException($"未知的产品名称 {productName}");
+        }
+        Collect(simu, fac);
+        manu.ChangeProduct(product);
+    }
+    internal static void SetStrategy(Simulator simu, FacilityBase? fac, string strategyName) {
+        if (fac is not TradingStation trading) {
+            throw new ArgumentException($"设施不是一个贸易站");
+        }
+        trading.Strategy = ToStrategy(strategyName);
+    }
+    internal static void Collect(Simulator simu, FacilityBase? fac, int idx = 0) {
         if (fac is ManufacturingStation manufacturing) {
             if (manufacturing.Product == null) return;
 
@@ -114,7 +141,7 @@ public static partial class Helper {
     }
 
     public static TradingStation.OrderStrategy ToStrategy(string text) {
-        return text switch {
+        return text.ToLower() switch {
             "龙门商法" => TradingStation.OrderStrategy.Gold,
             "赤金" => TradingStation.OrderStrategy.Gold,
             "龙门币" => TradingStation.OrderStrategy.Gold,
@@ -133,7 +160,7 @@ public static partial class Helper {
         var facility = simu.GetFacilityByName(fac);
         if (facility != null) {
             if (elem.TryGetProperty("destroy", out _)) {
-                if (_roomLabelRegex.IsMatch(fac)) {
+                if (RoomLabelRegex.IsMatch(fac)) {
                     var index = LabelToIndex(fac);
                     facility.RemoveAll();
                     simu.Facilities[index] = null;
@@ -141,7 +168,7 @@ public static partial class Helper {
                 }
             }
             if (elem.TryGetProperty("refactor", out var refactor)) {
-                if (_roomLabelRegex.IsMatch(fac)) {
+                if (RoomLabelRegex.IsMatch(fac)) {
                     var index = LabelToIndex(fac);
                     FacilityBase new_fac = refactor.GetString() switch {
                         "Trading" => new TradingStation(),
@@ -157,30 +184,10 @@ public static partial class Helper {
                 facility.SetLevel(level.GetInt32());
             }
             if (elem.TryGetProperty("strategy", out var strategy)) {
-                if (facility is TradingStation trading) {
-                    var strategyText = strategy.GetString().ToLower();
-                    trading.Strategy = ToStrategy(strategyText);
-                }
+                SetStrategy(simu, facility, strategy.GetString());
             }
             if (elem.TryGetProperty("product", out var prod)) {
-                if (facility is ManufacturingStation manufacturing) {
-                    var product = prod.GetString();
-                    Product newProduct;
-                    if (product.StartsWith("源石碎片")) {
-                        var splits = product.Split('_', StringSplitOptions.RemoveEmptyEntries);
-                        var consumes = splits[1];
-                        newProduct = Product.AllProducts
-                            .Where(p => p.Name == "源石碎片" && p.Consumes[1].Name == consumes)
-                            .FirstOrDefault() ?? throw new ApplicationException($"未知的源石碎片材料 {consumes}");
-                    }
-                    else {
-                        newProduct = Product.AllProducts
-                            .Where(p => p.Name == product)
-                            .FirstOrDefault() ?? throw new ApplicationException($"未知的产品名称 {product}");
-                    }
-                    Collect(simu, manufacturing);
-                    manufacturing.ChangeProduct(newProduct);
-                }
+                SetProduct(simu, facility, prod.GetString());
             }
             if (elem.TryGetProperty("operators", out var ops)) {
                 var operators = ops.EnumerateArray().Select(e => simu.GetOperator(e.GetString()));
@@ -194,38 +201,24 @@ public static partial class Helper {
                 Collect(simu, facility, collect_idx.GetInt32());
             }
         } else {
-            if (_roomLabelRegex.IsMatch(fac)) {
+            if (RoomLabelRegex.IsMatch(fac)) {
                 var index = LabelToIndex(fac);
                 facility = FacilityBase.FromJson(elem, simu);
                 simu.Facilities[index] = facility;
             } else {
                 fac = fac.Replace('-', ' ').Replace('_', ' ').ToLower();
-                var match = _roomNameRegex.Match(fac);
+                var match = RoomNameRegex.Match(fac);
                 var fac_name = match.Groups[1].Value;
                 if (fac_name == "dormitory") {
                     var index = int.Parse(match.Groups[2].Value.Trim()) - 1;
                     simu.Facilities[index + 5] = FacilityBase.FromJson(elem, simu);
                 }
             }
-
             if (elem.TryGetProperty("strategy", out var strategy)) {
-                if (facility is TradingStation trading) {
-                    var strategyText = strategy.GetString().ToLower();
-                    trading.Strategy = strategyText switch {
-                        "gold" => TradingStation.OrderStrategy.Gold,
-                        "originium" => TradingStation.OrderStrategy.OriginStone,
-                        _ => throw new ApplicationException($"未知的订单类型 {strategyText}")
-                    };
-                }
+                SetStrategy(simu, facility, strategy.GetString());
             }
             if (elem.TryGetProperty("product", out var prod)) {
-                if (facility is ManufacturingStation manufacturing) {
-                    var product = prod.GetString();
-                    var newProduct = Product.AllProducts.Where(p => p.Name == product).FirstOrDefault()
-                        ?? throw new ApplicationException($"未知的产品名称 {product}");
-                    Collect(simu, manufacturing);
-                    manufacturing.ChangeProduct(newProduct);
-                }
+                SetProduct(simu, facility, prod.GetString());
             }
         }
     }
@@ -238,9 +231,20 @@ public static partial class Helper {
         writer.WriteEndArray();
     }
 
-    [GeneratedRegex(@"^[bB][1-3]0[1-3]$")]
-    private static partial Regex RoomLabelRegex();
+    public static void ExecuteScript(this Simulator simu, string script) {
+        var tokens = Scanner.Scan(script);
+        var res = Parser.Parse(tokens);
+        foreach (var statement in res.Statements) {
+            if (!ScriptHelper.MethodMappings.TryGetValue(statement.Command.Value.ToLower(), out var method)) {
+                throw new ScriptException($"没有找到命令 {statement.Command.Value}");
+            }
+            method(simu, statement.Parameters.Select(p => p.Value).ToArray());
+        }
+    }
 
-    [GeneratedRegex(@"^([a-zA-Z ]+)( [1-4])?$")]
-    private static partial Regex RoomNameWithOptionalIndexRegex();
+    [GeneratedRegex(@"^[bB][1-3]0[1-3]$")]
+    private static partial Regex GenRoomLabelRegex();
+
+    [GeneratedRegex(@"^([a-zA-Z \u4e00-\u9fff]+)( [1-4])?$")]
+    private static partial Regex GenRoomNameWithOptionalIndexRegex();
 }

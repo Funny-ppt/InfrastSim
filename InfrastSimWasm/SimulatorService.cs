@@ -181,4 +181,10 @@ public static unsafe partial class SimulatorService {
         EnumerateHelper.Enumerate(doc, writer);
         return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
+
+    [JSExport]
+    public static void ExecuteScript(int id, string script) {
+        var simu = GetSimulator(id);
+        Helper.ExecuteScript(simu, script);
+    }
 }

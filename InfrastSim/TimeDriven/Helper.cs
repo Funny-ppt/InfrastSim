@@ -1,6 +1,3 @@
-using System.Text;
-using System.Text.Json;
-
 namespace InfrastSim.TimeDriven;
 internal static class Helper {
     public static bool VisibleToLookupSkill(this OperatorBase op) {
