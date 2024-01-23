@@ -168,12 +168,15 @@ internal static partial class ScriptHelper {
             throw new ScriptException("模拟需要一个参数 [时长]");
         }
 
-        var seconds = -1;
-        if (!TimeSpan.TryParse(args[0], out var span) && !int.TryParse(args[0], out seconds)) {
+        TimeSpan span = default;
+        if (!int.TryParse(args[0], out var seconds) && !TimeSpan.TryParse(args[0], out span)) {
             throw new ScriptException($"{args[0]} 不是一个有效的时长");
         }
         if (seconds > 0) {
             span = TimeSpan.FromSeconds(seconds);
+        }
+        if (span <= default(TimeSpan)) {
+            throw new ScriptException($"{args[0]} 不是一个有效的时长");
         }
         simu.SimulateUntil(simu.Now + span);
     }
