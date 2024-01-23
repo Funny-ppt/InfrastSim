@@ -29,14 +29,17 @@ internal static partial class ScriptHelper {
 
         var op = simu.GetOperatorNoThrow(args[0]) ??
             throw new ScriptException($"{args[0]} 干员不存在");
-        if (!int.TryParse(args[1], out var upgraded)) {
+        int upgraded = -1;
+        double mood = double.NaN;
+
+        if (args[1] != "_" && !int.TryParse(args[1], out upgraded)) {
             throw new ScriptException($"{args[1]} 不是一个有效的整数");
         }
-        if (!double.TryParse(args[2], out var mood)) {
+        if (args[2] != "_" && !double.TryParse(args[2], out mood)) {
             throw new ScriptException($"{args[2]} 不是一个有效的浮点数");
         }
-        op.Upgraded = upgraded;
-        op.SetMood(mood);
+        if (upgraded != -1) op.Upgraded = upgraded;
+        if (mood != double.NaN) op.SetMood(mood);
     }
 
     [Alias(Language.CN, "设置等级")]
