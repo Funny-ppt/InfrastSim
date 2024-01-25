@@ -14,6 +14,13 @@ internal class Parser(TokenSequence tokens) {
         return false;
     }
 
+    private bool ConsumeNonContentLines() {
+        while (tokens.Current.Type == TokenType.NewLine || tokens.Current.Type == TokenType.Comment) {
+            tokens.MoveNext();
+        }
+        return tokens.Current.Type != TokenType.Final;
+    }
+
     private Script ParseScript() {
         tokens.Reset();
 
@@ -23,16 +30,14 @@ internal class Parser(TokenSequence tokens) {
 
         var statements = new List<Statement>();
         while (tokens.Current.Type != TokenType.Final) {
-            statements.Add(ParseStatement());
+            if (ConsumeNonContentLines()) {
+                statements.Add(ParseStatement());
+            }
         }
         return new(statements);
     }
 
     private Statement ParseStatement() {
-        while (tokens.Current.Type == TokenType.NewLine || tokens.Current.Type == TokenType.Comment) {
-            tokens.MoveNext();
-        }
-
         var command = ParseCommand();
         var parameters = new List<Parameter>();
         while (tokens.Current.Type == TokenType.String) {
