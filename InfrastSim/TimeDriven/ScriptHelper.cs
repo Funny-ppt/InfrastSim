@@ -39,7 +39,7 @@ internal static partial class ScriptHelper {
             throw new ScriptException($"{args[2]} 不是一个有效的浮点数");
         }
         if (upgraded != -1) op.Upgraded = upgraded;
-        if (mood != double.NaN) op.SetMood(mood);
+        if (!double.IsNaN(mood)) op.SetMood(mood);
     }
 
     [Alias(Language.CN, "设置等级")]

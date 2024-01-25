@@ -1,4 +1,5 @@
 using InfrastSim;
+using InfrastSim.Script;
 using InfrastSim.TimeDriven;
 using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
@@ -6,7 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace InfrastSimServer; 
-public class SimulatorService : IDisposable {
+public sealed class SimulatorService : IDisposable {
     //public static readonly SimulatorService Instance = new(); 
 
     private Timer? _timer;
@@ -152,6 +153,17 @@ public class SimulatorService : IDisposable {
         using var respWriter = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
         node.WriteTo(respWriter);
         writer.Flush();
+    }
+
+    public async Task ExecuteScript(HttpContext httpContext, int id) {
+        var simu = GetSimulator(id);
+        try {
+            using var reader = new StreamReader(httpContext.Request.Body);
+
+            simu.ExecuteScript(await reader.ReadToEndAsync() ?? "");
+        } catch (ScriptException ex) {
+            await httpContext.Response.WriteAsync(ex.ToString());
+        }
     }
 
     void Cleanup(object? state) {

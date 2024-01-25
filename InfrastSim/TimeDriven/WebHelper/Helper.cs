@@ -1,4 +1,6 @@
 using InfrastSim.Script;
+using InfrastSim.Localization;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -240,6 +242,16 @@ public static partial class Helper {
             }
             method(simu, statement.Parameters.Select(p => p.Value).ToArray());
         }
+    }
+
+    public static string[] GetCommands() {
+        return [.. ScriptHelper.MethodNames];
+    }
+    public static string?[] GetLanguages() {
+        return Enum.GetValuesAsUnderlyingType(typeof(Language)).Cast<Language>().Distinct().Select(Enum.GetName).ToArray();
+    }
+    public static Dictionary<string, string> GetCommandMappings(Language language) {
+        return ScriptHelper.AliasMappings.GetValueOrDefault(language) ?? [];
     }
 
     [GeneratedRegex(@"^[bB][1-3]0[1-3]$")]
