@@ -108,17 +108,17 @@ internal class EnumerateContext {
 
         var channel = Channel.CreateUnbounded<Frame>();
         foreach (var op in ops) {
-            Task.Run(async () => {
+            Task.Run(() => {
                 foreach (var frame in GenerateFrames(op))
-                    await channel.Writer.WriteAsync(frame);
+                    channel.Writer.TryWrite(frame);
             });
         }
         var tasks = new Task[Environment.ProcessorCount];
         for (int i = 0; i < tasks.Length; i++) {
-            tasks[i] = Task.Run(async () => {
+            tasks[i] = Task.Run(() => {
                 while (channel.Reader.TryRead(out var frame)) {
                     foreach (var outFrame in ProcessFrame(frame)) {
-                        await channel.Writer.WriteAsync(outFrame);
+                        channel.Writer.TryWrite(outFrame);
                     }
                 }
             });
