@@ -2,8 +2,9 @@ using InfrastSim.Algorithms;
 using InfrastSim.TimeDriven.WebHelper.Enumerate;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.Json;
-using System.Threading.Tasks.Dataflow;
+using System.Threading.Channels;
 
 namespace InfrastSim.TimeDriven.WebHelper;
 internal class EnumerateContext {
@@ -17,6 +18,10 @@ internal class EnumerateContext {
     Efficiency baseline;
     ConcurrentDictionary<int, EnumResult> results = new();
 
+#if DEBUG
+    int[] _lock = new int[Environment.ProcessorCount * 2];
+#endif
+
     Efficiency TestSingle(OpEnumData data) {
         var op = simu.Value.Assign(data);
         var diff = simu.Value.GetEfficiency() - baseline;
@@ -25,6 +30,14 @@ internal class EnumerateContext {
     }
     Efficiency TestMany(IEnumerable<OpEnumData> datas) {
         try {
+#if DEBUG
+            var v = Interlocked.CompareExchange(ref _lock[Environment.CurrentManagedThreadId], 1, 0);
+            if (v != 0) {
+                if (!Debugger.IsAttached)
+                    Debugger.Launch();
+                Debugger.Break();
+            }
+#endif
             foreach (var data in datas) {
                 simu.Value.Assign(data);
             }
@@ -32,6 +45,7 @@ internal class EnumerateContext {
             return diff;
         } finally {
             simu.Value.FillTestOp();
+            _lock[Environment.CurrentManagedThreadId] = 0;
         }
     }
     bool ValidateResult(in EnumResult result) {
@@ -90,19 +104,24 @@ internal class EnumerateContext {
             max_size = Math.Min(max_size, max_size_elem.GetInt32());
         }
 
-        // dataflows
-        var generateFrames = new TransformManyBlock<OpEnumData, Frame>(GenerateFrames);
-        var processFrame = new TransformManyBlock<Frame, Frame>(ProcessFrame);
-
-        var linkOptions = new DataflowLinkOptions { PropagateCompletion = true };
-        generateFrames.LinkTo(processFrame, linkOptions);
-        processFrame.LinkTo(processFrame, linkOptions);
-
+        var channel = Channel.CreateUnbounded<Frame>();
         foreach (var op in ops) {
-            generateFrames.Post(op);
+            Task.Run(async () => {
+                foreach (var frame in GenerateFrames(op))
+                    await channel.Writer.WriteAsync(frame);
+            });
         }
-        generateFrames.Complete();
-        processFrame.Completion.Wait();
+        var tasks = new Task[Environment.ProcessorCount];
+        for (int i = 0; i < tasks.Length; i++) {
+            tasks[i] = Task.Run(async () => {
+                while (channel.Reader.TryRead(out var frame)) {
+                    foreach (var outFrame in ProcessFrame(frame)) {
+                        await channel.Writer.WriteAsync(outFrame);
+                    }
+                }
+            });
+        }
+        Task.WaitAll(tasks);
 
         return results.Values.Where(v => ValidateResult(v)).OrderByDescending(v => v.eff.GetScore());
     }
@@ -129,7 +148,7 @@ internal class EnumerateContext {
         public int init_size;
         public Efficiency base_eff;
 
-        public Frame(OpEnumData[] comb, in Efficiency base_eff, int ucnt) {
+        public Frame(OpEnumData[] comb, Efficiency base_eff, int ucnt) {
             this.comb = comb;
             this.base_eff = base_eff;
             this.gid = GetGroupId(comb);
@@ -139,7 +158,7 @@ internal class EnumerateContext {
                 uset[op.uid] = true;
             }
         }
-        public Frame FromComb(OpEnumData[] new_comb) {
+        public Frame FromComb(OpEnumData[] new_comb, Efficiency base_eff) {
             var op = new_comb[^1];
             BitArray new_uset = new(uset);
             new_uset[op.uid] = true;
@@ -191,23 +210,23 @@ internal class EnumerateContext {
             }
             Efficiency eff;
             try { // 检验组合是否能被基建容纳，如果可以，则计算其效率
-                eff = TestMany(frame.comb);
+                eff = TestMany(next_comb);
             } catch {
                 continue;
             }
 
             // 检验新加入组合的干员是否贡献了额外效率
-            var extra_eff = eff - frame.base_eff - frame.comb.Last().SingleEfficiency;
+            var extra_eff = eff - frame.base_eff - op.SingleEfficiency;
             if (!extra_eff.IsPositive()) {
                 continue;
             }
             // 计算相较于单干员效率总和的额外效率
             var tot_extra_eff = eff;
-            foreach (var opd in frame.comb) {
+            foreach (var opd in next_comb) {
                 tot_extra_eff -= opd.SingleEfficiency;
             }
             results[gid] = new(next_comb, frame.init_size, eff, tot_extra_eff);
-            if (next_comb.Length < max_size) yield return frame.FromComb(next_comb);
+            if (next_comb.Length < max_size) yield return frame.FromComb(next_comb, eff);
         }
     }
 }
