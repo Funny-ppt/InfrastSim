@@ -13,7 +13,7 @@ public static class EnumerateHelper {
     }
 
     public static void Enumerate(JsonDocument json, Utf8JsonWriter writer) {
-        var results = new EnumerateContext().Enumerate(json);
+        var results = EnumerateContext.Enumerate(json);
         writer.WriteStartArray();
         foreach (var r in results) {
             if (r.eff.IsZero()) continue;

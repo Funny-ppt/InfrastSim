@@ -2,8 +2,8 @@ using InfrastSim.Algorithms;
 using InfrastSim.TimeDriven.WebHelper.Enumerate;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks.Dataflow;
 
 namespace InfrastSim.TimeDriven.WebHelper;
 internal class EnumerateContext {
@@ -13,25 +13,25 @@ internal class EnumerateContext {
     int max_size;
     int ucnt = 0;
     OpEnumData[] ops = null!;
-    Simulator simu1 = null!;
+    ThreadLocal<Simulator> simu = null!;
     Efficiency baseline;
     ConcurrentDictionary<int, EnumResult> results = new();
 
-    Efficiency TestSingle(Simulator simu, OpEnumData data) {
-        var op = simu.Assign(data);
-        var diff = simu.GetEfficiency() - baseline;
+    Efficiency TestSingle(OpEnumData data) {
+        var op = simu.Value.Assign(data);
+        var diff = simu.Value.GetEfficiency() - baseline;
         op.ReplaceByTestOp();
         return diff;
     }
-    Efficiency TestMany(Simulator simu, IEnumerable<OpEnumData> datas) {
+    Efficiency TestMany(IEnumerable<OpEnumData> datas) {
         try {
             foreach (var data in datas) {
-                simu.Assign(data);
+                simu.Value.Assign(data);
             }
-            var diff = simu.GetEfficiency() - baseline;
+            var diff = simu.Value.GetEfficiency() - baseline;
             return diff;
         } finally {
-            simu.FillTestOp();
+            simu.Value.FillTestOp();
         }
     }
     bool ValidateResult(in EnumResult result) {
@@ -40,7 +40,7 @@ internal class EnumerateContext {
 
         var comb = result.comb;
         for (int i = 0; i < result.init_size; i++) {
-            var eff = TestMany(simu1, comb.Where(o => o != comb[i]));
+            var eff = TestMany(comb.Where(o => o != comb[i]));
             var div_eff = eff + comb[i].SingleEfficiency;
             var diff_eff = result.eff - div_eff;
             if (!diff_eff.IsPositive()) return false;
@@ -58,12 +58,19 @@ internal class EnumerateContext {
     //        return 0;
     //    }
     //}
-    public IOrderedEnumerable<EnumResult> Enumerate(JsonDocument json) {
+
+    private EnumerateContext() { }
+    public static IOrderedEnumerable<EnumResult> Enumerate(JsonDocument json) {
+        return new EnumerateContext().EnumerateImpl(json);
+    }
+
+    public IOrderedEnumerable<EnumResult> EnumerateImpl(JsonDocument json) {
         var root = json.RootElement;
         var preset = root.GetProperty("preset");
-        simu1 = InitSimulator(preset);
-        baseline = simu1.GetEfficiency();
-        ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(EnumerateHelper.Options);
+        simu = new(() => InitSimulator(preset));
+        baseline = simu.Value.GetEfficiency();
+        ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(EnumerateHelper.Options)
+            ?? throw new InvalidOperationException("expected 'ops' as an array, readed null");
 
         var uidmap = new Dictionary<string, int>();
         for(var i = 0; i < ops.Length; i++) {
@@ -75,7 +82,7 @@ internal class EnumerateContext {
             }
             op.id = i;
             op.prime = primes[i];
-            op.SingleEfficiency = TestSingle(simu1, op);
+            op.SingleEfficiency = TestSingle(op);
         }
 
         max_size = Math.Min(32, ops.Length);
@@ -83,16 +90,23 @@ internal class EnumerateContext {
             max_size = Math.Min(max_size, max_size_elem.GetInt32());
         }
 
-        var tasks = new Task[ops.Length];
+        // dataflows
+        var generateFrames = new TransformManyBlock<OpEnumData, Frame>(GenerateFrames);
+        var processFrame = new TransformManyBlock<Frame, Frame>(ProcessFrame);
+
+        var linkOptions = new DataflowLinkOptions { PropagateCompletion = true };
+        generateFrames.LinkTo(processFrame, linkOptions);
+        processFrame.LinkTo(processFrame, linkOptions);
+
         foreach (var op in ops) {
-            tasks[op.id] = Task.Run(() => {
-                InitProc(op, InitSimulator(preset));
-            });
+            generateFrames.Post(op);
         }
-        Task.WaitAll(tasks);
+        generateFrames.Complete();
+        processFrame.Completion.Wait();
+
         return results.Values.Where(v => ValidateResult(v)).OrderByDescending(v => v.eff.GetScore());
     }
-    static Simulator InitSimulator(JsonElement elem) {
+    static Simulator InitSimulator(in JsonElement elem) {
         var simu = new Simulator();
         foreach (var prop in elem.EnumerateObject()) {
             simu.SetFacilityState(prop.Name, prop.Value);
@@ -108,67 +122,92 @@ internal class EnumerateContext {
         return (comb.Length << 24) | (int)f;
     }
 
-    void InitProc(OpEnumData op, Simulator simu) {
-        RecursivelyProc(new[] { op }, 1, simu, op.SingleEfficiency);
+    struct Frame {
+        public OpEnumData[] comb = null!;
+        public BitArray uset = null!;
+        public int gid;
+        public int init_size;
+        public Efficiency base_eff;
+
+        public Frame(OpEnumData[] comb, in Efficiency base_eff, int ucnt) {
+            this.comb = comb;
+            this.base_eff = base_eff;
+            this.gid = GetGroupId(comb);
+            this.init_size = comb.Length;
+            uset = new(ucnt);
+            foreach (var op in comb) {
+                uset[op.uid] = true;
+            }
+        }
+        public Frame FromComb(OpEnumData[] new_comb) {
+            var op = new_comb[^1];
+            BitArray new_uset = new(uset);
+            new_uset[op.uid] = true;
+            return new Frame {
+                comb = new_comb,
+                base_eff = base_eff,
+                gid = (new_comb.Length << 24) | (gid & 0xffffff) * op.prime % MOD,
+                init_size = init_size,
+                uset = new_uset
+            };
+        }
+    }
+
+    IEnumerable<Frame> GenerateFrames(OpEnumData op) {
+        yield return new([op], op.SingleEfficiency, ucnt);
 
         if (op.RelevantOps == null) {
-            return;
+            yield break;
         }
+
         var relevants = ops.Where(o => op.RelevantOps.Contains(o.Name)).ToArray();
         for (int i = 1; i <= relevants.Length; i++) {
             var combs = new Combination<OpEnumData>(relevants, i);
             foreach (var e in combs.ToEnumerable()) {
-                var c = (OpEnumData[])e;
-                var comb = new OpEnumData[i + 1];
-                Array.Copy(c, comb, c.Length);
-                comb[^1] = op;
+                OpEnumData[] comb = [.. (OpEnumData[])e, op]; // 这里利用了Combination实现返回值为内部数组的特性
 
                 Efficiency eff;
                 try {
-                    eff = TestMany(simu, comb);
+                    eff = TestMany(comb);
                 } catch {
                     continue;
                 }
-                RecursivelyProc(comb, comb.Length, simu, eff);
+                yield return new(comb, eff, ucnt);
             }
         }
     }
-    void RecursivelyProc(OpEnumData[] comb, int init_size, Simulator simu, Efficiency eff) {
+    IEnumerable<Frame> ProcessFrame(Frame frame) {
         var f = new BitArray(ucnt);
-        foreach (var op in comb) {
+        foreach (var op in frame.comb) {
             f[op.uid] = true;
         }
         foreach (var op in ops) {
-            if (f[op.uid]) continue;
-            var new_comb = new OpEnumData[comb.Length + 1];
-            Array.Copy(comb, new_comb, comb.Length);
-            new_comb[comb.Length] = op;
-            Proc(new_comb, init_size, simu, eff);
-        }
-    }
-    void Proc(OpEnumData[] comb, int init_size, Simulator simu, Efficiency base_eff) {
-        var gid = GetGroupId(comb);
-        if (!results.TryAdd(gid, default)) {
-            return;
-        }
-        Efficiency eff;
-        try {
-            eff = TestMany(simu, comb);
-        } catch {
-            return;
-        }
-        var extra_eff = eff - base_eff - comb.Last().SingleEfficiency;
-        if (!extra_eff.IsPositive()) {
-            return;
-        }
-        var tot_extra_eff = eff;
-        foreach (var opd in comb) {
-            tot_extra_eff -= opd.SingleEfficiency;
-        }
-        results[gid] = new(comb, init_size, eff, tot_extra_eff);
+            if (f[op.uid]) continue; // 处理干员表中有同一干员的不同位置
 
-        if (comb.Length < max_size) {
-            RecursivelyProc(comb, init_size, simu, eff);
+            OpEnumData[] next_comb = [.. frame.comb, op];
+            var gid = GetGroupId(next_comb);
+            if (!results.TryAdd(gid, default)) {
+                continue;
+            }
+            Efficiency eff;
+            try { // 检验组合是否能被基建容纳，如果可以，则计算其效率
+                eff = TestMany(frame.comb);
+            } catch {
+                continue;
+            }
+
+            // 检验新加入组合的干员是否贡献了额外效率
+            var extra_eff = eff - frame.base_eff - frame.comb.Last().SingleEfficiency;
+            if (!extra_eff.IsPositive()) {
+                continue;
+            }
+            // 计算相较于单干员效率总和的额外效率
+            var tot_extra_eff = eff;
+            foreach (var opd in frame.comb) {
+                tot_extra_eff -= opd.SingleEfficiency;
+            }
+            results[gid] = new(next_comb, frame.init_size, eff, tot_extra_eff);
+            if (next_comb.Length < max_size) yield return frame.FromComb(next_comb);
         }
     }
 }
