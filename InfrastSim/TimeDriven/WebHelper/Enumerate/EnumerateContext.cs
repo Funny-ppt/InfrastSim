@@ -18,8 +18,8 @@ internal class EnumerateContext {
     Efficiency baseline;
     ConcurrentDictionary<int, EnumResult> results = new();
 
-#if DEBUG
-    int[] _lock = new int[Environment.ProcessorCount * 2];
+#if DEBUG // 该参数用于验证是否发生了对 ThreadLocal 参数 simu 的访问冲突
+    int[] _lock = new int[Environment.ProcessorCount * 2 + 10];
 #endif
 
     Efficiency TestSingle(OpEnumData data) {
@@ -45,7 +45,9 @@ internal class EnumerateContext {
             return diff;
         } finally {
             simu.Value.FillTestOp();
+#if DEBUG
             _lock[Environment.CurrentManagedThreadId] = 0;
+#endif
         }
     }
     bool ValidateResult(in EnumResult result) {
