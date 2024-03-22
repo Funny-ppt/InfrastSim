@@ -14,49 +14,33 @@ internal class EnumerateContext {
     int max_size;
     int ucnt = 0;
     OpEnumData[] ops = null!;
-    ThreadLocal<Simulator> simu = null!;
     Efficiency baseline;
     ConcurrentDictionary<int, EnumResult> results = new();
 
-#if DEBUG // 该参数用于验证是否发生了对 ThreadLocal 参数 simu 的访问冲突
-    int[] _lock = new int[Environment.ProcessorCount * 2 + 10];
-#endif
-
-    Efficiency TestSingle(OpEnumData data) {
-        var op = simu.Value.Assign(data);
-        var diff = simu.Value.GetEfficiency() - baseline;
+    Efficiency TestSingle(Simulator simu, OpEnumData data) {
+        var op = simu.Assign(data);
+        var diff = simu.GetEfficiency() - baseline;
         op.ReplaceByTestOp();
         return diff;
     }
-    Efficiency TestMany(IEnumerable<OpEnumData> datas) {
+    Efficiency TestMany(Simulator simu, IEnumerable<OpEnumData> datas) {
         try {
-#if DEBUG
-            var v = Interlocked.CompareExchange(ref _lock[Environment.CurrentManagedThreadId], 1, 0);
-            if (v != 0) {
-                if (!Debugger.IsAttached)
-                    Debugger.Launch();
-                Debugger.Break();
-            }
-#endif
             foreach (var data in datas) {
-                simu.Value.Assign(data);
+                simu.Assign(data);
             }
-            var diff = simu.Value.GetEfficiency() - baseline;
+            var diff = simu.GetEfficiency() - baseline;
             return diff;
         } finally {
-            simu.Value.FillTestOp();
-#if DEBUG
-            _lock[Environment.CurrentManagedThreadId] = 0;
-#endif
+            simu.FillTestOp();
         }
     }
-    bool ValidateResult(in EnumResult result) {
+    bool ValidateResult(Simulator simu, in EnumResult result) {
         if (result.eff.IsZero()) return false;
         if (result.init_size == 1) return true;
 
         var comb = result.comb;
         for (int i = 0; i < result.init_size; i++) {
-            var eff = TestMany(comb.Where(o => o != comb[i]));
+            var eff = TestMany(simu, comb.Where(o => o != comb[i]));
             var div_eff = eff + comb[i].SingleEfficiency;
             var diff_eff = result.eff - div_eff;
             if (!diff_eff.IsPositive()) return false;
@@ -83,8 +67,8 @@ internal class EnumerateContext {
     public IOrderedEnumerable<EnumResult> EnumerateImpl(JsonDocument json) {
         var root = json.RootElement;
         var preset = root.GetProperty("preset");
-        simu = new(() => InitSimulator(preset));
-        baseline = simu.Value.GetEfficiency();
+        var simu1 = InitSimulator(preset);
+        baseline = simu1.GetEfficiency();
         ops = root.GetProperty("ops").Deserialize<OpEnumData[]>(EnumerateHelper.Options)
             ?? throw new InvalidOperationException("expected 'ops' as an array, readed null");
 
@@ -98,7 +82,7 @@ internal class EnumerateContext {
             }
             op.id = i;
             op.prime = primes[i];
-            op.SingleEfficiency = TestSingle(op);
+            op.SingleEfficiency = TestSingle(simu1, op);
         }
 
         max_size = Math.Min(32, ops.Length);
@@ -107,17 +91,16 @@ internal class EnumerateContext {
         }
 
         var channel = Channel.CreateUnbounded<Frame>();
-        foreach (var op in ops) {
-            Task.Run(() => {
-                foreach (var frame in GenerateFrames(op))
-                    channel.Writer.TryWrite(frame);
-            });
-        }
+        foreach (var op in ops)
+            foreach (var frame in GenerateFrames(simu1, op))
+                channel.Writer.TryWrite(frame);
+
         var tasks = new Task[Environment.ProcessorCount];
         for (int i = 0; i < tasks.Length; i++) {
             tasks[i] = Task.Run(() => {
+                var simu = simu1.Clone();
                 while (channel.Reader.TryRead(out var frame)) {
-                    foreach (var outFrame in ProcessFrame(frame)) {
+                    foreach (var outFrame in ProcessFrame(simu, frame)) {
                         channel.Writer.TryWrite(outFrame);
                     }
                 }
@@ -125,7 +108,9 @@ internal class EnumerateContext {
         }
         Task.WaitAll(tasks);
 
-        return results.Values.Where(v => ValidateResult(v)).OrderByDescending(v => v.eff.GetScore());
+        return results.Values
+            .Where(v => ValidateResult(simu1, v))
+            .OrderByDescending(v => v.eff.GetScore());
     }
     static Simulator InitSimulator(in JsonElement elem) {
         var simu = new Simulator();
@@ -174,7 +159,7 @@ internal class EnumerateContext {
         }
     }
 
-    IEnumerable<Frame> GenerateFrames(OpEnumData op) {
+    IEnumerable<Frame> GenerateFrames(Simulator simu, OpEnumData op) {
         yield return new([op], op.SingleEfficiency, ucnt);
 
         if (op.RelevantOps == null) {
@@ -189,7 +174,7 @@ internal class EnumerateContext {
 
                 Efficiency eff;
                 try {
-                    eff = TestMany(comb);
+                    eff = TestMany(simu, comb);
                 } catch {
                     continue;
                 }
@@ -197,13 +182,9 @@ internal class EnumerateContext {
             }
         }
     }
-    IEnumerable<Frame> ProcessFrame(Frame frame) {
-        var f = new BitArray(ucnt);
-        foreach (var op in frame.comb) {
-            f[op.uid] = true;
-        }
+    IEnumerable<Frame> ProcessFrame(Simulator simu, Frame frame) {
         foreach (var op in ops) {
-            if (f[op.uid]) continue; // 处理干员表中有同一干员的不同位置
+            if (frame.uset[op.uid]) continue; // 处理干员表中有同一干员的不同位置
 
             OpEnumData[] next_comb = [.. frame.comb, op];
             var gid = GetGroupId(next_comb);
@@ -212,7 +193,7 @@ internal class EnumerateContext {
             }
             Efficiency eff;
             try { // 检验组合是否能被基建容纳，如果可以，则计算其效率
-                eff = TestMany(next_comb);
+                eff = TestMany(simu, next_comb);
             } catch {
                 continue;
             }
