@@ -1,4 +1,4 @@
-using InfrastSim.TimeDriven.WebHelper.Enumerate;
+using InfrastSim.TimeDriven.Enumerate;
 using System.Text.Json.Serialization;
 
 namespace InfrastSim.TimeDriven.WebHelper;

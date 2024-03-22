@@ -1,10 +1,11 @@
 using InfrastSim.Algorithms;
+using InfrastSim.TimeDriven.WebHelper;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Threading.Channels;
 
-namespace InfrastSim.TimeDriven.WebHelper.Enumerate;
+namespace InfrastSim.TimeDriven.Enumerate;
 internal class EnumerateContext {
     static readonly List<int> primes = EularSieve.Resolve((1 << 24) - 1);
     const int MOD = 16777213;
@@ -71,7 +72,7 @@ internal class EnumerateContext {
             ?? throw new InvalidOperationException("expected 'ops' as an array, readed null");
 
         var uidmap = new Dictionary<string, int>();
-        for(var i = 0; i < ops.Length; i++) {
+        for (var i = 0; i < ops.Length; i++) {
             var op = ops[i];
             if (uidmap.TryGetValue(op.Name, out var uid)) {
                 op.uid = uid;
@@ -123,7 +124,7 @@ internal class EnumerateContext {
         foreach (var op in comb) {
             f = f * op.prime % MOD;
         }
-        return (comb.Length << 24) | (int)f;
+        return comb.Length << 24 | (int)f;
     }
 
     readonly struct Frame {
@@ -136,8 +137,8 @@ internal class EnumerateContext {
         public Frame(OpEnumData[] comb, Efficiency base_eff, int ucnt) {
             this.comb = comb;
             this.base_eff = base_eff;
-            this.gid = GetGroupId(comb);
-            this.init_size = comb.Length;
+            gid = GetGroupId(comb);
+            init_size = comb.Length;
             uset = new(ucnt);
             foreach (var op in comb) {
                 uset[op.uid] = true;
@@ -150,7 +151,7 @@ internal class EnumerateContext {
             return new Frame {
                 comb = new_comb,
                 base_eff = base_eff,
-                gid = (new_comb.Length << 24) | (gid & 0xffffff) * op.prime % MOD,
+                gid = new_comb.Length << 24 | (gid & 0xffffff) * op.prime % MOD,
                 init_size = init_size,
                 uset = new_uset
             };

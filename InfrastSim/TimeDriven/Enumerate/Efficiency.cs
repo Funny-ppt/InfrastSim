@@ -1,4 +1,4 @@
-namespace InfrastSim.TimeDriven.WebHelper;
+namespace InfrastSim.TimeDriven.Enumerate;
 public record struct Efficiency(double TradEff, double ManuEff, double PowerEff) {
     public static Efficiency operator -(Efficiency a, Efficiency b) {
         return new Efficiency(a.TradEff - b.TradEff, a.ManuEff - b.ManuEff, a.PowerEff - b.PowerEff);

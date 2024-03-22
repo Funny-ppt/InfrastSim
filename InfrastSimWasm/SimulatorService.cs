@@ -1,5 +1,6 @@
 using InfrastSim.Localization;
 using InfrastSim.TimeDriven;
+using InfrastSim.TimeDriven.Enumerate;
 using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices.JavaScript;

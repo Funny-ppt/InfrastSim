@@ -1,4 +1,4 @@
-namespace InfrastSim.TimeDriven.WebHelper.Enumerate;
+namespace InfrastSim.TimeDriven.Enumerate;
 internal class MoodScheduler {
     DispatchGroup[] groups;
     Dictionary<string, OpConf> opSettings;
@@ -12,7 +12,7 @@ internal class MoodScheduler {
         this.groups = groups;
         this.opSettings = opSettings;
         this.times = times;
-        this.cycle = TimeSpan.Zero;
+        cycle = TimeSpan.Zero;
         foreach (var time in times) {
             cycle += time;
         }

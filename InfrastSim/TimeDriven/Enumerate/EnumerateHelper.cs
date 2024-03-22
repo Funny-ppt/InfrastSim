@@ -1,7 +1,7 @@
-using System.Collections.Concurrent;
+using InfrastSim.TimeDriven.WebHelper;
 using System.Text.Json;
 
-namespace InfrastSim.TimeDriven.WebHelper;
+namespace InfrastSim.TimeDriven.Enumerate;
 public static class EnumerateHelper {
     internal static readonly JsonSerializerOptions Options;
 
@@ -96,7 +96,7 @@ public static class EnumerateHelper {
     }
     internal static OperatorBase Assign(this Simulator simu, OpEnumData data) {
         var op = simu.GetOperator(data.Name);
-        op.SetMood((double)((data.MoodLow + data.MoodHigh) >> 1));
+        op.SetMood((double)(data.MoodLow + data.MoodHigh >> 1));
         op.WorkingTime = data.WarmUp ? TimeSpan.FromHours(10) : TimeSpan.Zero;
 
         var facName = data.Fac.ToLower();
