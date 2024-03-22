@@ -98,7 +98,7 @@ internal class EnumerateContext {
         var tasks = new Task[Environment.ProcessorCount];
         for (int i = 0; i < tasks.Length; i++) {
             tasks[i] = Task.Run(() => {
-                var simu = simu1.Clone();
+                var simu = InitSimulator(preset);
                 while (channel.Reader.TryRead(out var frame)) {
                     foreach (var outFrame in ProcessFrame(simu, frame)) {
                         channel.Writer.TryWrite(outFrame);
