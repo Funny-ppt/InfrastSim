@@ -1,12 +1,10 @@
 using InfrastSim.Algorithms;
-using InfrastSim.TimeDriven.WebHelper.Enumerate;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Channels;
 
-namespace InfrastSim.TimeDriven.WebHelper;
+namespace InfrastSim.TimeDriven.WebHelper.Enumerate;
 internal class EnumerateContext {
     static readonly List<int> primes = EularSieve.Resolve((1 << 24) - 1);
     const int MOD = 16777213;
@@ -34,7 +32,7 @@ internal class EnumerateContext {
             simu.FillTestOp();
         }
     }
-    bool ValidateResult(Simulator simu, in EnumResult result) {
+    bool ValidateResult(Simulator simu, EnumResult result) {
         if (result.eff.IsZero()) return false;
         if (result.init_size == 1) return true;
 
@@ -112,7 +110,7 @@ internal class EnumerateContext {
             .Where(v => ValidateResult(simu1, v))
             .OrderByDescending(v => v.eff.GetScore());
     }
-    static Simulator InitSimulator(in JsonElement elem) {
+    static Simulator InitSimulator(JsonElement elem) {
         var simu = new Simulator();
         foreach (var prop in elem.EnumerateObject()) {
             simu.SetFacilityState(prop.Name, prop.Value);
@@ -128,12 +126,12 @@ internal class EnumerateContext {
         return (comb.Length << 24) | (int)f;
     }
 
-    struct Frame {
-        public OpEnumData[] comb = null!;
-        public BitArray uset = null!;
-        public int gid;
-        public int init_size;
-        public Efficiency base_eff;
+    readonly struct Frame {
+        public OpEnumData[] comb { get; init; } = null!;
+        public BitArray uset { get; init; } = null!;
+        public int gid { get; init; }
+        public int init_size { get; init; }
+        public Efficiency base_eff { get; init; }
 
         public Frame(OpEnumData[] comb, Efficiency base_eff, int ucnt) {
             this.comb = comb;
