@@ -69,9 +69,11 @@ public class AggregateValue(int baseValue = 0, int min = int.MinValue, int max =
     }
     public void Clear() {
         _disables.Clear();
-        foreach (var key in _additionValues.Keys) { // BENCHMARK REQUIRED: use Clear() or manually set value to 0?
-            _additionValues[key] = 0;
-        }
+        // BENCHMARK REQUIRED: use Clear() or manually set value to 0?
+        _additionValues.Clear();
+        //foreach (var key in _additionValues.Keys) { 
+        //    _additionValues[key] = 0;
+        //}
         _upToDate = true;
         _value = _baseValue;
     }
