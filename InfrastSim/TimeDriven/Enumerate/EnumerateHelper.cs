@@ -30,15 +30,15 @@ public static class EnumerateHelper {
 
             writer.WritePropertyName("eff");
             writer.WriteStartObject();
-            writer.WriteNumber("manu_eff", r.eff.ManuEff);
-            writer.WriteNumber("trad_eff", r.eff.TradEff);
-            writer.WriteNumber("power_eff", r.eff.PowerEff);
+            writer.WriteNumber("manu_eff", r.eff.ManuEff / 100.0);
+            writer.WriteNumber("trad_eff", r.eff.TradEff / 100.0);
+            writer.WriteNumber("power_eff", r.eff.PowerEff / 100.0);
             writer.WriteEndObject();
             writer.WritePropertyName("extra_eff");
             writer.WriteStartObject();
-            writer.WriteNumber("manu_eff", r.extra_eff.ManuEff);
-            writer.WriteNumber("trad_eff", r.extra_eff.TradEff);
-            writer.WriteNumber("power_eff", r.extra_eff.PowerEff);
+            writer.WriteNumber("manu_eff", r.extra_eff.ManuEff / 100.0);
+            writer.WriteNumber("trad_eff", r.extra_eff.TradEff / 100.0);
+            writer.WriteNumber("power_eff", r.extra_eff.PowerEff / 100.0);
             writer.WriteEndObject();
             writer.WriteEndObject();
         }
