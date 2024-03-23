@@ -140,9 +140,9 @@ public class TradingStation : FacilityBase, IApplyDrones {
 
 
     protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
+        writer.WriteString("strategy", Strategy.ToString());
         writer.WriteItem("current-order", CurrentOrder, detailed);
         writer.WriteNumber("progress", Progress); ;
-        writer.WriteString("strategy", Strategy.ToString());
         writer.WritePropertyName("orders");
         writer.WriteStartArray();
         foreach (var order in Orders) {

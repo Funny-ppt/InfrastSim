@@ -163,7 +163,7 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
 
         if (detailed) {
             writer.WriteNumber("base-efficiency", (100 + EffiencyModifier) / 100.0);
-            writer.WriteNumber("operators-efficiency", WorkingOperators.Sum(op => op.EfficiencyModifier));
+            writer.WriteNumber("operators-efficiency", WorkingOperators.Sum(op => op.EfficiencyModifier) / 100.0);
         }
 
         writer.WriteEndObject();

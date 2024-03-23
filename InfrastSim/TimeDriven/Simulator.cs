@@ -361,15 +361,15 @@ public class Simulator : ISimulator, IJsonSerializable {
         Random.ToJson(writer);
         writer.WriteNumber("drones", _drones);
         writer.WriteNumber("refresh", _refresh);
-        writer.WriteNumber("total-manu-product", _totalManuProgress);
-        writer.WriteNumber("total-trad-product", _totalTradProgress);
-        writer.WriteNumber("total-office-product", _totalOfficeProgress);
-        writer.WriteNumber("total-drones-product", _totalDronesProgress);
+        writer.WriteNumber("total-manu-progress", _totalManuProgress);
+        writer.WriteNumber("total-trad-progress", _totalTradProgress);
+        writer.WriteNumber("total-office-progress", _totalOfficeProgress);
+        writer.WriteNumber("total-drones-progress", _totalDronesProgress);
         if (detailed) {
-            writer.WriteNumber("drones-efficiency", DronesEfficiency);
-            writer.WriteNumber("office-efficiency", OfficeEfficiency);
-            writer.WriteNumber("manufacturing-efficiency", ManufacturingEfficiency);
-            writer.WriteNumber("trading-efficiency", TradingEfficiency);
+            writer.WriteNumber("drones-efficiency", DronesEfficiency / 100.0);
+            writer.WriteNumber("office-efficiency", OfficeEfficiency / 100.0);
+            writer.WriteNumber("manufacturing-efficiency", ManufacturingEfficiency / 100.0);
+            writer.WriteNumber("trading-efficiency", TradingEfficiency / 100.0);
         }
 
         writer.WritePropertyName("operators");

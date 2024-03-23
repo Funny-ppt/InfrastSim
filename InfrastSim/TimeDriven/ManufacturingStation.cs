@@ -89,8 +89,8 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
 
     protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
         writer.WriteNumber("product-index", Array.IndexOf(Product.AllProducts, Product));
-        writer.WriteNumber("progress", Progress);
         writer.WriteNumber("product-count", ProductCount);
+        writer.WriteNumber("progress", Progress);
 
         if (detailed) {
             if (Product != null) writer.WriteString("product", Product.Name);
