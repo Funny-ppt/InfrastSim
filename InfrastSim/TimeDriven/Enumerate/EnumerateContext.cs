@@ -144,14 +144,14 @@ internal class EnumerateContext {
                 uset[op.uid] = true;
             }
         }
-        public Frame FromComb(OpEnumData[] new_comb, Efficiency base_eff) {
+        public Frame FromComb(OpEnumData[] new_comb, Efficiency base_eff, int gid) {
             var op = new_comb[^1];
             BitArray new_uset = new(uset);
             new_uset[op.uid] = true;
             return new Frame {
                 comb = new_comb,
                 base_eff = base_eff,
-                gid = new_comb.Length << 24 | (gid & 0xffffff) * op.prime % MOD,
+                gid = gid,
                 init_size = init_size,
                 uset = new_uset
             };
@@ -185,11 +185,12 @@ internal class EnumerateContext {
         foreach (var op in ops) {
             if (frame.uset[op.uid]) continue; // 处理干员表中有同一干员的不同位置
 
-            OpEnumData[] next_comb = [.. frame.comb, op];
-            var gid = GetGroupId(next_comb);
+            var gid = (frame.comb.Length + 1 << 24) | (frame.gid & 0xffffff) * op.prime % MOD;
             if (!results.TryAdd(gid, default)) {
                 continue;
             }
+
+            OpEnumData[] next_comb = [.. frame.comb, op];
             Efficiency eff;
             try { // 检验组合是否能被基建容纳，如果可以，则计算其效率
                 eff = TestMany(simu, next_comb);
@@ -208,7 +209,7 @@ internal class EnumerateContext {
                 tot_extra_eff -= opd.SingleEfficiency;
             }
             results[gid] = new(next_comb, frame.init_size, eff, tot_extra_eff);
-            if (next_comb.Length < max_size) yield return frame.FromComb(next_comb, eff);
+            if (next_comb.Length < max_size) yield return frame.FromComb(next_comb, eff, gid);
         }
     }
 }
