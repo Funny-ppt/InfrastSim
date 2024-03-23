@@ -1,4 +1,4 @@
-namespace InfrastSim.TimeDriven; 
+namespace InfrastSim.TimeDriven;
 internal static partial class Priority {
     public const int PropConversion = 20;
     public const int Common = 100;

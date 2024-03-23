@@ -1,8 +1,6 @@
 using InfrastSim.TimeDriven;
 using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices.JavaScript;
-using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -30,7 +28,7 @@ public static class SimulatorService {
         var doc = JsonDocument.Parse(json);
         var id = Interlocked.Increment(ref SimuId);
         var simu = Simus[id] = new Simulator(doc.RootElement);
-        if (newRandom) simu.Random = new ();
+        if (newRandom) simu.Random = new();
         return id;
     }
 

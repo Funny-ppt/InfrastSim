@@ -88,6 +88,5 @@ internal class Parameter(string value) {
 }
 
 internal class ParseException(string message, int line, int col)
-    : Exception($"Parse error at line {line + 1}, column {col + 1}: {message}")
-{
+    : Exception($"Parse error at line {line + 1}, column {col + 1}: {message}") {
 }

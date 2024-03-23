@@ -1,7 +1,6 @@
 namespace InfrastSim.EventDriven;
 
-internal interface IEventSource
-{
+internal interface IEventSource {
     DateTime TriggerTime { get; }
     event Action<IEventSource>? TriggerTimeChanged;
 

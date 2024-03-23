@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace InfrastSimServer; 
+namespace InfrastSimServer;
 public sealed class SimulatorService : IDisposable {
     //public static readonly SimulatorService Instance = new(); 
 

@@ -1,4 +1,4 @@
-namespace InfrastSim.TimeDriven; 
+namespace InfrastSim.TimeDriven;
 internal static class Skills {
     public static void 裁缝Alpha(OperatorBase op, Simulator simu) {
         if (op.Facility is TradingStation trading && !op.IsTired) {

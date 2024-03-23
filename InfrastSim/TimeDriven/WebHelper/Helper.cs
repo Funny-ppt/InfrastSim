@@ -1,8 +1,6 @@
-using InfrastSim.Script;
 using InfrastSim.Localization;
-using System.Linq;
+using InfrastSim.Script;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace InfrastSim.TimeDriven.WebHelper;
@@ -177,7 +175,7 @@ public static partial class Helper {
                         "Manufacturing" => new ManufacturingStation(),
                         "Power" => new PowerStation(),
                         _ => throw new ArgumentException("未知或不受支持的设施类型")
-                    }; 
+                    };
                     simu.Facilities[index]?.RemoveAll();
                     simu.Facilities[index] = new_fac;
                 }

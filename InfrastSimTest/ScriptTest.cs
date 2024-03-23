@@ -1,7 +1,7 @@
 using InfrastSim.Script;
 using InfrastSim.TimeDriven.WebHelper;
 
-namespace InfrastSimTest; 
+namespace InfrastSimTest;
 [TestClass]
 public class ScriptTest {
     [TestMethod]

@@ -28,10 +28,8 @@ namespace InfrastSimServer {
 
             app.UseAuthorization();
 
-            app.UseExceptionHandler(appError =>
-            {
-                appError.Run(async context =>
-                {
+            app.UseExceptionHandler(appError => {
+                appError.Run(async context => {
                     context.Response.StatusCode = 500;
                     var exception = context.Features.Get<IExceptionHandlerFeature>();
                     if (exception != null) {

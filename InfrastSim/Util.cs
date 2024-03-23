@@ -1,5 +1,5 @@
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
 
 namespace InfrastSim;
 
@@ -30,4 +30,3 @@ public static class Util {
         return Encoding.UTF8.GetString(ms.ToArray()) ?? string.Empty;
     }
 }
-    

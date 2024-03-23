@@ -15,5 +15,5 @@ public record Product(
         ),
     ];
 
-    public readonly static Product[] AllProducts = [..CombatRecords, Gold, ..StoneFragment];
+    public readonly static Product[] AllProducts = [.. CombatRecords, Gold, .. StoneFragment];
 }
