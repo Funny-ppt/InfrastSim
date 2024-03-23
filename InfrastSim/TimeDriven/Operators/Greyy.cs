@@ -6,7 +6,7 @@ internal class Geryy : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is PowerStation && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.2);
+            EfficiencyModifier.SetValue(Name, 20);
         }
 
         // TODO: missing skill 2

@@ -6,7 +6,7 @@ internal class Rangers : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Office office && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.2);
+            EfficiencyModifier.SetValue(Name, 20);
         }
 
         // TODO: missing skill 2

@@ -9,11 +9,11 @@ internal class Cliffheart : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(-0.25);
-            MoodConsumeRate.SetValue(Name, -0.5);
+            dorm.SetVipMoodModifier(-25);
+            MoodConsumeRate.SetValue(Name, -50);
         }
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 2) {
-            EfficiencyModifier.SetValue(Name, 0.15);
+            EfficiencyModifier.SetValue(Name, 15);
             trading.Capacity.SetValue(Name, Upgraded >= 2 ? 4 : 2);
         }
     }

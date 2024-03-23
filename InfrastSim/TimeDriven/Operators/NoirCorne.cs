@@ -6,11 +6,11 @@ internal class NoirCorne : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.1);
+            EfficiencyModifier.SetValue(Name, 10);
             manufacturing.Capacity.SetValue(Name, 10);
         }
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.1);
+            EfficiencyModifier.SetValue(Name, 10);
             trading.Capacity.SetValue(Name, 2);
         }
     }

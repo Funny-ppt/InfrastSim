@@ -10,12 +10,12 @@ internal class Gnosis : OperatorBase {
 
         if (Facility is ControlCenter control && !IsTired) {
             var amount = control.GroupMemberCount("喀兰贸易");
-            control.ExtraMoodModifier.SetValue(Name, amount * -0.05);
+            control.ExtraMoodModifier.SetValue(Name, amount * -5);
 
             if (Upgraded >= 2) {
                 foreach (var op in simu.TradingStations.SelectMany(t => t.WorkingOperators)) {
                     if (op.HasGroup("喀兰贸易")) {
-                        op.EfficiencyModifier.SetValue(Name, -0.15);
+                        op.EfficiencyModifier.SetValue(Name, -15);
                         ((TradingStation)op.Facility!).Capacity.AddValue(Name, 6);
                     }
                 }

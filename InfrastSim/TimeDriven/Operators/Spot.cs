@@ -12,7 +12,7 @@ internal class Spot : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceGold()) {
-                EfficiencyModifier.SetValue(Name, 0.30);
+                EfficiencyModifier.SetValue(Name, 30);
             }
         }
     }

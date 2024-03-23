@@ -6,15 +6,15 @@ internal class Hoederer : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.25);
+            EfficiencyModifier.SetValue(Name, 25);
             if (simu.OperatorsInFacility.Any(op => op.Name == "伊内丝")) {
-                EfficiencyModifier.AddValue(Name, 0.05);
+                EfficiencyModifier.AddValue(Name, 5);
             }
 
             if (Upgraded >= 2) {
-                EfficiencyModifier.AddValue(Name, 0.05);
+                EfficiencyModifier.AddValue(Name, 5);
                 if (simu.OperatorsInFacility.Any(op => op.Name == "W")) {
-                    EfficiencyModifier.AddValue(Name, 0.05);
+                    EfficiencyModifier.AddValue(Name, 5);
                 }
             }
         }

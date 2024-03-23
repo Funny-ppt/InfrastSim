@@ -89,9 +89,9 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         }
     }
 
-    public abstract double MoodConsumeModifier { get; }
-    public abstract double EffiencyModifier { get; }
-    public double TotalEffiencyModifier => WorkingOperators.Sum(op => op.EfficiencyModifier) + EffiencyModifier;
+    public abstract int MoodConsumeModifier { get; }
+    public abstract int EffiencyModifier { get; }
+    public int TotalEffiencyModifier => WorkingOperators.Sum(op => op.EfficiencyModifier) + EffiencyModifier;
 
     public virtual void Reset() {
         foreach (var op in Operators) {
@@ -162,7 +162,7 @@ public abstract class FacilityBase : ITimeDrivenObject, IJsonSerializable {
         WriteDerivedContent(writer, detailed);
 
         if (detailed) {
-            writer.WriteNumber("base-efficiency", 1 + EffiencyModifier);
+            writer.WriteNumber("base-efficiency", (100 + EffiencyModifier) / 100.0);
             writer.WriteNumber("operators-efficiency", WorkingOperators.Sum(op => op.EfficiencyModifier));
         }
 

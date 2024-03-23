@@ -9,7 +9,7 @@ internal class Perfumer : OperatorBase {
 
         // TODO: missing skill 1
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
-            EfficiencyModifier.SetValue(Name, 0.25);
+            EfficiencyModifier.SetValue(Name, 25);
         }
     }
 }

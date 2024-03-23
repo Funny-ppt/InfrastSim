@@ -38,18 +38,18 @@ internal class Combination<T> {
         return arr;
     }
 
-    public IEnumerator<IEnumerable<T>> GetEnumerator() {
+    public IEnumerator<IEnumerable<T>?> GetEnumerator() {
         return new Enumerator(this);
     }
 
     public IEnumerable<IEnumerable<T>> ToEnumerable() {
-        IEnumerable<T>? cur = null;
+        IEnumerable<T>? cur;
         while ((cur = Enumerate()) != null) {
             yield return cur;
         }
     }
 
-    class Enumerator : IEnumerator<IEnumerable<T>> {
+    class Enumerator : IEnumerator<IEnumerable<T>?> {
         Combination<T> _combination;
         IEnumerable<T>? _cur = null;
 
@@ -57,8 +57,8 @@ internal class Combination<T> {
             _combination = combination;
         }
 
-        public IEnumerable<T> Current => _cur;
-        object IEnumerator.Current => _cur;
+        public IEnumerable<T>? Current => _cur;
+        object? IEnumerator.Current => _cur;
 
         public bool MoveNext() {
             _cur = _combination.Enumerate();

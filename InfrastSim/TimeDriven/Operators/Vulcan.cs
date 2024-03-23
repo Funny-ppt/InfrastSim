@@ -6,8 +6,8 @@ internal class Vulcan : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, -0.05);
-            MoodConsumeRate.SetValue(Name, Upgraded >= 2 ? -0.25 : -0.15);
+            EfficiencyModifier.SetValue(Name, -5);
+            MoodConsumeRate.SetValue(Name, Upgraded >= 2 ? -25 : -15);
             manufacturing.Capacity.SetValue(Name, Upgraded >= 2 ? 19 : 16);
         }
     }

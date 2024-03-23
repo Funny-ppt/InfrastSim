@@ -6,12 +6,12 @@ internal class Гум : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.3);
-            MoodConsumeRate.SetValue(Name, -0.25);
+            EfficiencyModifier.SetValue(Name, 30);
+            MoodConsumeRate.SetValue(Name, -25);
         }
         if (Facility is Dormitory dorm && Upgraded >= 1) {
-            dorm.SetVipMoodModifier(-0.35);
-            MoodConsumeRate.SetValue(Name, -0.35);
+            dorm.SetVipMoodModifier(-35);
+            MoodConsumeRate.SetValue(Name, -35);
         }
     }
 }

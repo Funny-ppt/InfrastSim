@@ -10,7 +10,7 @@ internal class Dorothy : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             var count = manufacturing.GroupMemberCount("莱茵科技制造");
-            EfficiencyModifier.SetValue(Name, 0.05 * count + (Upgraded >= 2 ? 0.25 : 0));
+            EfficiencyModifier.SetValue(Name, 5 * count + (Upgraded >= 2 ? 25 : 0));
         }
     }
 }

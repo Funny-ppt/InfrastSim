@@ -6,7 +6,7 @@ internal class Melantha : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.25);
+            EfficiencyModifier.SetValue(Name, 25);
             trading.Capacity.SetValue(Name, 1);
         }
 

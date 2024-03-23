@@ -6,7 +6,7 @@ internal class Tequila : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            MoodConsumeRate.AddValue(Name, -0.25);
+            MoodConsumeRate.AddValue(Name, -25);
             trading.OnPending += OnPending;
         }
     }

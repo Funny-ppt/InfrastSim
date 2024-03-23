@@ -25,8 +25,8 @@ internal class Fiammetta : OperatorBase {
             MoodConsumeRate.MaxValue = -2;
             TryExchange(dorm);
         } else {
-            MoodConsumeRate.MinValue = double.MinValue;
-            MoodConsumeRate.MaxValue = double.MaxValue;
+            MoodConsumeRate.MinValue = int.MinValue;
+            MoodConsumeRate.MaxValue = int.MaxValue;
         }
     }
 }

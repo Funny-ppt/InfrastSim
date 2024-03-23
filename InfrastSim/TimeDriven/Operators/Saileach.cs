@@ -8,7 +8,7 @@ internal class Saileach : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(-0.7);
+            dorm.SetVipMoodModifier(-70);
         }
     }
 }

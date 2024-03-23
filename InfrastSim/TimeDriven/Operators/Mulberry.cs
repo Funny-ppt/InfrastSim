@@ -7,8 +7,8 @@ internal class Mulberry : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Office office && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
-            EfficiencyModifier.SetValue(Name, Upgraded >= 1 ? 0.2 : 0.1);
+            MoodConsumeRate.SetValue(Name, -25);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 1 ? 20 : 10);
             if (Upgraded >= 2) {
                 simu.Renjianyanhuo.SetValue(Name, 20); // FIXME: hardcoded
             }

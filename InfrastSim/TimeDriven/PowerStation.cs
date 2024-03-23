@@ -9,6 +9,6 @@ public class PowerStation : FacilityBase {
     };
 
     public override int AcceptOperatorNums => 1;
-    public override double MoodConsumeModifier => 0;
-    public override double EffiencyModifier => WorkingOperatorsCount * 0.05;
+    public override int MoodConsumeModifier => 0;
+    public override int EffiencyModifier => WorkingOperatorsCount * 5;
 }

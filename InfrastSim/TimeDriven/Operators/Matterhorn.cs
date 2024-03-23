@@ -9,7 +9,7 @@ internal class Matterhorn : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.15);
+            EfficiencyModifier.SetValue(Name, 15);
             trading.Capacity.SetValue(Name, 2);
         }
 

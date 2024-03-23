@@ -6,7 +6,7 @@ internal class Vermeil : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
+            MoodConsumeRate.SetValue(Name, -25);
             manufacturing.Capacity.SetValue(Name, 8);
 
             if (Upgraded >= 1) {
@@ -14,7 +14,7 @@ internal class Vermeil : OperatorBase {
                 if (op != null && op.Upgraded >= 1) return; // 泡泡优先生效
 
                 simu.Delay(simu => {
-                    var amount = 0.02 * (manufacturing.Capacity - manufacturing.BaseCapacity);
+                    var amount = 2 * (manufacturing.Capacity - manufacturing.BaseCapacity);
                     EfficiencyModifier.SetValue(Name, Math.Max(0, amount));
                 });
             }

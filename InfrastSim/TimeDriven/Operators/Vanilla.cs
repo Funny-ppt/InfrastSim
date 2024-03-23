@@ -8,11 +8,11 @@ internal class Venilla : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.25);
+            EfficiencyModifier.SetValue(Name, 25);
         }
 
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 2) {
-            EfficiencyModifier.SetValue(Name, 0.2);
+            EfficiencyModifier.SetValue(Name, 20);
         }
     }
 }

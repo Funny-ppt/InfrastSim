@@ -6,11 +6,11 @@ internal class Lava : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is PowerStation && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.1);
+            EfficiencyModifier.SetValue(Name, 10);
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceOriginStone()) {
-                EfficiencyModifier.SetValue(Name, 0.35);
+                EfficiencyModifier.SetValue(Name, 35);
             }
         }
     }

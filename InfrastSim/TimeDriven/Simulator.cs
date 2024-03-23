@@ -1,5 +1,6 @@
 using RandomEx;
 using System.Collections.Frozen;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -22,7 +23,7 @@ public class Simulator : ISimulator, IJsonSerializable {
 
     public Simulator(in JsonElement elem) {
         if (elem.TryGetProperty("time", out JsonElement timeElem) && timeElem.TryGetDateTime(out var now)) {
-            Now = now;
+            Now = Round(now);
         }
 
         if (elem.TryGetProperty("random", out JsonElement randomElem)) {
@@ -32,27 +33,27 @@ public class Simulator : ISimulator, IJsonSerializable {
         }
 
         if (elem.TryGetProperty("drones", out JsonElement dronesElem)) {
-            _drones = dronesElem.GetDouble();
+            _drones = dronesElem.GetInt32();
         }
 
         if (elem.TryGetProperty("refresh", out JsonElement refreshElem)) {
-            _refresh = refreshElem.GetDouble();
+            _refresh = refreshElem.GetInt32();
         }
 
-        if (elem.TryGetProperty("total-manu-product", out JsonElement totManuProdElem)) {
-            _totalManuProduct = totManuProdElem.GetDouble();
+        if (elem.TryGetProperty("total-manu-progress", out JsonElement totManuProgElem)) {
+            _totalManuProgress = totManuProgElem.GetInt64();
         }
 
-        if (elem.TryGetProperty("total-trad-product", out JsonElement totTradProdElem)) {
-            _totalTradProduct = totTradProdElem.GetDouble();
+        if (elem.TryGetProperty("total-trad-progress", out JsonElement totTradProgElem)) {
+            _totalTradProgress = totTradProgElem.GetInt64();
         }
 
-        if (elem.TryGetProperty("total-office-product", out JsonElement totOfficeProdElem)) {
-            _totalOfficeProduct = totOfficeProdElem.GetDouble();
+        if (elem.TryGetProperty("total-office-progress", out JsonElement totOfficeProgElem)) {
+            _totalOfficeProgress = totOfficeProgElem.GetInt64();
         }
 
-        if (elem.TryGetProperty("total-drones-product", out JsonElement totDronesProdElem)) {
-            _totalDronesProduct = totDronesProdElem.GetDouble();
+        if (elem.TryGetProperty("total-drones-progress", out JsonElement totDronesProgElem)) {
+            _totalDronesProgress = totDronesProgElem.GetInt64();
         }
 
         if (elem.TryGetProperty("materials", out JsonElement materialsElem)) {
@@ -118,14 +119,15 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public DateTime Now { get; private set; }
+    public static DateTime Round(DateTime original) => new(original.Year, original.Month, original.Day, original.Hour, original.Minute, original.Second);
+
     public XoshiroRandom Random { get; set; }
     ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
-    static readonly TimeSpan MinSpan = TimeSpan.FromSeconds(2);
-    internal void SetInterest(ITimeDrivenObject o, TimeSpan span) {
-        if (span < _nextInterest) {
+    internal void SetInterest(ITimeDrivenObject o, int seconds) {
+        if (seconds * TimeSpan.TicksPerSecond < _nextInterest.Ticks) {
             _interestSource = o;
-            _nextInterest = span;
+            _nextInterest = TimeSpan.FromSeconds(seconds);
         }
     }
     public void Resolve() {
@@ -154,28 +156,22 @@ public class Simulator : ISimulator, IJsonSerializable {
         foreach (var facility in Facilities) {
             facility?.Update(this, info);
         }
-        AddDrones(DronesEfficiency * (info.TimeElapsed / TimeSpan.FromMinutes(6)));
-        _refresh += OfficeEfficiency * (info.TimeElapsed / TimeSpan.FromHours(12));
-        _totalOfficeProduct += OfficeEfficiency * (info.TimeElapsed.Ticks / 100000); 
+        ProduceDrones(DronesEfficiency * info.TimeElapsed.TotalSeconds());
+        ProduceRefresh(OfficeEfficiency * info.TimeElapsed.TotalSeconds());
         Now += span;
     }
     public void SimulateUntil(DateTime dateTime) {
+        dateTime = Round(dateTime);
         while (Now < dateTime) {
             Resolve();
             QueryInterest();
             var span = dateTime - Now;
-
-            if (span < MinSpan) {
-                SimulateImpl(span);
-                return;
-            }
-
             if (_nextInterest < span) span = _nextInterest;
-            SimulateImpl(span + MinSpan);
+            SimulateImpl(span);
         }
     }
 
-    internal FrozenDictionary<string, OperatorBase> Operators;
+    internal FrozenDictionary<string, OperatorBase> Operators { get; set; }
     internal OperatorBase GetOperator(string name) {
         return Operators.GetValueOrDefault(name) ?? throw new KeyNotFoundException($"未知的干员名称 {name}");
     }
@@ -204,12 +200,8 @@ public class Simulator : ISimulator, IJsonSerializable {
         get => (Crafting)Facilities[4]!;
         private set => Facilities[4] = value;
     }
-    public ArraySegment<FacilityBase?> Dormitories {
-        get => new(Facilities, 5, 4);
-    }
-    public ArraySegment<FacilityBase?> ModifiableFacilities {
-        get => new(Facilities, 9, 9);
-    }
+    public ArraySegment<FacilityBase?> Dormitories => new(Facilities, 5, 4);
+    public ArraySegment<FacilityBase?> ModifiableFacilities => new(Facilities, 9, 9);
     internal FacilityBase?[] Facilities { get; } = new FacilityBase?[18];
 
     public IEnumerable<PowerStation> PowerStations
@@ -219,9 +211,9 @@ public class Simulator : ISimulator, IJsonSerializable {
     public IEnumerable<ManufacturingStation> ManufacturingStations
         => ModifiableFacilities.Select(fac => fac as ManufacturingStation).Where(fac => fac != null);
     public IEnumerable<OperatorBase> OperatorsInFacility
-        => Facilities.SelectMany(fac => fac?.Operators ?? Enumerable.Empty<OperatorBase>());
+        => Facilities.SelectMany(fac => fac?.Operators ?? []);
     public IEnumerable<OperatorBase> WorkingOperators
-    => Facilities.SelectMany(fac => fac?.WorkingOperators ?? Enumerable.Empty<OperatorBase>());
+    => Facilities.SelectMany(fac => fac?.WorkingOperators ?? []);
     #endregion
 
     public int TotalPowerConsume =>
@@ -233,26 +225,27 @@ public class Simulator : ISimulator, IJsonSerializable {
         ModifiableFacilities
         .Where(fac => fac is PowerStation)
         .Sum(fac => -fac!.PowerConsumes);
-    public double NextDroneTimeInSeconds =>
-        (Math.Ceiling(_drones) - _drones) * 360 / DronesEfficiency;
+    public double NextDroneTimeInSeconds => (TicksHelper.TicksToProduceDrone - _droneProgress) / DronesEfficiency;
 
 
     // 这两个参数本来应该由脚本执行器维护，为了方便直接实现到模拟器类
     // 更好的做法是模拟器实现一种扩展方法来管理这些额外的变量的生命周期
-    public string SelectedFacilityString { get; set; }
+    public string SelectedFacilityString { get; set; } = string.Empty;
     public FacilityBase? SelectedFacilityCache { get; set; }
 
-    double _drones;
-    double _refresh;
-    double _totalManuProduct;
-    double _totalTradProduct;
-    double _totalOfficeProduct;
-    double _totalDronesProduct;
+    int _drones;
+    int _droneProgress;
+    int _refresh;
+    int _refreshProgress;
+    long _totalManuProgress;
+    long _totalTradProgress;
+    long _totalOfficeProgress;
+    long _totalDronesProgress;
 
 
-    Dictionary<string, int> _materials = new();
-    Dictionary<string, AggregateValue> _globalValues = new();
-    SortedDictionary<int, Action<Simulator>> _delayActions = new();
+    Dictionary<string, int> _materials = [];
+    Dictionary<string, AggregateValue> _globalValues = [];
+    SortedDictionary<int, Action<Simulator>> _delayActions = [];
 
     public void Delay(Action<Simulator> action, int priority = 100) {
         if (_delayActions.ContainsKey(priority)) {
@@ -261,12 +254,31 @@ public class Simulator : ISimulator, IJsonSerializable {
             _delayActions[priority] = action;
         }
     }
-    public int Drones => (int)Math.Floor(_drones);
-    public void AddDrones(double amount) {
+    public int Drones => _drones;
+    public void AddDrones(int amount) {
         _drones = Math.Min(200, _drones + amount);
-        _totalDronesProduct += amount;
-    } 
-    internal void RemoveDrones(int amount) => _drones -= Math.Min(Drones, amount);
+    }
+    public void ProduceDrones(int progress) {
+        _droneProgress += progress;
+        _drones += _droneProgress / TicksHelper.TicksToProduceDrone;
+        if (_drones >= 200) {
+            _drones = 200;
+            _droneProgress = 0;
+        } else {
+            _droneProgress %= TicksHelper.TicksToProduceDrone;
+        }
+        _totalDronesProgress += progress;
+    }
+    public void ProduceRefresh(int progress) {
+        _refreshProgress += progress;
+        _refresh += _refreshProgress / TicksHelper.TicksToProduceDrone;
+        _refreshProgress %= TicksHelper.TicksToProduceDrone;
+        _totalOfficeProgress += progress;
+    }
+    internal void RemoveDrones(int amount) {
+        _drones -= amount;
+        Debug.Assert(_drones >= 0);
+    }
     internal void RemoveMaterial(Material mat) {
         _materials[mat.Name] = _materials.GetValueOrDefault(mat.Name) - mat.Count;
     }
@@ -279,19 +291,16 @@ public class Simulator : ISimulator, IJsonSerializable {
     internal void AddMaterial(string name, int amount) {
         _materials[name] = _materials.GetValueOrDefault(name) + amount;
     }
-    internal void AddManuProduct(double amount) {
-        _totalManuProduct += amount;
+    internal void AddManuProgress(int progress) {
+        _totalManuProgress += progress;
     }
-    internal void AddTradProduct(double amount) {
-        _totalTradProduct += amount;
-    }
-    internal void AddOfficeProduct(double amount) {
-        _totalOfficeProduct += amount;
+    internal void AddTradProgress(int progress) {
+        _totalTradProgress += progress;
     }
 
     public AggregateValue GetGlobalValue(string name) {
         if (!_globalValues.ContainsKey(name)) {
-            _globalValues.Add(name, new(min: 0.0));
+            _globalValues.Add(name, new(min: 0));
         }
         return _globalValues[name];
     }
@@ -317,22 +326,22 @@ public class Simulator : ISimulator, IJsonSerializable {
     #region 全局效率
     public AggregateValue GlobalManufacturingEfficiency => GetGlobalValue("全局制造站效率");
     public AggregateValue GlobalTradingEfficiency => GetGlobalValue("全局贸易站效率");
-    public double DronesEfficiency => 1 + PowerStations.Sum(power => power.TotalEffiencyModifier);
-    public double OfficeEfficiency => (Office.WorkingOperators.Any() ? 1 : 0) + Office.TotalEffiencyModifier;
-    public double ManufacturingEfficiency {
+    public int DronesEfficiency => 100 + PowerStations.Sum(power => power.TotalEffiencyModifier);
+    public int OfficeEfficiency => (Office.WorkingOperators.Any() ? 100 : 0) + Office.TotalEffiencyModifier;
+    public int ManufacturingEfficiency {
         get {
             var workingFacilities = ManufacturingStations.Where(fac => fac.Operators.Any());
             var count = workingFacilities.Count();
             var eff = workingFacilities.Sum(fac => fac.TotalEffiencyModifier);
-            return count * (1 + GlobalManufacturingEfficiency) + eff;
+            return count * (100 + GlobalManufacturingEfficiency) + eff;
         }
     }
-    public double TradingEfficiency {
+    public int TradingEfficiency {
         get {
             var workingFacilities = TradingStations.Where(fac => fac.Operators.Any());
             var count = workingFacilities.Count();
             var eff = workingFacilities.Sum(fac => fac.TotalEffiencyModifier);
-            return count * (1 + GlobalTradingEfficiency) + eff;
+            return count * (100 + GlobalTradingEfficiency) + eff;
         }
     }
     #endregion
@@ -352,10 +361,10 @@ public class Simulator : ISimulator, IJsonSerializable {
         Random.ToJson(writer);
         writer.WriteNumber("drones", _drones);
         writer.WriteNumber("refresh", _refresh);
-        writer.WriteNumber("total-manu-product", _totalManuProduct);
-        writer.WriteNumber("total-trad-product", _totalTradProduct);
-        writer.WriteNumber("total-office-product", _totalOfficeProduct);
-        writer.WriteNumber("total-drones-product", _totalDronesProduct);
+        writer.WriteNumber("total-manu-product", _totalManuProgress);
+        writer.WriteNumber("total-trad-product", _totalTradProgress);
+        writer.WriteNumber("total-office-product", _totalOfficeProgress);
+        writer.WriteNumber("total-drones-product", _totalDronesProgress);
         if (detailed) {
             writer.WriteNumber("drones-efficiency", DronesEfficiency);
             writer.WriteNumber("office-efficiency", OfficeEfficiency);

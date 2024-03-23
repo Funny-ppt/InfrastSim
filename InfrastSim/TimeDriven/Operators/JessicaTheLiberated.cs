@@ -8,15 +8,15 @@ internal class JessicaTheLiberated : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.1);
+            EfficiencyModifier.SetValue(Name, 10);
             trading.Capacity.SetValue(Name, 4);
         }
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired && Upgraded >= 2) {
-            MoodConsumeRate.SetValue(Name, 0.5);
+            MoodConsumeRate.SetValue(Name, 50);
             var ops = simu.ManufacturingStations.SelectMany(manufacturing => manufacturing.Operators);
             foreach (var op in ops.Where(op => op.HasGroup("黑钢国际"))) {
-                op.EfficiencyModifier.SetValue(Name, 0.05);
+                op.EfficiencyModifier.SetValue(Name, 5);
             }
         }
     }

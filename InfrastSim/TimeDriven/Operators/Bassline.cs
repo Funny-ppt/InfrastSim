@@ -7,8 +7,8 @@ internal class Bassline : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Office office && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
-            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.3 : 0.1);
+            MoodConsumeRate.SetValue(Name, -25);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 30 : 10);
             if (Upgraded >= 2) {
                 simu.Wushenggongming.SetValue(Name, 30); // FIXME: hardcoded
             }

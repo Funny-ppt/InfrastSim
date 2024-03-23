@@ -8,10 +8,10 @@ internal class Jieyun : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             simu.Delay(simu => {
-                simu.Wushujiejing.SetValue(Name, (int)simu.Renjianyanhuo / 5);
+                simu.Wushujiejing.SetValue(Name, simu.Renjianyanhuo / 5);
             }, Priority.PropConversion);
             simu.Delay(simu => {
-                EfficiencyModifier.SetValue(Name, simu.Wushujiejing * (Upgraded >= 2 ? 0.02 : 0.01));
+                EfficiencyModifier.SetValue(Name, simu.Wushujiejing * (Upgraded >= 2 ? 2 : 1));
             });
         }
     }

@@ -8,9 +8,9 @@ internal class Chestnut : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.15);
+            EfficiencyModifier.SetValue(Name, 15);
             if (Upgraded >= 1 && manufacturing.IsProduceOriginStone()) {
-                EfficiencyModifier.AddValue(Name, 0.3);
+                EfficiencyModifier.AddValue(Name, 30);
             }
         }
     }

@@ -6,7 +6,7 @@ internal class Nightingale : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetDormMoodModifier(Upgraded >= 2 ? -0.2 : -0.1);
+            dorm.SetDormMoodModifier(Upgraded >= 2 ? -20 : -10);
         }
     }
 }

@@ -8,7 +8,7 @@ internal class Delphine : OperatorBase {
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired && Upgraded >= 2) {
             var ops = simu.OperatorsInFacility.Where(op => op.Facility is TradingStation && op.Groups.Contains("格拉斯哥帮"));
             foreach (var op in ops) {
-                op.EfficiencyModifier.SetValue(Name, 0.1);
+                op.EfficiencyModifier.SetValue(Name, 10);
             }
         }
     }

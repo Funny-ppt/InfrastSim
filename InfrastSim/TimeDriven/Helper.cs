@@ -52,12 +52,12 @@ internal static class Helper {
     }
     public static int GetGoldProductionLine(this Simulator simu)
     {
-        return (int)simu.ExtraGoldProductionLine + simu.GetRealGoldProductionLine();
+        return simu.ExtraGoldProductionLine + simu.GetRealGoldProductionLine();
     }
 
     public static int PowerStationsCount(this Simulator simu)
     {
-        return (int)simu.ExtraPowerStation + simu.PowerStations.Count();
+        return simu.ExtraPowerStation + simu.PowerStations.Count();
     }
     public static bool IsProduceGold(this ManufacturingStation manufacturing) {
         return manufacturing.Product == Product.Gold;

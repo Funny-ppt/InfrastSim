@@ -8,7 +8,7 @@ internal class Kaltsit : OperatorBase {
         // TODO: missing skill 1
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired && Upgraded >= 2) {
-            simu.GlobalManufacturingEfficiency.SetIfGreater(0.02);
+            simu.GlobalManufacturingEfficiency.SetIfGreater(2);
         }
     }
 }

@@ -15,11 +15,11 @@ internal class Fang : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            var time = Math.Min(5, Math.Floor(WorkingTime / TimeSpan.FromHours(1)));
-            EfficiencyModifier.SetValue(Name, 0.2 + time * 0.01);
+            var time = Math.Min(5, (int)WorkingTime.TotalHours);
+            EfficiencyModifier.SetValue(Name, 20 + time);
         }
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 1) {
-            EfficiencyModifier.SetValue(Name, 0.3);
+            EfficiencyModifier.SetValue(Name, 30);
         }
     }
 }

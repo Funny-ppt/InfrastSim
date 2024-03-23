@@ -11,7 +11,7 @@ internal class Лето : OperatorBase {
             if (manufacturing.IsProduceCombatRecord()
                 && simu.IsOpInFacility("古米", FacilityType.Trading)) {
 
-                EfficiencyModifier.SetValue(Name, 0.3);
+                EfficiencyModifier.SetValue(Name, 30);
             }
         }
     }

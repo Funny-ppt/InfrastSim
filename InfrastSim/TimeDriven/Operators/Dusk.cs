@@ -10,10 +10,10 @@ internal class Dusk : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ControlCenter center && !IsTired) {
-            center.ExtraMoodModifier.SetValue(Name, -0.05);
-            MoodConsumeRate.SetValue(Name, 0.5);
+            center.ExtraMoodModifier.SetValue(Name, -5);
+            MoodConsumeRate.SetValue(Name, 50);
 
-            if (MoodTicks >= 12 * 360000) {
+            if (MoodTicks >= MaxTicks / 2) {
                 simu.Ganzhixinxi.SetValue(Name, 10);
             } else {
                 simu.Renjianyanhuo.SetValue(Name, 15);

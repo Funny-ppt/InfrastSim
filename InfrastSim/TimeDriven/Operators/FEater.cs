@@ -8,7 +8,7 @@ internal class FEater : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             if (manufacturing.IsProduceCombatRecord()) {
-                EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.35 : 0.3);
+                EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 35 : 30);
             }
         }
     }

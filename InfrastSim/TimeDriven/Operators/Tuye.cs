@@ -17,7 +17,7 @@ internal class Tuye : OperatorBase {
                 }
 
                 EfficiencyModifier.SetValue(
-                    Name, productLines / (Upgraded >= 2 ? 2 : 4) * 0.15 + 0.05);
+                    Name, productLines / (Upgraded >= 2 ? 2 : 4) * 15 + 5);
             });
         }
     }

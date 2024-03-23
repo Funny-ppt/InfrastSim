@@ -10,10 +10,10 @@ internal class Bryophyta : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing) {
             if (manufacturing.IsProduceGold()) {
-                EfficiencyModifier.SetValue(Name, 0.30);
+                EfficiencyModifier.SetValue(Name, 30);
             }
             if (Upgraded >= 2) {
-                EfficiencyModifier.AddValue(Name, 0.05 * manufacturing.GroupMemberCount("金属工艺"));
+                EfficiencyModifier.AddValue(Name, 5 * manufacturing.GroupMemberCount("金属工艺"));
             }
         }
     }

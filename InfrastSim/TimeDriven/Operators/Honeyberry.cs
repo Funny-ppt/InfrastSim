@@ -8,7 +8,7 @@ internal class Honeyberry : OperatorBase {
         // TODO: missing skill 1
 
         if (Facility is Dormitory dorm && Upgraded >= 2) {
-            dorm.SetVipMoodModifier(-0.7);
+            dorm.SetVipMoodModifier(-70);
         }
     }
 }

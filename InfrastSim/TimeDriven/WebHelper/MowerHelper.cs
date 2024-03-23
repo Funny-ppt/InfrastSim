@@ -13,12 +13,13 @@ public class MowerHelper {
             globalProperties.Add(prop.Item1, (int)prop.Item2);
         }
         node["global_properties"] = globalProperties;
-        var facilities = new JsonObject();
-        facilities["controlCenter"] = RewriteFacility(node["control-center"]!);
-        facilities["office"] = RewriteFacility(node["office"]!);
-        facilities["recpetionRoom"] = RewriteFacility(node["reception"]!);
-        facilities["training"] = RewriteFacility(node["training"]!);
-        facilities["crafting"] = RewriteFacility(node["crafting"]!);
+        var facilities = new JsonObject {
+            ["controlCenter"] = RewriteFacility(node["control-center"]!),
+            ["office"] = RewriteFacility(node["office"]!),
+            ["recpetionRoom"] = RewriteFacility(node["reception"]!),
+            ["training"] = RewriteFacility(node["training"]!),
+            ["crafting"] = RewriteFacility(node["crafting"]!)
+        };
         for (int i = 0; i < 4; i++) {
             var fac = node["dormitories"]![i];
             if (fac != null) {

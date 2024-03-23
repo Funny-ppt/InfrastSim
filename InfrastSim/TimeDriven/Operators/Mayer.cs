@@ -11,7 +11,7 @@ internal class Mayer : OperatorBase {
         // TODO: missing skill 1
 
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 2) {
-            EfficiencyModifier.SetValue(0.3);
+            EfficiencyModifier.SetValue(30);
         }
     }
 }

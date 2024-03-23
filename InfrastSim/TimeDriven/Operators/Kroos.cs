@@ -15,11 +15,10 @@ internal class Kroos : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            var time = Math.Min(5, Math.Floor(WorkingTime / TimeSpan.FromHours(1)));
-            EfficiencyModifier.SetValue(Name, 0.15 + time * 0.02);
+            EfficiencyModifier.SetValue(Name, 15 + WorkingTime.HoursNotExceed(5) * 2);
         }
         if (Facility is Dormitory dorm && Upgraded >= 1) {
-            MoodConsumeRate.AddValue(Name, -0.7);
+            MoodConsumeRate.AddValue(Name, -70);
         }
     }
 }

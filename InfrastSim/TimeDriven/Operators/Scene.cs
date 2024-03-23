@@ -17,8 +17,7 @@ internal class Scene : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            var time = Math.Min(5, Math.Floor(WorkingTime / TimeSpan.FromHours(1)));
-            EfficiencyModifier.SetValue(Name, 0.15 + time * 0.02);
+            EfficiencyModifier.SetValue(Name, 15 + WorkingTime.HoursNotExceed(5) * 2);
 
             if (Upgraded >= 2) {
                 if (manufacturing.IsProduceCombatRecord()) {

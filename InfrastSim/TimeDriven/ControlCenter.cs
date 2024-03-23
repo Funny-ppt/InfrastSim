@@ -4,8 +4,8 @@ public class ControlCenter : FacilityBase {
     public override int PowerConsumes => 0;
 
     public override int AcceptOperatorNums => Level;
-    public override double MoodConsumeModifier => -WorkingOperatorsCount * 0.05;
-    public override double EffiencyModifier => 0.0;
+    public override int MoodConsumeModifier => -WorkingOperatorsCount * 5;
+    public override int EffiencyModifier => 0;
     public AggregateValue ExtraMoodModifier { get; } = new();
 
     public override void Reset() {

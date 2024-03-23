@@ -1,6 +1,7 @@
 namespace InfrastSim;
 public record Product(
     string Name, int Volume, int RequiredLevel, TimeSpan ProduceTime, Material[]? Consumes = null) {
+    public int ProduceTicks { get; init; } = ProduceTime.ToSimuTicks();
 
     public readonly static Product[] CombatRecords = [
         new("基础作战记录", 2, 1, TimeSpan.FromMinutes(45)),

@@ -9,10 +9,10 @@ internal class Lancet_2 : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(-0.65);
+            dorm.SetVipMoodModifier(-65);
         }
         if (Facility is PowerStation && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.1);
+            EfficiencyModifier.SetValue(Name, 10);
         }
     }
 }

@@ -6,11 +6,11 @@ internal class Frostleaf : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            MoodConsumeRate.SetValue(Name, -0.7);
+            MoodConsumeRate.SetValue(Name, -70);
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceCombatRecord()) {
-                EfficiencyModifier.SetValue(Name, 0.3);
+                EfficiencyModifier.SetValue(Name, 30);
             }
         }
     }

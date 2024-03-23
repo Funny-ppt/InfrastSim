@@ -6,13 +6,13 @@ internal class Popukar : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.25);
+            EfficiencyModifier.SetValue(Name, 25);
             manufacturing.Capacity.SetValue(Name, -12);
-            MoodConsumeRate.SetValue(Name, 0.25);
+            MoodConsumeRate.SetValue(Name, 25);
         }
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(-0.4);
-            MoodConsumeRate.SetValue(Name, -0.2);
+            dorm.SetVipMoodModifier(-40);
+            MoodConsumeRate.SetValue(Name, -20);
         }
     }
 }

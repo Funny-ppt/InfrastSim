@@ -9,11 +9,11 @@ internal class Castle_3 : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             if (manufacturing.IsProduceCombatRecord()) {
-                EfficiencyModifier.SetValue(Name, 0.3);
+                EfficiencyModifier.SetValue(Name, 30);
             }
         }
         if (Facility is PowerStation && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.1);
+            EfficiencyModifier.SetValue(Name, 10);
         }
     }
 }

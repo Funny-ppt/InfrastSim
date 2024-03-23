@@ -8,12 +8,12 @@ internal class KirinRYato : OperatorBase {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {
-            MoodConsumeRate.SetValue(Name, 0.5);
+            MoodConsumeRate.SetValue(Name, 50);
             simu.SilverVine.SetValue(Name, 8);
 
             if (Upgraded >= 2) {
                 if (Facility.GroupMemberCount("怪物猎人小队") >= 2) {
-                    simu.GlobalManufacturingEfficiency.SetIfGreater(0.02);
+                    simu.GlobalManufacturingEfficiency.SetIfGreater(2);
                 }
             }
         }

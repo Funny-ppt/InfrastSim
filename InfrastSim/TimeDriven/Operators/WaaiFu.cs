@@ -9,19 +9,20 @@ internal class WaaiFu : OperatorBase {
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             simu.Delay(simu => {
                 var names = manufacturing.Operators.Select(op => op.Name);
+                var bonus_eff = 0;
                 foreach (var op in manufacturing.Operators) {
                     if (op == this) continue;
 
-                    var eff = 0.0;
+                    var eff = 0;
                     foreach (var name in names) {
                         op.MoodConsumeRate.Disable(name);
                         eff += op.EfficiencyModifier.GetValue(name);
                     }
-                    if (Upgraded >= 2) {
-                        EfficiencyModifier.AddValue(Name, Math.Max(0, Util.Align(eff, 0.05)));
-                    }
+                    bonus_eff += eff / 5 * 5;
                 }
-                EfficiencyModifier.SetIfLesser(Name, 0.4);
+                if (Upgraded >= 2) {
+                    EfficiencyModifier.SetValue(Name, Math.Min(40, bonus_eff));
+                }
             }, Priority.WaaiFu);
         }
     }

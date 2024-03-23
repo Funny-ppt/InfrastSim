@@ -8,15 +8,15 @@ internal class Almond : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            MoodConsumeRate.SetValue(Name, 0.25);
+            MoodConsumeRate.SetValue(Name, 25);
             if (manufacturing.Product == Product.Gold) {
-                EfficiencyModifier.SetValue(Name, 0.25);
+                EfficiencyModifier.SetValue(Name, 25);
 
                 if (Upgraded >= 2) {
                     var count = simu.GroupMemberCount("黑钢国际");
                     count = Math.Min(count, 3);
-                    EfficiencyModifier.AddValue(Name, count * 0.02);
-                    MoodConsumeRate.AddValue(Name, count * -0.15);
+                    EfficiencyModifier.AddValue(Name, count * 2);
+                    MoodConsumeRate.AddValue(Name, count * -15);
                 }
             }
         }

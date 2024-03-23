@@ -13,23 +13,23 @@ public class Dormitory : FacilityBase {
     public override bool IsWorking => true; // force operators to calculate mood change
     public override int AcceptOperatorNums => 5;
 
-    public override double MoodConsumeModifier {
+    public override int MoodConsumeModifier {
         get {
-            return -(1 + 1.5 + 0.1 * Level);
+            return -(100 + 150 + 10 * Level); // 宿舍等级提供 1.6-2 每小时心情回复，其中100为抵消角色基础消耗100
         }
     }
 
 
     public OperatorBase? Vip { get; private set; }
-    public double VipMoodModifier { get; private set; }
-    public double DormMoodModifier { get; private set; }
-    public void SetVipMoodModifier(double value) {
+    public int VipMoodModifier { get; private set; }
+    public int DormMoodModifier { get; private set; }
+    public void SetVipMoodModifier(int value) {
         VipMoodModifier = Math.Min(VipMoodModifier, value);
     }
-    public void SetDormMoodModifier(double value) {
+    public void SetDormMoodModifier(int value) {
         DormMoodModifier = Math.Min(DormMoodModifier, value);
     }
-    public override double EffiencyModifier => 0.0;
+    public override int EffiencyModifier => 0;
     public int Atmosphere => Level * 1000;
 
     public override void Reset() {
@@ -66,7 +66,7 @@ public class Dormitory : FacilityBase {
 
         simu.Delay((simu) => {
             foreach (var op in Operators) {
-                op.MoodConsumeRate.SetValue("dorm-atmosphere", -0.0004 * Atmosphere);
+                op.MoodConsumeRate.SetValue("dorm-atmosphere", (int)(-0.04 * Atmosphere));
                 op.MoodConsumeRate.SetValue("dorm-extra", DormMoodModifier);
                 op.MoodConsumeRate.Disable("control-center");
                 op.MoodConsumeRate.Disable("control-center-extra");

@@ -8,11 +8,11 @@ internal class Steward : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
+            MoodConsumeRate.SetValue(Name, -25);
             trading.Capacity.SetValue(Name, 5);
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
-            EfficiencyModifier.SetValue(Name, 0.25);
+            EfficiencyModifier.SetValue(Name, 25);
         }
     }
 }

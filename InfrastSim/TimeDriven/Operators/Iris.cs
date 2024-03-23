@@ -6,7 +6,7 @@ internal class Iris : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetDormMoodModifier(-0.1);
+            dorm.SetDormMoodModifier(-10);
             simu.Mengjing.AddValue(Name, dorm.Level);
             if (Upgraded >= 2) {
                 simu.Ganzhixinxi.AddValue(Name, simu.Mengjing);
