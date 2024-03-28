@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace InfrastSim.TimeDriven;
 public class Simulator : ISimulator, IJsonSerializable {
     public Simulator() {
-        Now = DateTime.UtcNow;
+        Now = Round(DateTime.UtcNow);
         Random = new XoshiroRandom();
         Facilities[0] = ControlCenter = new();
         Facilities[1] = Office = new();
