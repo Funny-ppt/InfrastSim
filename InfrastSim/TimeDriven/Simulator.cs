@@ -126,6 +126,7 @@ public class Simulator : ISimulator, IJsonSerializable {
     ITimeDrivenObject? _interestSource;
     TimeSpan _nextInterest;
     internal void SetInterest(ITimeDrivenObject o, int seconds) {
+        Debug.Assert(seconds > 0);
         if (seconds * TimeSpan.TicksPerSecond < _nextInterest.Ticks) {
             _interestSource = o;
             _nextInterest = TimeSpan.FromSeconds(seconds);
@@ -153,6 +154,7 @@ public class Simulator : ISimulator, IJsonSerializable {
         }
     }
     void SimulateImpl(TimeSpan span) {
+        Debug.Assert(span.Ticks > 0);
         var info = new TimeElapsedInfo(Now, Now + span, span);
         foreach (var facility in Facilities) {
             facility?.Update(this, info);

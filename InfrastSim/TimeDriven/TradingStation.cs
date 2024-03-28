@@ -23,7 +23,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
     public OrderStrategy Strategy { get; set; } = OrderStrategy.Gold;
     public Order? CurrentOrder { get; set; }
     public int Progress { get; private set; }
-    public int RemainTicks => (CurrentOrder?.ProduceTicks ?? int.MaxValue) - Progress;
+    public int RemainTicks => (CurrentOrder?.ProduceTicks ?? TicksHelper.UnreachableTicks) - Progress;
     public event Action<GoldOrderPendingArgs>? PreGoldOrderPending;
     public event Action<OrderPendingArgs>? OnPending;
     public bool PendingNewOrder(XoshiroRandom random) {
@@ -190,7 +190,7 @@ public class TradingStation : FacilityBase, IApplyDrones {
         }
         if (elem.TryGetProperty("progress", out var progress)) {
             if (progress.TryGetDouble(out var value)) {
-                if (CurrentOrder != null) Progress = (int)(CurrentOrder.ProduceTicks * (1 - value));
+                if (CurrentOrder != null) Progress = (int)(CurrentOrder.ProduceTicks * value);
             } else {
                 Progress = progress.GetInt32();
             }

@@ -7,6 +7,7 @@ internal static class TicksHelper {
     public const int TicksPerDrone = TicksPerMinute * 3; // 3 minute
     public const int TicksToProduceDrone = TicksPerMinute * 6; // 6 minute
     public const int TicksToProducerefresh = TicksPerHours * 12; // 12 hours
+    public const int UnreachableTicks = int.MaxValue >> 1; // to avoid overflow
 
     public static int ToSimuTicks(this TimeSpan ts) => (int)(ts.Ticks / TimeSpanTicksPerTick);
     public static int TotalSeconds(this TimeSpan ts) => (int)(ts.Ticks / TimeSpan.TicksPerSecond);

@@ -16,7 +16,7 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
     public bool CanStoreMore => Product != null && Capacity - CapacityOccupied >= Product.Volume;
     public Product? Product { get; private set; }
     public int Progress { get; private set; }
-    public int RemainTicks => (Product?.ProduceTicks ?? int.MaxValue) - Progress;
+    public int RemainTicks => (Product?.ProduceTicks ?? TicksHelper.UnreachableTicks) - Progress;
     public void ChangeProduct(Product newProduct) {
         if (newProduct != Product) {
             if (newProduct.RequiredLevel > Level) {
@@ -111,7 +111,7 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
         }
         if (elem.TryGetProperty("progress", out var progress)) {
             if (progress.TryGetDouble(out var value)) {
-                if (Product != null) Progress = (int)(Product.ProduceTicks * (1 - value));
+                if (Product != null) Progress = (int)(Product.ProduceTicks * value);
             } else {
                 Progress = progress.GetInt32();
             }
