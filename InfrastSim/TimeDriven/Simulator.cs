@@ -119,7 +119,8 @@ public class Simulator : ISimulator, IJsonSerializable {
     }
 
     public DateTime Now { get; private set; }
-    public static DateTime Round(DateTime original) => new(original.Year, original.Month, original.Day, original.Hour, original.Minute, original.Second);
+    public static DateTime Round(DateTime original)
+        => new(original.Year, original.Month, original.Day, original.Hour, original.Minute, original.Second, DateTimeKind.Utc);
 
     public XoshiroRandom Random { get; set; }
     ITimeDrivenObject? _interestSource;
