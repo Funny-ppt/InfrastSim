@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       include_windows:
-        description: 'Include windows'
+        description: "Include windows"
         default: true
         type: boolean
 
@@ -57,7 +57,7 @@ jobs:
     runs-on: windows-latest
 
     # 只有当当前分支与 matrix 中的 branch 匹配时才运行 job
-    if: contains(master, github.ref_name) || inputs.include_windows
+    if: contains("master", github.ref_name) || inputs.include_windows
 
     steps:
     - uses: actions/checkout@v3
