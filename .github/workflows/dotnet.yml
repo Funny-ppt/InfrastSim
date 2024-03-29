@@ -1,78 +1,94 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: .NET dev
+name: .NET Build Workflow
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "dev", "master" ]
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "dev", "master" ]
+  workflow_dispatch:
+    inputs:
+      include_windows:
+        description: "Include windows"
+        default: true
+        type: boolean
 
 jobs:
-  build-linux-and-wasm:
+  build-linux:
+    strategy:
+      fail-fast: false
 
     runs-on: ubuntu-latest
 
+    if: ${{ always() }}
+
     steps:
     - uses: actions/checkout@v3
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
+
     - name: Setup Workload
       run: dotnet workload restore
+      
     - name: Restore dependencies
       run: dotnet restore
-      
+
     - name: Build
       run: dotnet build --no-restore
+
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish CDLL
-      run: |
-        # 执行 Linux 平台的发布操作
-        dotnet publish -c Release -r linux-x64 InfrastSimExports
-        # 在这里可以添加发布到服务器的命令，例如 scp 或 rsync
-        cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.so InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSim.so
-    - name: Publish Wasm
-      run: |
-        # 执行 Wasm 平台的发布操作
-        dotnet publish -c Release InfrastSimWasm
-        # 在这里可以添加发布到服务器的命令，例如 scp 或 rsync
-    - name: Upload Wasm AppBundle
-      uses: actions/upload-artifact@v3
-      with:
-        name: AppBundle
-        path: InfrastSimWasm/bin/Release/net8.0/browser-wasm/AppBundle/
-    - name: Upload clib
-      uses: actions/upload-artifact@v3
-      with:
-        name: CLib
-        path: InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSim.so
-        
 
- # build-windows:
- # 
- #   runs-on: windows-latest
- #   
- #   steps:
- #   - uses: actions/checkout@v3
- #   - name: Setup .NET
- #     uses: actions/setup-dotnet@v3
- #     with:
- #       dotnet-version: 8.0.x
- #   - name: Setup Workload
- #     run: dotnet workload restore
- #   - name: Restore dependencies
- #     run: dotnet restore
- #     
- #   - name: Build
- #     run: dotnet build --no-restore
- #   - name: Test
- #     run: dotnet test --no-build --verbosity normal
- #   - name: Publish CDLL
- #     run: |
- #       # 执行 Windows 平台的发布操作
- #       dotnet publish -c Release -r win-x64 InfrastSimExports
- #       # 在这里可以添加发布到服务器的命令，例如 scp 或 rsync
+    - name: Publish for Linux
+      run: |
+        mkdir pub
+        dotnet publish -c Release -r linux-x64 InfrastSimExports
+        cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.* pub/
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: InfrastSim-clib-linux
+        path: pub/*
+
+        
+  build-windows:
+    strategy:
+      fail-fast: false
+
+    runs-on: windows-latest
+
+    # 只有当当前分支与 matrix 中的 branch 匹配时才运行 job
+    if: contains('master', github.ref_name) || inputs.include_windows
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Setup Workload
+      run: dotnet workload restore
+      
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Publish for Windows
+      run: |
+        mkdir pub
+        dotnet publish -c Release -r win-x64 InfrastSimExports
+        cp InfrastSimExports/bin/Release/net8.0/win-x64/publish/InfrastSimExports.* pub/
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: InfrastSim-clib-win
+        path: pub/*
