@@ -1,72 +1,56 @@
-name: .NET dev
+name: .NET Build Workflow
 
 on:
   push:
-    branches: [ "dev", "master" ]  # 对 dev 和 master 分支进行监听
+    branches: [ "dev", "master" ]
   pull_request:
-    branches: [ "dev", "master" ]  # 对 dev 和 master 分支进行监听
+    branches: [ "dev", "master" ]
 
 jobs:
-  build-linux:
-    if: github.ref == 'refs/heads/dev'  # 仅在 dev 分支上执行
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 8.0.x
-    - name: Setup Workload
-      run: dotnet workload restore
-    - name: Restore dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
-    - name: Publish CDLL for Linux
-      run: |
-        dotnet publish -c Release -r linux-x64 InfrastSimExports
-        cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.so InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSim.so
-    - name: Upload CLib for Linux
-      uses: actions/upload-artifact@v3
-      with:
-        name: CLib-Linux
-        path: InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSim.so
-
-  build-windows-and-linux:
-    if: github.ref == 'refs/heads/master'  # 仅在 master 分支上执行
+  build:
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
         include:
-          - os: ubuntu-latest
-            runtime: linux-x64
-          - os: windows-latest
-            runtime: win-x64
+          - branch: dev
+            os: ubuntu-latest
+            platform: "linux-x64"
+          - branch: master
+            os: windows-latest
+            platform: "win-x64"
+          - branch: master
+            os: ubuntu-latest
+            platform: "linux-x64"
+
     runs-on: ${{ matrix.os }}
 
+    # 只有当当前分支与 matrix 中的 branch 匹配时才运行 job
+    if: contains(matrix.branch, github.ref_name)
+
     steps:
     - uses: actions/checkout@v3
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
-    - name: Setup Workload
-      run: dotnet workload restore
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
       run: dotnet build --no-restore
+
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish CDLL for ${{ matrix.runtime }}
+
+    - name: Publish for ${{ matrix.platform }}
       run: |
-        dotnet publish -c Release -r ${{ matrix.runtime }} InfrastSimExports
-        cp InfrastSimExports/bin/Release/net8.0/${{ matrix.runtime }}/publish/InfrastSimExports.so InfrastSimExports/bin/Release/net8.0/${{ matrix.runtime }}/publish/InfrastSim.so
-    - name: Upload CLib for ${{ matrix.runtime }}
-      uses: actions/upload-artifact@v3
+        mkdir pub
+        dotnet publish -c Release -r ${{ matrix.platform }} InfrastSimExports
+        cp InfrastSimExports/bin/Release/net8.0/${{ matrix.platform }}/publish/InfrastSimExports.* pub/
+
+    - uses: actions/upload-artifact@v3
       with:
-        name: CLib-${{ matrix.runtime }}
-        path: InfrastSimExports/bin/Release/net8.0/${{ matrix.runtime }}/publish/InfrastSim.so
+        name: ${{ matrix.platform }}
+        path: pub/*
