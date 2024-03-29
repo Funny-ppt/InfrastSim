@@ -438,14 +438,4 @@ public class Simulator : ISimulator, IJsonSerializable {
         using var doc = JsonDocument.Parse(ms);
         return new Simulator(doc.RootElement);
     }
-
-    /// <summary>
-    /// 该方法仅供测试使用：
-    /// 如果没有干员访问这两个属性，在Resolve中就不会产生，但Update中制造站和贸易站始终会访问这两个值，
-    /// 进而导致出现默认的值，使得序列化、反序列化结果不一致（尽管没有任何影响）
-    /// </summary>
-    public void EnsurePropExists() {
-        var p1 = GlobalManufacturingEfficiency;
-        var p2 = GlobalTradingEfficiency;
-    }
 }

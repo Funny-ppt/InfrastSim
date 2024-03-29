@@ -14,11 +14,11 @@ public class MowerHelper {
         }
         node["global_properties"] = globalProperties;
         var facilities = new JsonObject {
-            ["controlCenter"] = RewriteFacility(node["control-center"]!),
-            ["office"] = RewriteFacility(node["office"]!),
-            ["recpetionRoom"] = RewriteFacility(node["reception"]!),
-            ["training"] = RewriteFacility(node["training"]!),
-            ["crafting"] = RewriteFacility(node["crafting"]!)
+            ["controlCenter"] = RewriteFacility(node["control-center"]!, simu),
+            ["office"] = RewriteFacility(node["office"]!, simu),
+            ["recpetionRoom"] = RewriteFacility(node["reception"]!, simu),
+            ["training"] = RewriteFacility(node["training"]!, simu),
+            ["crafting"] = RewriteFacility(node["crafting"]!, simu)
         };
         for (int i = 0; i < 4; i++) {
             var fac = node["dormitories"]![i];
@@ -40,7 +40,7 @@ public class MowerHelper {
                         newfac = RewriteManufacturing(fac, simu);
                         break;
                     case "Power":
-                        newfac = RewritePower(fac);
+                        newfac = RewritePower(fac, simu);
                         break;
                     default:
                         break;
@@ -51,7 +51,7 @@ public class MowerHelper {
         node["facilities"] = facilities;
         var operators = new JsonArray();
         foreach (var op in node["operators"]!.AsArray()) {
-            operators.Add(RewriteOperator(op));
+            operators.Add(RewriteOperator(op, simu));
         }
         node["operators-mower"] = operators;
         return node;
@@ -74,15 +74,22 @@ public class MowerHelper {
         newOrder["time_remain"] = (long)timeRemain;
         return newOrder;
     }
-    public static JsonObject? RewriteOperator(JsonNode? op) {
+    public static JsonObject? RewriteOperator(JsonNode? op, Simulator simu) {
         if (op == null) return null;
+
+        var name = op["name"]!.ToString();
+        var simuOp = simu.GetOperator(name);
 
         var newop = new JsonObject {
             ["name"] = op["name"]!.DeepClone(),
             ["morale"] = op["mood"]!.DeepClone(),
             ["efficiency"] = op["efficiency"]!.DeepClone()
+            ["is_working"] = simuOp.Facility != null && simuOp.Facility is not Dormitory
         };
 
+        if (simuOp.Facility != null) {
+            newop["facility-index"] = Array.IndexOf(simu.Facilities, simuOp.Facility);
+        }
         if (op["mood"]!.GetValue<double>() > 1e-9) {
             newop["time"] = op["working-time-seconds"]!.DeepClone();
         } else {
@@ -99,10 +106,10 @@ public class MowerHelper {
 
         return newop;
     }
-    public static JsonObject RewriteFacility(JsonNode fac) {
+    public static JsonObject RewriteFacility(JsonNode fac, Simulator simu) {
         var ops = new JsonArray();
         foreach (var op in fac["operators"]!.AsArray()) {
-            ops.Add(RewriteOperator(op!));
+            ops.Add(RewriteOperator(op!, simu));
         }
 
         var newfac = new JsonObject {
@@ -115,13 +122,13 @@ public class MowerHelper {
         return newfac;
     }
     public static JsonObject RewriteDormitory(JsonNode fac, Simulator simu, int id) {
-        var newfac = RewriteFacility(fac);
+        var newfac = RewriteFacility(fac, simu);
         newfac["name"] = $"宿舍{id + 1}";
         newfac["vip"] = simu.GetVipName(id);
         return newfac;
     }
     public static JsonObject RewriteManufacturing(JsonNode fac, Simulator simu) {
-        var newfac = RewriteFacility(fac);
+        var newfac = RewriteFacility(fac, simu);
 
         newfac["name"] = "制造站";
         newfac["base_capacity"] = fac["base-capacity"]!.DeepClone();
@@ -144,7 +151,7 @@ public class MowerHelper {
         var cur_order = fac["current-order"];
         if (cur_order != null) orders.Add(RewriteOrder(cur_order, fac["remains"]!.GetValue<double>()));
 
-        var newfac = RewriteFacility(fac);
+        var newfac = RewriteFacility(fac, simu);
         newfac["name"] = "贸易站";
         newfac["base_order_limit"] = fac["base-capacity"]!.DeepClone();
         newfac["order_limit"] = fac["capacity"]!.DeepClone();
@@ -159,10 +166,10 @@ public class MowerHelper {
 
         return newfac;
     }
-    public static JsonObject RewritePower(JsonNode fac) {
+    public static JsonObject RewritePower(JsonNode fac, Simulator simu) {
         var ops = new JsonArray();
         foreach (var op in fac["operators"]!.AsArray()) {
-            ops.Add(RewriteOperator(op!));
+            ops.Add(RewriteOperator(op!, simu));
         }
         var base_eff = fac["base-efficiency"]!.GetValue<double>() - 1;
         var newfac = new JsonObject {

@@ -11,6 +11,13 @@ public static class SimulatorService {
     private static int SimuId = 0;
     private static ConcurrentDictionary<int, Simulator> Simus = new();
 
+    static void EnsurePropExists(Simulator simu) {
+        /// 如果没有干员访问这两个属性，在Resolve中就不会产生，但Update中制造站和贸易站始终会访问这两个值，
+        /// 进而导致出现默认的值，使得序列化、反序列化结果不一致（尽管没有任何影响）
+        var p1 = simu.GlobalManufacturingEfficiency;
+        var p2 = simu.GlobalTradingEfficiency;
+    }
+
     static Simulator GetSimulator(int id) {
         if (!Simus.TryGetValue(id, out var simulator)) {
             throw new KeyNotFoundException();
@@ -45,7 +52,7 @@ public static class SimulatorService {
     public static string GetData(int id, bool detailed = true) {
         var simu = GetSimulator(id);
 
-        simu.EnsurePropExists();
+        EnsurePropExists(simu);
         simu.Resolve();
         using var ms = new MemoryStream();
         using var writer = new Utf8JsonWriter(ms);
