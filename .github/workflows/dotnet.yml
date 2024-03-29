@@ -5,27 +5,21 @@ on:
     branches: [ "dev", "master" ]
   pull_request:
     branches: [ "dev", "master" ]
+  workflow_dispatch:
+    inputs:
+      include_windows:
+        description: 'Include windows'
+        default: true
+        type: boolean
 
 jobs:
-  build:
+  build-linux:
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - branch: dev
-            os: ubuntu-latest
-            platform: "linux-x64"
-          - branch: master
-            os: windows-latest
-            platform: "win-x64"
-          - branch: master
-            os: ubuntu-latest
-            platform: "linux-x64"
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
-    # 只有当当前分支与 matrix 中的 branch 匹配时才运行 job
-    if: contains(matrix.branch, github.ref_name)
+    if: ${{ always() }}
 
     steps:
     - uses: actions/checkout@v3
@@ -44,13 +38,51 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
 
-    - name: Publish for ${{ matrix.platform }}
+    - name: Publish for Linux
       run: |
         mkdir pub
-        dotnet publish -c Release -r ${{ matrix.platform }} InfrastSimExports
-        cp InfrastSimExports/bin/Release/net8.0/${{ matrix.platform }}/publish/InfrastSimExports.* pub/
+        dotnet publish -c Release -r linux-x64 InfrastSimExports
+        cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.* pub/
 
     - uses: actions/upload-artifact@v3
       with:
-        name: ${{ matrix.platform }}
+        name: InfrastSim-clib-linux
+        path: pub/*
+
+        
+  build-windows:
+    strategy:
+      fail-fast: false
+
+    runs-on: windows-latest
+
+    # 只有当当前分支与 matrix 中的 branch 匹配时才运行 job
+    if: contains(master, github.ref_name) || inputs.include_windows
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Publish for Windows
+      run: |
+        mkdir pub
+        dotnet publish -c Release -r win-x64 InfrastSimExports
+        cp InfrastSimExports/bin/Release/net8.0/win-x64/publish/InfrastSimExports.* pub/
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: InfrastSim-clib-win
         path: pub/*
