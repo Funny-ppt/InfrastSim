@@ -1,6 +1,5 @@
 namespace InfrastSim;
 
-public interface ISimulator
-{
+public interface ISimulator {
     DateTime Now { get; }
 }

@@ -7,13 +7,13 @@ internal class Viviana : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ControlCenter control && !IsTired) {
-            control.ExtraMoodModifier.SetValue(Name, 0.05);
+            control.ExtraMoodModifier.SetValue(Name, -5);
 
             if (Upgraded >= 2) {
                 var ops = simu.ManufacturingStations.SelectMany(fac => fac.WorkingOperators);
                 foreach (var op in ops) {
                     if (op.HasGroup("骑士")) {
-                        op.EfficiencyModifier.AddValue(Name, 0.07);
+                        op.EfficiencyModifier.AddValue(Name, 7);
                     }
                 }
             }

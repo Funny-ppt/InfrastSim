@@ -1,6 +1,5 @@
 using RandomEx;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
@@ -13,7 +12,6 @@ public class TradingStation : FacilityBase, IApplyDrones {
         _ => 0,
     };
     public AggregateValue Capacity { get; private set; } = new AggregateValue(0, 1, 64);
-    public int CapacityN => (int)Capacity;
 
     Order?[] _orders = new Order[64];
     public IEnumerable<Order> Orders => _orders.Where(o => o != null);
@@ -24,19 +22,19 @@ public class TradingStation : FacilityBase, IApplyDrones {
     }
     public OrderStrategy Strategy { get; set; } = OrderStrategy.Gold;
     public Order? CurrentOrder { get; set; }
-    public double Progress { get; private set; }
-    public TimeSpan RemainsTime => (CurrentOrder?.ProduceTime ?? TimeSpan.MaxValue) * (1 - Progress);
+    public int Progress { get; private set; }
+    public int RemainTicks => (CurrentOrder?.ProduceTicks ?? TicksHelper.UnreachableTicks) - Progress;
     public event Action<GoldOrderPendingArgs>? PreGoldOrderPending;
     public event Action<OrderPendingArgs>? OnPending;
     public bool PendingNewOrder(XoshiroRandom random) {
-        if (CapacityN == OrderCount) return false;
+        if (Capacity == OrderCount) return false;
 
         Order order;
         if (Strategy == OrderStrategy.Gold) {
             var args = Level switch {
-                1 => new GoldOrderPendingArgs(new(1), new(max: 0), new(max: 0)),
-                2 => new GoldOrderPendingArgs(new(0.6), new(0.4), new(max: 0)),
-                3 => new GoldOrderPendingArgs(new(0.3), new(0.5), new(0.2)),
+                1 => new GoldOrderPendingArgs(new(100), new(max: 0), new(max: 0)),
+                2 => new GoldOrderPendingArgs(new(60), new(40), new(max: 0)),
+                3 => new GoldOrderPendingArgs(new(30), new(50), new(20)),
                 _ => throw new NotImplementedException()
             };
             PreGoldOrderPending?.Invoke(args);
@@ -76,19 +74,10 @@ public class TradingStation : FacilityBase, IApplyDrones {
     }
 
 
-    public override double MoodConsumeModifier {
-        get {
-            return Math.Min(0.0, -0.05 * (WorkingOperatorsCount - 1));
-        }
-    }
-    public override double EffiencyModifier {
-        get {
-            return 0.01 * WorkingOperatorsCount;
-        }
-    }
-
+    public override int MoodConsumeModifier => Math.Min(0, -5 * (WorkingOperatorsCount - 1));
+    public override int EffiencyModifier => WorkingOperatorsCount;
     public override int AcceptOperatorNums => Level;
-    public override bool IsWorking => CapacityN > OrderCount && Operators.Any();
+    public override bool IsWorking => Capacity > OrderCount && Operators.Any();
 
     public override void Reset() {
         base.Reset();
@@ -103,9 +92,9 @@ public class TradingStation : FacilityBase, IApplyDrones {
         base.Resolve(simu);
     }
     public override void QueryInterest(Simulator simu) {
-        var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
-        var remains = RemainsTime / effiency;
-        simu.SetInterest(this, remains);
+        var efficiency = 100 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
+        var remainSeconds = (RemainTicks + efficiency - 1) / efficiency;
+        simu.SetInterest(this, remainSeconds);
 
         base.QueryInterest(simu);
     }
@@ -117,18 +106,16 @@ public class TradingStation : FacilityBase, IApplyDrones {
                 }
             }
             Debug.Assert(CurrentOrder != null);
-            var effiency = 1 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
-            var equivTime = info.TimeElapsed * effiency;
-            if (equivTime >= RemainsTime) {
-                var remains = equivTime - RemainsTime;
+            var efficiency = 100 + TotalEffiencyModifier + simu.GlobalTradingEfficiency;
+            var pendingProgress = info.TimeElapsed.TotalSeconds() * efficiency;
+            simu.AddTradProgress(pendingProgress);
+            if (pendingProgress >= RemainTicks) {
+                pendingProgress -= RemainTicks;
 
                 InsertCurrentOrder();
-                if (PendingNewOrder(simu.Random)) {
-                    Progress += remains / CurrentOrder.ProduceTime;
-                }
-            } else {
-                Progress += equivTime / CurrentOrder.ProduceTime;
+                PendingNewOrder(simu.Random);
             }
+            Progress += pendingProgress;
         }
 
         base.Update(simu, info);
@@ -137,15 +124,15 @@ public class TradingStation : FacilityBase, IApplyDrones {
     public int ApplyDrones(Simulator simu, int amount) {
         if (CurrentOrder == null) return 0;
 
-        int max = (int)Math.Ceiling(RemainsTime / TimeSpan.FromMinutes(3));
-        amount = ((int[]) [amount, simu.Drones, max]).Min();
-        var time = TimeSpan.FromMinutes(3 * amount);
+        var max = (RemainTicks + TicksHelper.TicksPerDrone - 1) / TicksHelper.TicksPerDrone;
+        amount = Math.Min(Math.Min(amount, simu.Drones), max);
+        var pendingProgress = amount * TicksHelper.TicksPerDrone;
 
-        if (time >= RemainsTime) {
+        if (pendingProgress >= RemainTicks) {
             InsertCurrentOrder();
             PendingNewOrder(simu.Random);
         } else {
-            Progress += time / CurrentOrder.ProduceTime;
+            Progress += amount * TicksHelper.TicksPerDrone;
         }
         simu.RemoveDrones(amount);
         return amount;
@@ -153,9 +140,9 @@ public class TradingStation : FacilityBase, IApplyDrones {
 
 
     protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
+        writer.WriteString("strategy", Strategy.ToString());
         writer.WriteItem("current-order", CurrentOrder, detailed);
         writer.WriteNumber("progress", Progress); ;
-        writer.WriteString("strategy", Strategy.ToString());
         writer.WritePropertyName("orders");
         writer.WriteStartArray();
         foreach (var order in Orders) {
@@ -164,14 +151,14 @@ public class TradingStation : FacilityBase, IApplyDrones {
         writer.WriteEndArray();
 
         if (detailed) {
-            writer.WriteNumber("remains", RemainsTime.TotalSeconds);
+            writer.WriteNumber("remains", (RemainTicks + TicksHelper.TicksPerSecond - 1) / TicksHelper.TicksPerSecond);
             writer.WriteNumber("base-capacity", BaseCapacity);
-            writer.WriteNumber("capacity", CapacityN);
+            writer.WriteNumber("capacity", Capacity);
             writer.WriteItem("capacity-details", Capacity);
             var args = Level switch {
-                1 => new GoldOrderPendingArgs(new(1), new(max: 0), new(max: 0)),
-                2 => new GoldOrderPendingArgs(new(0.6), new(0.4), new(max: 0)),
-                3 => new GoldOrderPendingArgs(new(0.3), new(0.5), new(0.2)),
+                1 => new GoldOrderPendingArgs(new(100), new(max: 0), new(max: 0)),
+                2 => new GoldOrderPendingArgs(new(60), new(40), new(max: 0)),
+                3 => new GoldOrderPendingArgs(new(30), new(50), new(20)),
                 _ => throw new NotImplementedException()
             };
             PreGoldOrderPending?.Invoke(args);
@@ -184,9 +171,6 @@ public class TradingStation : FacilityBase, IApplyDrones {
         }
     }
     protected override void ReadDerivedContent(JsonElement elem) {
-        if (elem.TryGetProperty("progress", out var progress)) {
-            Progress = progress.GetDouble();
-        }
         if (elem.TryGetProperty("strategy", out var strategy)) {
             Strategy = strategy.GetString() switch {
                 "Gold" => OrderStrategy.Gold,
@@ -197,12 +181,18 @@ public class TradingStation : FacilityBase, IApplyDrones {
         if (elem.TryGetProperty("current-order", out var currentOrder)) {
             CurrentOrder = Order.FromJson(currentOrder);
         }
-
         if (elem.TryGetProperty("orders", out var orders)) {
             foreach (var orderElem in orders.EnumerateArray()) {
                 var order = Order.FromJson(orderElem);
                 var index = Array.IndexOf(_orders, null);
                 _orders[index] = order;
+            }
+        }
+        if (elem.TryGetProperty("progress", out var progress)) {
+            if (progress.TryGetDouble(out var value)) {
+                if (CurrentOrder != null) Progress = (int)(CurrentOrder.ProduceTicks * value);
+            } else {
+                Progress = progress.GetInt32();
             }
         }
     }

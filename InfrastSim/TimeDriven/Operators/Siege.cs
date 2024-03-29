@@ -8,7 +8,7 @@ internal class Siege : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetDormMoodModifier(Upgraded >= 2 ? -0.2 : -0.15);
+            dorm.SetDormMoodModifier(Upgraded >= 2 ? -20 : -15);
         }
     }
 }

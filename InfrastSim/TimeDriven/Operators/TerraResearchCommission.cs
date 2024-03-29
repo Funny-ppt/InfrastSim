@@ -9,11 +9,11 @@ internal class TerraResearchCommission : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             manufacturing.Capacity.SetValue(Name, 8);
-            EfficiencyModifier.SetValue(Name, 0.05 + simu.SilverVine * 0.01);
+            EfficiencyModifier.SetValue(Name, 5 + simu.SilverVine);
         }
         if (Facility is TradingStation trading && !IsTired) {
             trading.Capacity.SetValue(Name, 2);
-            EfficiencyModifier.SetValue(Name, 0.05 + simu.SilverVine * 0.03);
+            EfficiencyModifier.SetValue(Name, 5 + simu.SilverVine * 3);
         }
     }
 }

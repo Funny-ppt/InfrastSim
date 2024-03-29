@@ -9,7 +9,7 @@ internal class Passenger : OperatorBase {
 
 
         if (Facility is PowerStation && !IsTired) {
-            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.15 : 0.1);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 15 : 10);
         }
 
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 2) {
@@ -19,7 +19,7 @@ internal class Passenger : OperatorBase {
                         op.EfficiencyModifier.MaxValue = 0;
                     }
                 }
-                EfficiencyModifier.SetValue(Name, 0.05 * simu.PowerStationsCount());
+                EfficiencyModifier.SetValue(Name, 5 * simu.PowerStationsCount());
             }, Priority.AccordingToFacilityAmount);
         }
     }

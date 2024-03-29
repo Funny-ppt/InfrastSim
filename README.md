@@ -1,9 +1,18 @@
 ## InfrastSim
 
-一个简单的明日方舟基建模拟库，完全重新实现且支持跨平台，支持C,C#,Javascript直接访问，包含一个简易的web服务器实现，任何可以调用CLib或访问http服务器的语言都可以使用该库的接口。
+一个简单的明日方舟基建模拟库和服务器实现
+支持跨语言调用: C DLL, HTTP(S) 服务器, wasm
 
 [模拟器在线体验地址](https://infrastsim.zhaozuohong.vip/)
-
 [模拟器UI仓库](https://github.com/Funny-ppt/InfrastSimUI)
 
-DataModels目录下有较为详细的输入输出格式说明。
+
+### TODO list
+
+ - [ ] 重构SourceGenerator对于干员的部分，使得干员可以使用属性声明甚至实现简单干员完全自动生成
+ - [ ] 优化执行流程，实现'编译模式'，该模式生成的代码可以通过编译器优化最大限度移除对字符串字面量的依赖
+   - [ ] 更进一步，移除AggerateValue中对于字典的依赖
+
+
+### Contributor Guide
+*WIP*

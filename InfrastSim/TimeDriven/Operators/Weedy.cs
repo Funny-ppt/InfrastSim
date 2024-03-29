@@ -14,7 +14,7 @@ internal class Weedy : OperatorBase {
                         op.EfficiencyModifier.MaxValue = 0;
                     }
                 }
-                EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 0.15 : 0.1) * simu.PowerStationsCount());
+                EfficiencyModifier.SetValue(Name, (Upgraded >= 2 ? 15 : 10) * simu.PowerStationsCount());
             }, Priority.AccordingToFacilityAmount);
         }
     }

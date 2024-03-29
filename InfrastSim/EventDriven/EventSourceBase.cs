@@ -14,6 +14,6 @@ internal class EventSourceBase : IEventSource {
     }
 
     public void AddTrigger(EventTrigger trigger) {
-        
+
     }
 }

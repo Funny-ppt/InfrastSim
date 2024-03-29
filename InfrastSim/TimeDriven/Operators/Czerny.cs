@@ -6,7 +6,7 @@ internal class Czerny : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(-0.65);
+            dorm.SetVipMoodModifier(-65);
             simu.Xiaojie.AddValue(Name, dorm.Level);
             if (Upgraded >= 2) {
                 simu.Ganzhixinxi.AddValue(Name, simu.Xiaojie);

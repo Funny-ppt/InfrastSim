@@ -14,7 +14,7 @@ internal class Ebenholz : OperatorBase {
             }, Priority.PropConversion);
 
             simu.Delay(simu => {
-                EfficiencyModifier.SetValue(Name, (int)simu.Wushenggongming / (Upgraded >= 2 ? 2 : 4) * 0.01);
+                EfficiencyModifier.SetValue(Name, simu.Wushenggongming / (Upgraded >= 2 ? 2 : 4));
             });
         }
     }

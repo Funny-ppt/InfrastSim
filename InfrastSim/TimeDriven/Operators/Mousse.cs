@@ -6,11 +6,11 @@ internal class Mousse : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.3);
+            EfficiencyModifier.SetValue(Name, 30);
         }
         if (Facility is Dormitory dorm && Upgraded >= 1) {
-            dorm.SetVipMoodModifier(-0.3);
-            MoodConsumeRate.SetValue(Name, -0.3);
+            dorm.SetVipMoodModifier(-30);
+            MoodConsumeRate.SetValue(Name, -30);
         }
     }
 }

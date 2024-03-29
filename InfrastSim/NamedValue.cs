@@ -1,17 +1,12 @@
 namespace InfrastSim;
-public struct NamedValue {
-    public string Name;
-    public double Value;
+public struct NamedValue(string name, int value) {
+    public string Name = name ?? throw new ArgumentNullException(nameof(name));
+    public int Value = value;
 
-    public NamedValue(string name, double value) {
-        Name = name ?? throw new ArgumentNullException(nameof(name));
-        Value = value;
-    }
-
-    public static implicit operator NamedValue(double value) {
+    public static implicit operator NamedValue(int value) {
         return new("common", value);
     }
-    public static implicit operator double(NamedValue value) {
+    public static implicit operator int(NamedValue value) {
         return value.Value;
     }
 }

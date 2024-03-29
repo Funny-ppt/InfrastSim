@@ -8,7 +8,7 @@ internal class Chongyue : OperatorBase {
         base.Resolve(simu);
 
         if (Facility?.Type == FacilityType.ControlCenter && !IsTired) {
-            MoodConsumeRate.SetValue(Name, 0.5);
+            MoodConsumeRate.SetValue(Name, 50);
             var count = simu.GroupMemberCount("岁");
             simu.Renjianyanhuo.SetValue(Name, Math.Min(count, 5) * 5);
 
@@ -17,7 +17,7 @@ internal class Chongyue : OperatorBase {
                     var ops = simu.OperatorsInFacility.Where(op =>
                         op.Facility is not Dormitory
                      && op.Facility is not ControlCenter);
-                    var amount = Math.Floor(simu.Renjianyanhuo / 20) * 0.05 + 0.05;
+                    var amount = simu.Renjianyanhuo / 20 * 5 + 5;
 
                     foreach (var op in ops) {
                         op.MoodConsumeRate.SetIfLesser("control-center-extra", amount);

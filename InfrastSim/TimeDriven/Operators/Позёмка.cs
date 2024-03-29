@@ -16,7 +16,7 @@ internal class Позёмка : OperatorBase {
                     productLines -= simu.GetRealGoldProductionLine() / (kirara.Upgraded >= 2 ? 2 : 4) * 2;
                 }
 
-                EfficiencyModifier.SetValue(Name, productLines * 0.05);
+                EfficiencyModifier.SetValue(Name, productLines * 5);
             });
 
             if (Upgraded >= 2) {

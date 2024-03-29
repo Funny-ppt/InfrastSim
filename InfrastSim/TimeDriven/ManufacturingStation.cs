@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text.Json;
 
 namespace InfrastSim.TimeDriven;
@@ -12,13 +11,12 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
         _ => 0,
     };
     public AggregateValue Capacity { get; private set; } = new AggregateValue(0, 1, 1000);
-    public int CapacityN => (int)Capacity;
     public int CapacityOccupied => Product == null ? 0 : ProductCount * Product.Volume;
     public int ProductCount { get; internal set; } = 0;
-    public bool CanStoreMore => Product != null && CapacityN - CapacityOccupied >= Product.Volume;
+    public bool CanStoreMore => Product != null && Capacity - CapacityOccupied >= Product.Volume;
     public Product? Product { get; private set; }
-    public double Progress { get; private set; }
-    public TimeSpan RemainsTime => Product == null ? TimeSpan.MaxValue : Product.ProduceTime * (1 - Progress);
+    public int Progress { get; private set; }
+    public int RemainTicks => (Product?.ProduceTicks ?? TicksHelper.UnreachableTicks) - Progress;
     public void ChangeProduct(Product newProduct) {
         if (newProduct != Product) {
             if (newProduct.RequiredLevel > Level) {
@@ -32,18 +30,8 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
         }
     }
 
-    public override double MoodConsumeModifier {
-        get {
-            return Math.Min(0.0, -0.05 * (WorkingOperatorsCount - 1));
-        }
-    }
-    public override double EffiencyModifier {
-        get {
-            return 0.01 * WorkingOperatorsCount;
-        }
-    }
-
-
+    public override int MoodConsumeModifier => Math.Min(0, -5 * (WorkingOperatorsCount - 1));
+    public override int EffiencyModifier => WorkingOperatorsCount;
     public override int AcceptOperatorNums => Level;
     public override bool IsWorking => CanStoreMore && Operators.Any();
 
@@ -58,49 +46,40 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
         base.Resolve(simu);
     }
     public override void QueryInterest(Simulator simu) {
-        var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEfficiency;
-        var remains = RemainsTime / effiency;
-        simu.SetInterest(this, remains);
+        var efficiency = 100 + TotalEffiencyModifier + simu.GlobalManufacturingEfficiency;
+        var remainSeconds = (RemainTicks + efficiency - 1) / efficiency;
+        simu.SetInterest(this, remainSeconds);
 
         base.QueryInterest(simu);
     }
     public override void Update(Simulator simu, TimeElapsedInfo info) {
         if (IsWorking) {
-            var effiency = 1 + TotalEffiencyModifier + simu.GlobalManufacturingEfficiency;
-            var equivTime = info.TimeElapsed * effiency;
-            if (equivTime >= RemainsTime) {
-                var remains = equivTime - RemainsTime;
-
-                ProductCount += 1;
-                if (CanStoreMore) {
-                    Debug.Assert(Product != null);
-                    Progress = remains / Product.ProduceTime;
-                }
-            } else {
-                Progress += equivTime / Product!.ProduceTime;
-            }
+            var efficiency = 100 + TotalEffiencyModifier + simu.GlobalManufacturingEfficiency;
+            var pendingProgress = info.TimeElapsed.TotalSeconds() * efficiency;
+            Progress += pendingProgress;
+            simu.AddManuProgress(pendingProgress);
+            ProductCount = Math.Min(Capacity, ProductCount + Progress / Product!.ProduceTicks); // IsWorking == true  =>  product is not null
+            if (CanStoreMore)
+                Progress %= Product.ProduceTicks;
+            else
+                Progress = 0;
         }
         base.Update(simu, info);
     }
-
     public int ApplyDrones(Simulator simu, int amount) {
         if (Product == null) return 0;
 
-        amount = Math.Min(amount, simu.Drones);
-        var time = TimeSpan.FromMinutes(3 * amount);
+        // 计算过程可能超出int上限，将第一个参数提升到long
+        var max = ((long)Product.ProduceTicks * (Capacity / Product.Volume - ProductCount) - Progress + TicksHelper.TicksPerDrone - 1) / TicksHelper.TicksPerDrone;
+        amount = Math.Min(amount, Math.Min((int)max, simu.Drones));
 
-        while (CanStoreMore && time >= RemainsTime) {
-            time -= RemainsTime;
+        Progress += amount * TicksHelper.TicksPerDrone;
+        ProductCount += Progress / Product.ProduceTicks;
+        if (CanStoreMore)
+            Progress %= Product.ProduceTicks;
+        else
             Progress = 0;
-            ProductCount += 1;
-        }
 
-        if (CanStoreMore) {
-            Progress += time / Product.ProduceTime;
-        } else {
-            var remains = (int)Math.Floor(time / TimeSpan.FromMinutes(3));
-            amount -= remains;
-        }
         simu.RemoveDrones(amount);
         return amount;
     }
@@ -108,22 +87,19 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
 
     protected override void WriteDerivedContent(Utf8JsonWriter writer, bool detailed = false) {
         writer.WriteNumber("product-index", Array.IndexOf(Product.AllProducts, Product));
-        writer.WriteNumber("progress", Progress);
         writer.WriteNumber("product-count", ProductCount);
+        writer.WriteNumber("progress", Progress);
 
         if (detailed) {
             if (Product != null) writer.WriteString("product", Product.Name);
             else writer.WriteNull("product");
-            writer.WriteNumber("remains", RemainsTime.TotalSeconds);
+            writer.WriteNumber("remains", (RemainTicks + TicksHelper.TicksPerSecond - 1) / TicksHelper.TicksPerSecond);
             writer.WriteNumber("base-capacity", BaseCapacity);
-            writer.WriteNumber("capacity", CapacityN);
+            writer.WriteNumber("capacity", Capacity);
             writer.WriteItem("capacity-details", Capacity);
         }
     }
     protected override void ReadDerivedContent(JsonElement elem) {
-        if (elem.TryGetProperty("progress", out var progress)) {
-            Progress = progress.GetDouble();
-        }
         if (elem.TryGetProperty("product-index", out var productIndex)) {
             var index = productIndex.GetInt32();
             if (index >= 0 && index < Product.AllProducts.Length) {
@@ -132,6 +108,13 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
         }
         if (elem.TryGetProperty("product-count", out var productCount)) {
             ProductCount = productCount.GetInt32();
+        }
+        if (elem.TryGetProperty("progress", out var progress)) {
+            if (progress.TryGetDouble(out var value)) {
+                if (Product != null) Progress = (int)(Product.ProduceTicks * value);
+            } else {
+                Progress = progress.GetInt32();
+            }
         }
     }
 }

@@ -9,7 +9,7 @@ internal class SilverAsh : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.2 : 0.15);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 20 : 15);
             trading.Capacity.SetValue(Name, Upgraded >= 2 ? 4 : 2);
         }
     }

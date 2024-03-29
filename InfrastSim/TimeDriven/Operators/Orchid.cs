@@ -6,10 +6,10 @@ internal class Orchid : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Office office && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.4);
+            EfficiencyModifier.SetValue(Name, 40);
         }
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 1) {
-            EfficiencyModifier.SetValue(Name, 0.25);
+            EfficiencyModifier.SetValue(Name, 25);
             trading.Capacity.SetValue(Name, 1);
         }
     }

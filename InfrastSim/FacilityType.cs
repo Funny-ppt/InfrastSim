@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace InfrastSim; 
+namespace InfrastSim;
 public enum FacilityType {
     ControlCenter, // 控制中枢
     Manufacturing, // 制造站

@@ -7,7 +7,7 @@ internal class ExecutorTheExFoedere : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             if (manufacturing.IsProduceCombatRecord()) {
-                EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.3 : 0.2);
+                EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 30 : 20);
                 if (Upgraded >= 2) {
                     manufacturing.Capacity.SetValue(Name, 4);
                 }

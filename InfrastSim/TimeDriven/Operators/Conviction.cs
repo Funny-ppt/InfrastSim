@@ -7,11 +7,11 @@ internal class Conviction : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(-0.7);
+            dorm.SetVipMoodModifier(-70);
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceCombatRecord()) {
-                EfficiencyModifier.SetValue(Name, 0.35);
+                EfficiencyModifier.SetValue(Name, 35);
             }
         }
     }

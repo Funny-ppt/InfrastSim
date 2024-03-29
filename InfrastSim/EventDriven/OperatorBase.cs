@@ -1,9 +1,8 @@
 namespace InfrastSim.EventDriven;
 
-internal abstract class OperatorBase : IEventSource
-{
+internal abstract class OperatorBase : IEventSource {
     public double Mood { get; private set; }
-    public AggregateValue MoodConsumeRate { get; private set; } = new(1.0);
+    public AggregateValue MoodConsumeRate { get; private set; } = new(100);
 
     public DateTime TriggerTime => throw new NotImplementedException();
 
@@ -13,8 +12,7 @@ internal abstract class OperatorBase : IEventSource
         throw new NotImplementedException();
     }
 
-    public void NotifyUpdate()
-    {
+    public void NotifyUpdate() {
         throw new NotImplementedException();
     }
 }

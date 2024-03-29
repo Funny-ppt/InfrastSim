@@ -16,7 +16,7 @@ internal class Windflit : OperatorBase {
                         op.EfficiencyModifier.MaxValue = 0;
                     }
                 }
-                EfficiencyModifier.SetValue(Name, 0.05 * simu.PowerStationsCount());
+                EfficiencyModifier.SetValue(Name, 5 * simu.PowerStationsCount());
             }, Priority.AccordingToFacilityAmount);
         }
     }

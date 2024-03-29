@@ -18,8 +18,8 @@ internal class Combination<T> {
     T[] arr;
     int cur;
     int p;
-    public int N { get; }
-    public int M { get; }
+    public int N { get; } // 组合长度
+    public int M { get; } // 组合可选项数
 
     public IEnumerable<T>? Enumerate() {
         while (cur > 0 && M - p < N - cur) {
@@ -38,27 +38,23 @@ internal class Combination<T> {
         return arr;
     }
 
-    public IEnumerator<IEnumerable<T>> GetEnumerator() {
+    public IEnumerator<IEnumerable<T>?> GetEnumerator() {
         return new Enumerator(this);
     }
 
     public IEnumerable<IEnumerable<T>> ToEnumerable() {
-        IEnumerable<T>? cur = null;
+        IEnumerable<T>? cur;
         while ((cur = Enumerate()) != null) {
             yield return cur;
         }
     }
 
-    class Enumerator : IEnumerator<IEnumerable<T>> {
-        Combination<T> _combination;
+    class Enumerator(Combination<T> combination) : IEnumerator<IEnumerable<T>?> {
+        Combination<T> _combination = combination;
         IEnumerable<T>? _cur = null;
 
-        public Enumerator(Combination<T> combination) {
-            _combination = combination;
-        }
-
-        public IEnumerable<T> Current => _cur;
-        object IEnumerator.Current => _cur;
+        public IEnumerable<T>? Current => _cur;
+        object? IEnumerator.Current => _cur;
 
         public bool MoveNext() {
             _cur = _combination.Enumerate();

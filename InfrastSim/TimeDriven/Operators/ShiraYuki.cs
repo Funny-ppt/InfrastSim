@@ -6,11 +6,11 @@ internal class ShiraYuki : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Reception && !IsTired) {
-            EfficiencyModifier.SetValue(0.2);
+            EfficiencyModifier.SetValue(20);
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceCombatRecord()) {
-                EfficiencyModifier.SetValue(0.3);
+                EfficiencyModifier.SetValue(30);
             }
         }
     }

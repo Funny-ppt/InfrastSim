@@ -6,7 +6,7 @@ internal class Bubble : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
+            MoodConsumeRate.SetValue(Name, -25);
             manufacturing.Capacity.SetValue(Name, 10);
 
             if (Upgraded >= 1) {
@@ -15,8 +15,8 @@ internal class Bubble : OperatorBase {
                         var op = simu.GetOperatorNoThrow(kvp.Key);
                         if (op != null) {
                             var factor = kvp.Value switch {
-                                >= 17 => 0.03,
-                                > 0 => 0.01,
+                                >= 17 => 3,
+                                > 0 => 1,
                                 _ => 0
                             };
                             op.EfficiencyModifier.SetValue(Name, kvp.Value * factor);

@@ -1,12 +1,13 @@
 using InfrastSim;
+using InfrastSim.Script;
 using InfrastSim.TimeDriven;
 using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace InfrastSimServer; 
-public class SimulatorService : IDisposable {
+namespace InfrastSimServer;
+public sealed class SimulatorService : IDisposable {
     //public static readonly SimulatorService Instance = new(); 
 
     private Timer? _timer;
@@ -40,8 +41,8 @@ public class SimulatorService : IDisposable {
         writer.Flush();
     }
 
-    public void CreateWithData(HttpContext httpContext, bool newRandom = true) {
-        var doc = JsonDocument.Parse(httpContext.Request.Body);
+    public async Task CreateWithData(HttpContext httpContext, bool newRandom = true) {
+        var doc = await JsonDocument.ParseAsync(httpContext.Request.Body);
         var id = Interlocked.Increment(ref _simuId);
         var simu = _simus[id] = new Simulator(doc.RootElement);
         if (newRandom) simu.Random = new();
@@ -100,11 +101,6 @@ public class SimulatorService : IDisposable {
         }
     }
 
-    public void SelectOperators(HttpContext httpContext, int id, SelectOperatorsData data) {
-        var simu = GetSimulator(id);
-        simu.SelectOperators(data.Facility, data.Operators);
-    }
-
     public void RemoveOperator(HttpContext httpContext, int id, string facility, int idx) {
         var simu = GetSimulator(id);
         simu.RemoveOperator(facility, idx);
@@ -157,6 +153,17 @@ public class SimulatorService : IDisposable {
         using var respWriter = new Utf8JsonWriter(httpContext.Response.BodyWriter.AsStream());
         node.WriteTo(respWriter);
         writer.Flush();
+    }
+
+    public async Task ExecuteScript(HttpContext httpContext, int id) {
+        var simu = GetSimulator(id);
+        try {
+            using var reader = new StreamReader(httpContext.Request.Body);
+
+            simu.ExecuteScript(await reader.ReadToEndAsync() ?? "");
+        } catch (ScriptException ex) {
+            await httpContext.Response.WriteAsync(ex.ToString());
+        }
     }
 
     void Cleanup(object? state) {

@@ -9,17 +9,17 @@ internal class Flametail : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ControlCenter control && !IsTired) {
-            control.ExtraMoodModifier.SetValue(Name, 0.05);
+            control.ExtraMoodModifier.SetValue(Name, -5);
 
             if (Upgraded >= 2) {
                 foreach (var op in simu.ManufacturingStations.SelectMany(t => t.WorkingOperators)) {
                     if (op.HasGroup("红松骑士团")) {
                         var manufacturing = (ManufacturingStation)op.Facility!;
                         if (manufacturing.IsProduceCombatRecord()) {
-                            op.EfficiencyModifier.SetValue(Name, 0.1);
+                            op.EfficiencyModifier.SetValue(Name, 10);
                         }
                         if (manufacturing.IsProduceGold()) {
-                            op.EfficiencyModifier.SetValue(Name, -0.1);
+                            op.EfficiencyModifier.SetValue(Name, -10);
                         }
                     }
                 }

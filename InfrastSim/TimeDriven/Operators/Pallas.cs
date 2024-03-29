@@ -6,11 +6,11 @@ internal class Pallas : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
+            MoodConsumeRate.SetValue(Name, -25);
             manufacturing.Capacity.SetValue(Name, 8);
 
             if (Upgraded >= 2 && manufacturing.IsProduceCombatRecord()) {
-                EfficiencyModifier.SetValue(Name, 0.25);
+                EfficiencyModifier.SetValue(Name, 25);
             }
         }
     }

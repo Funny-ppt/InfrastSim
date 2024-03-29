@@ -7,7 +7,7 @@ internal class Whisperain : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Office office && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.2);
+            EfficiencyModifier.SetValue(Name, 20);
             simu.Jiyisuipian.SetValue(Name, 20); // FIXME: hardcoded
 
             if (Upgraded >= 2) {

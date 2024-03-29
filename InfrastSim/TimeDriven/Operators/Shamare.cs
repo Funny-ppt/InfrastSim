@@ -7,9 +7,9 @@ internal class Shamare : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
+            MoodConsumeRate.SetValue(Name, -25);
             trading.PreGoldOrderPending += args =>
-                args.Priority4Gold.SetIfGreater(0.67 * Math.Min(1, WorkingTime / TimeSpan.FromHours(3)));
+                args.Priority4Gold.SetIfGreater((int)(67 * Math.Min(1, WorkingTime.TotalHours / 3)));
 
             if (Upgraded >= 2) {
                 simu.Delay(simu => {
@@ -18,9 +18,9 @@ internal class Shamare : OperatorBase {
                             op.EfficiencyModifier.MinValue = 0;
                             op.EfficiencyModifier.MaxValue = 0;
                         }
-                        op.MoodConsumeRate.SetValue(Name, 0.25);
+                        op.MoodConsumeRate.AddValue(Name, 25);
                     }
-                    EfficiencyModifier.SetValue(Name, (trading.Operators.Count() - 1) * 0.45);
+                    EfficiencyModifier.SetValue(Name, (trading.Operators.Count() - 1) * 45);
                 }, Priority.Shamare);
             }
         }

@@ -6,7 +6,7 @@ internal class Shining : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetVipMoodModifier(Upgraded >= 2 ? -0.75 : -0.55);
+            dorm.SetVipMoodModifier(Upgraded >= 2 ? -75 : -55);
         }
     }
 }

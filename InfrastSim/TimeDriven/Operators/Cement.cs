@@ -9,10 +9,10 @@ internal class Cement : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.15);
+            EfficiencyModifier.SetValue(Name, 15);
 
             if (Upgraded >= 2) {
-                MoodConsumeRate.SetValue(Name, -0.25);
+                MoodConsumeRate.SetValue(Name, -25);
                 manufacturing.Capacity.SetValue(Name, 10);
             }
         }

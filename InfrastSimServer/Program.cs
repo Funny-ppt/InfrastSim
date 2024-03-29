@@ -28,10 +28,8 @@ namespace InfrastSimServer {
 
             app.UseAuthorization();
 
-            app.UseExceptionHandler(appError =>
-            {
-                appError.Run(async context =>
-                {
+            app.UseExceptionHandler(appError => {
+                appError.Run(async context => {
                     context.Response.StatusCode = 500;
                     var exception = context.Features.Get<IExceptionHandlerFeature>();
                     if (exception != null) {
@@ -105,14 +103,24 @@ namespace InfrastSimServer {
             .WithDescription("设定给出列表干员的精英化程度")
             .WithOpenApi();
 
+            app.MapPost("/simulator/{id}/script", simulatorService.ExecuteScript)
+            .WithName("ExecuteScript")
+            .WithDescription("执行脚本")
+            .WithOpenApi();
+
+            app.MapGet("/simulator/{id}/collectAll", simulatorService.CollectAll)
+            .WithName("CollectAll")
+            .WithDescription("收获全部产物并交付所有订单")
+            .WithOpenApi();
+
+            app.MapGet("/simulator/{id}/sanity", simulatorService.Sanity)
+            .WithName("Sanity")
+            .WithDescription("源石冲无人机 必填查询参数: amount")
+            .WithOpenApi();
+
             app.MapPost("/simulator/{id}/{facility}", simulatorService.SetFacilityState)
             .WithName("SetFacilityState")
             .WithDescription("接受JSON数据并快速设置设施状态（含降级、升级、创建设施、快速调整干员位置等） strategy表示切贸易站策略;product表示改变制造站产品;level代表升降级设施，但不会计算无人机消耗")
-            .WithOpenApi();
-
-            app.MapPost("/simulator/{id}/{facility}/operators", simulatorService.SelectOperators)
-            .WithName("SelectOperators")
-            .WithDescription("设定某设施的干员列表")
             .WithOpenApi();
 
             app.MapDelete("/simulator/{id}/{facility}/operators/{idx}", simulatorService.RemoveOperator)
@@ -128,16 +136,6 @@ namespace InfrastSimServer {
             app.MapGet("/simulator/{id}/{facility}/collect/{idx?}", simulatorService.Collect)
             .WithName("Collect")
             .WithDescription("收获贸易站的全部产物；交付贸易站全部订单或交付贸易站第idx个订单(从1开始计数) 可选查询参数: idx")
-            .WithOpenApi();
-
-            app.MapGet("/simulator/{id}/collectAll", simulatorService.CollectAll)
-            .WithName("CollectAll")
-            .WithDescription("收获全部产物并交付所有订单")
-            .WithOpenApi();
-
-            app.MapGet("/simulator/{id}/sanity", simulatorService.Sanity)
-            .WithName("Sanity")
-            .WithDescription("源石冲无人机 必填查询参数: amount")
             .WithOpenApi();
 
             app.MapGet("/simulator/{id}/{facility}/use_drones", simulatorService.UseDrones)

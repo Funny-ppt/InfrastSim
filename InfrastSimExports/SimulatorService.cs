@@ -1,9 +1,11 @@
 using InfrastSim.TimeDriven;
+using InfrastSim.TimeDriven.Enumerate;
 using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InfrastSim.CDLL;
 public static class SimulatorService {
@@ -217,5 +219,12 @@ public static class SimulatorService {
         var buffer = EnumerateSharedMS.GetBuffer();
         EnumerateSharedGCHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
         return EnumerateSharedGCHandle.AddrOfPinnedObject();
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "ExecuteScript")]
+    public static void ExecuteScript(int id, IntPtr pScript) {
+        var simu = GetSimulator(id);
+        var script = Marshal.PtrToStringUTF8(pScript) ?? string.Empty;
+        Helper.ExecuteScript(simu, script);
     }
 }

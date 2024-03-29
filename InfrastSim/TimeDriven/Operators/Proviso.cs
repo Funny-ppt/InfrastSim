@@ -1,4 +1,4 @@
-namespace InfrastSim.TimeDriven.Operators; 
+namespace InfrastSim.TimeDriven.Operators;
 internal class Proviso : OperatorBase {
     public override string Name => "但书";
 

@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Numerics;
-using System.Text.Json;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace RandomEx {
     /// <summary>

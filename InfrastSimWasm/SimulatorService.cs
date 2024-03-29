@@ -1,12 +1,13 @@
 using InfrastSim.TimeDriven;
+using InfrastSim.TimeDriven.Enumerate;
 using InfrastSim.TimeDriven.WebHelper;
 using System.Collections.Concurrent;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.JavaScript;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace InfrastSim.Wasm;
 
@@ -181,4 +182,24 @@ public static unsafe partial class SimulatorService {
         EnumerateHelper.Enumerate(doc, writer);
         return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
     }
+
+    [JSExport]
+    public static void ExecuteScript(int id, string script) {
+        var simu = GetSimulator(id);
+        Helper.ExecuteScript(simu, script);
+    }
+
+    [JsonSerializable(typeof(Dictionary<string, string>))]
+    [JsonSerializable(typeof(string))]
+    public partial class SerializeContext : JsonSerializerContext { }
+
+    //[JSExport]
+    //public static string GetScriptInfo() {
+    //    var commands = Helper.GetCommands();
+    //    var languages = Helper.GetLanguages();
+    //    var mappings = new Dictionary<string, Dictionary<string, string>>();
+    //    foreach (var language in languages) {
+    //        mappings[language] = Helper.GetCommandMappings(Enum.Parse<Language>(language));
+    //    }
+    //}
 }

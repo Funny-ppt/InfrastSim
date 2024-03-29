@@ -1,13 +1,11 @@
-using System.Collections.Concurrent;
+using InfrastSim.TimeDriven.WebHelper;
 using System.Text.Json;
 
-namespace InfrastSim.TimeDriven.WebHelper;
+namespace InfrastSim.TimeDriven.Enumerate;
 public static class EnumerateHelper {
-    static readonly OperatorBase TestOp;
     internal static readonly JsonSerializerOptions Options;
 
     static EnumerateHelper() {
-        TestOp = new TestOp();
         Options = new JsonSerializerOptions {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
         };
@@ -15,7 +13,7 @@ public static class EnumerateHelper {
     }
 
     public static void Enumerate(JsonDocument json, Utf8JsonWriter writer) {
-        var results = new EnumerateContext().Enumerate(json);
+        var results = EnumerateContext.Enumerate(json);
         writer.WriteStartArray();
         foreach (var r in results) {
             if (r.eff.IsZero()) continue;
@@ -32,15 +30,15 @@ public static class EnumerateHelper {
 
             writer.WritePropertyName("eff");
             writer.WriteStartObject();
-            writer.WriteNumber("manu_eff", r.eff.ManuEff);
-            writer.WriteNumber("trad_eff", r.eff.TradEff);
-            writer.WriteNumber("power_eff", r.eff.PowerEff);
+            writer.WriteNumber("manu_eff", r.eff.ManuEff / 100.0);
+            writer.WriteNumber("trad_eff", r.eff.TradEff / 100.0);
+            writer.WriteNumber("power_eff", r.eff.PowerEff / 100.0);
             writer.WriteEndObject();
             writer.WritePropertyName("extra_eff");
             writer.WriteStartObject();
-            writer.WriteNumber("manu_eff", r.extra_eff.ManuEff);
-            writer.WriteNumber("trad_eff", r.extra_eff.TradEff);
-            writer.WriteNumber("power_eff", r.extra_eff.PowerEff);
+            writer.WriteNumber("manu_eff", r.extra_eff.ManuEff / 100.0);
+            writer.WriteNumber("trad_eff", r.extra_eff.TradEff / 100.0);
+            writer.WriteNumber("power_eff", r.extra_eff.PowerEff / 100.0);
             writer.WriteEndObject();
             writer.WriteEndObject();
         }
@@ -61,7 +59,7 @@ public static class EnumerateHelper {
         if (fac != null) {
             var index = fac.IndexOf(op);
             fac.RemoveAt(index);
-            fac.AssignAt(TestOp, index);
+            fac.AssignAt(new TestOp(), index);
         }
     }
     internal static void FillTestOp(this Simulator simu) {
@@ -73,7 +71,7 @@ public static class EnumerateHelper {
         for (int i = 0; i < fac.AcceptOperatorNums; i++) {
             if (fac._operators[i]?.Name != "测试干员") {
                 fac.RemoveAt(i);
-                fac.AssignAt(TestOp, i);
+                fac.AssignAt(new TestOp(), i);
             }
         }
     }
@@ -98,7 +96,7 @@ public static class EnumerateHelper {
     }
     internal static OperatorBase Assign(this Simulator simu, OpEnumData data) {
         var op = simu.GetOperator(data.Name);
-        op.SetMood((data.MoodLow + data.MoodHigh) >> 1);
+        op.SetMood((double)(data.MoodLow + data.MoodHigh >> 1));
         op.WorkingTime = data.WarmUp ? TimeSpan.FromHours(10) : TimeSpan.Zero;
 
         var facName = data.Fac.ToLower();

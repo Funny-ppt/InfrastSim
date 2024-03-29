@@ -6,12 +6,12 @@ internal class Midnight : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.3);
-            MoodConsumeRate.SetValue(Name, -0.25);
+            EfficiencyModifier.SetValue(Name, 30);
+            MoodConsumeRate.SetValue(Name, -25);
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceOriginStone()) {
-                EfficiencyModifier.SetValue(Name, 0.3);
+                EfficiencyModifier.SetValue(Name, 30);
             }
         }
     }

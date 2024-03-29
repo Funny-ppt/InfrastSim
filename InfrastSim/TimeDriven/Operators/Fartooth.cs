@@ -9,11 +9,11 @@ internal class Fartooth : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            MoodConsumeRate.SetValue(Name, -0.55);
-            dorm.SetDormMoodModifier(-0.1);
+            MoodConsumeRate.SetValue(Name, -55);
+            dorm.SetDormMoodModifier(-10);
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.25 : 0.15);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 25 : 15);
         }
     }
 }

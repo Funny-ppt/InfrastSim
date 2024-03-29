@@ -10,11 +10,11 @@ internal class Myrtle : OperatorBase {
 
 
         if (Facility is TradingStation trading && !IsTired) {
-            MoodConsumeRate.SetValue(Name, -0.25);
+            MoodConsumeRate.SetValue(Name, -25);
             trading.Capacity.SetValue(Name, 5);
         }
         if (Facility is Dormitory dorm && Upgraded >= 1) {
-            dorm.SetDormMoodModifier(-0.15);
+            dorm.SetDormMoodModifier(-15);
         }
     }
 }

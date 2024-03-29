@@ -6,11 +6,11 @@ internal class Haze : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && manufacturing.IsProduceGold() && !IsTired) {
-            EfficiencyModifier.SetValue(0.30);
+            EfficiencyModifier.SetValue(30);
         }
 
         if (Facility is TradingStation trading && !IsTired && Upgraded >= 1) {
-            EfficiencyModifier.SetValue(Name, 0.3);
+            EfficiencyModifier.SetValue(Name, 30);
         }
     }
 }

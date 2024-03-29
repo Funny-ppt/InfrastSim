@@ -6,7 +6,7 @@ internal class Goldenglow : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is PowerStation && !IsTired) {
-            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.2 : 0.1);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 20 : 10);
         }
     }
 }

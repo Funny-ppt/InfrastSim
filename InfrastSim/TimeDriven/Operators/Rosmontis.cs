@@ -14,7 +14,7 @@ internal class Rosmontis : OperatorBase {
             }, Priority.PropConversion);
 
             simu.Delay(simu => {
-                EfficiencyModifier.SetValue(Name, (int)simu.Siweilianhuan / (Upgraded >= 2 ? 1 : 2) * 0.01);
+                EfficiencyModifier.SetValue(Name, simu.Siweilianhuan / (Upgraded >= 2 ? 1 : 2));
             });
         }
     }

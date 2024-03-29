@@ -9,8 +9,8 @@ internal class Durin : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            MoodConsumeRate.AddValue(Name, 0.1);
-            dorm.SetDormMoodModifier(-0.25);
+            MoodConsumeRate.AddValue(Name, 10);
+            dorm.SetDormMoodModifier(-25);
         }
     }
 }

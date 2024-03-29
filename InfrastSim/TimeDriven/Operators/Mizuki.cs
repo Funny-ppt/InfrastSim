@@ -10,10 +10,10 @@ internal class Mizuki : OperatorBase {
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
             var count = manufacturing.GroupMemberCount("标准化");
-            EfficiencyModifier.SetValue(Name, count * 0.05);
+            EfficiencyModifier.SetValue(Name, count * 5);
 
             if (Upgraded >= 2) {
-                EfficiencyModifier.AddValue(Name, 0.25);
+                EfficiencyModifier.AddValue(Name, 25);
             }
         }
     }

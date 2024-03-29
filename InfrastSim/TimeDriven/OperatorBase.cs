@@ -1,4 +1,3 @@
-using InfrastSim.TimeDriven.Operators;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -6,7 +5,7 @@ using System.Text.Json;
 namespace InfrastSim.TimeDriven;
 public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public abstract string Name { get; }
-    public virtual string[] Groups => Array.Empty<string>();
+    public virtual string[] Groups => [];
     public bool HasGroup(string group) =>
            Groups.Contains(group)
         || OperatorGroups.Groups.GetValueOrDefault(group)?.Contains(Name) == true;
@@ -17,20 +16,13 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public const int MaxTicks = 8640000;
     public const int TiredTicks = 50;
     public const int MinTicks = 0;
-    public const long TimeSpanTicksPerSimuTick = 100000L;
 
     static int MoodToTicks(double mood) {
         return (int)(mood / MaxMood * MaxTicks);
     }
-    static int TimeSpanToTicks(TimeSpan timeSpan) {
-        return (int)(timeSpan.Ticks / TimeSpanTicksPerSimuTick);
-    }
-    static TimeSpan TicksToTimeSpan(long ticks) {
-        return new TimeSpan((long)(ticks * TimeSpanTicksPerSimuTick));
-    }
 
     public int Upgraded { get; set; } = 2;
-    public double Mood => MoodTicks / (double)MaxTicks * MaxMood;
+    public double Mood => (double)MoodTicks / MaxTicks * MaxMood;
     public int MoodTicks { get; private set; } = MaxTicks;
     public void SetMood(double mood) {
         MoodTicks = MoodToTicks(Math.Clamp(mood, MinMood, MaxMood));
@@ -38,17 +30,17 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public void SetMood(int mood) {
         MoodTicks = Math.Clamp(mood, MinTicks, MaxTicks);
     }
-    static readonly int[] DefaultThreshold = new int[] { 0 };
+    static readonly int[] DefaultThreshold = [0];
     public virtual int[] Thresholds => DefaultThreshold;
-    static readonly TimeSpan[] DefaultWorkingTimeThreshold = Array.Empty<TimeSpan>();
+    static readonly TimeSpan[] DefaultWorkingTimeThreshold = [];
     public virtual TimeSpan[] WorkingTimeThresholds => DefaultWorkingTimeThreshold;
 
     public bool IsTired => MoodTicks <= TiredTicks;
     public bool IsExausted => MoodTicks == MinTicks;
     public bool IsFullOfEnergy => MoodTicks == MaxTicks;
     public virtual int DormVipPriority => 1;
-    public AggregateValue MoodConsumeRate { get; private set; } = new(1);
-    public AggregateValue EfficiencyModifier { get; private set; } = new();
+    public AggregateValue MoodConsumeRate { get; private set; } = new(100, displayAsPercentage: true);
+    public AggregateValue EfficiencyModifier { get; private set; } = new(displayAsPercentage: true);
     public TimeSpan WorkingTime { get; internal set; } = TimeSpan.Zero;
 
     public bool LeaveFacility() {
@@ -59,7 +51,7 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public virtual void Reset() {
         MoodConsumeRate.Clear();
         EfficiencyModifier.Clear();
-        EfficiencyModifier.MaxValue = double.MaxValue;
+        EfficiencyModifier.MaxValue = int.MaxValue;
     }
 
     public virtual void Resolve(Simulator simu) {
@@ -68,7 +60,7 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public virtual void QueryInterest(Simulator simu) {
         Debug.Assert(Facility != null);
         if (Facility.IsWorking) {
-            var ticks = MaxTicks; // 距离最近检查点的 ticks，除以心情消耗率即为实际ticks
+            var seconds = MaxTicks / 100; // 距离最近检查点的秒数
             if (MoodConsumeRate > 0) {
                 //foreach (var threshold in Thresholds) {
                 //    if (Mood - threshold > Util.Epsilon) {
@@ -79,29 +71,30 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
                 // 尝试保持行为和方舟一致。
 
                 if (MoodTicks > TiredTicks) {
-                    ticks = (int)((MoodTicks - TiredTicks) / MoodConsumeRate);
+                    seconds = (MoodTicks - TiredTicks + MoodConsumeRate - 1) / MoodConsumeRate;
                 }
             } else {
                 if (MaxTicks > MoodTicks) {
-                    ticks = (int)((MoodTicks - MaxTicks) / MoodConsumeRate);
+                    seconds = (MoodTicks - MaxTicks - MoodConsumeRate + 1) / MoodConsumeRate;
                 }
             }
             if (Facility is not Dormitory && !IsTired) {
                 foreach (var threshold in WorkingTimeThresholds) {
                     if (threshold > WorkingTime) {
-                        ticks = Math.Min(ticks, TimeSpanToTicks(threshold - WorkingTime));
+                        seconds = Math.Min(seconds, (threshold - WorkingTime).TotalSeconds());
+                        break;
                     }
                 }
             }
-            simu.SetInterest(this, TicksToTimeSpan(ticks));
+            simu.SetInterest(this, seconds);
             // TEST REQUIRED: 该方法未经测试，可能有重大bug
         }
     }
 
     public virtual void Update(Simulator simu, TimeElapsedInfo info) {
-        Debug.Assert(Facility != null);
-        if (Facility.IsWorking) { // 如果 Update 被调用，则 Facility 必不为null
-            int consumes = (int)(TimeSpanToTicks(info.TimeElapsed) * MoodConsumeRate);
+        Debug.Assert(Facility != null); // 如果 Update 被调用，则 Facility 必不为null
+        if (Facility.IsWorking) {
+            int consumes = info.TimeElapsed.TotalSeconds() * MoodConsumeRate;
             MoodTicks = Math.Clamp(MoodTicks - consumes, TiredTicks, MaxTicks);
             WorkingTime += info.TimeElapsed;
         }
@@ -168,8 +161,8 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
     public OperatorBase Clone() {
         var clone = (OperatorBase)MemberwiseClone();
         clone.Facility = null;
-        clone.MoodConsumeRate = new(1); // Important: this must keep with the constructor
-        clone.EfficiencyModifier = new();
+        clone.MoodConsumeRate = new(100, displayAsPercentage: true); // Important: this must keep with the constructor
+        clone.EfficiencyModifier = new(displayAsPercentage: true);
         return clone;
     }
 }

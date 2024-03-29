@@ -1,5 +1,5 @@
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
 
 namespace InfrastSim;
 
@@ -9,7 +9,7 @@ public static class Util {
         return Math.Abs(self - other) < epsilon;
     }
     public static double Align(double a, double b) {
-        return Math.Floor(a / b) * b;
+        return Math.Floor(a / b + Epsilon) * b;
     }
 
 
@@ -30,4 +30,3 @@ public static class Util {
         return Encoding.UTF8.GetString(ms.ToArray()) ?? string.Empty;
     }
 }
-    

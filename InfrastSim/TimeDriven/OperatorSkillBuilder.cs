@@ -1,11 +1,10 @@
-using System.Diagnostics;
 using System.Linq.Expressions;
 
 namespace InfrastSim.TimeDriven;
 internal class OperatorSkillBuilder {
 
     Expression? _resolveExpr;
-    List<Expression<Action<OperatorBase, Simulator>>> _actionGroup = new();
+    List<Expression<Action<OperatorBase, Simulator>>> _actionGroup = [];
     readonly ParameterExpression _opParam = Expression.Parameter(typeof(OperatorBase), "op");
     readonly ParameterExpression _simuParam = Expression.Parameter(typeof(Simulator), "simu");
 
@@ -59,19 +58,19 @@ internal class OperatorSkillBuilder {
         If((op, simu) => op.Facility != null && op.Facility.HasGroupMember(group));
         return this;
     }
-    public OperatorSkillBuilder SetGlobalValueIfGreater(string name, string tag, double value) {
+    public OperatorSkillBuilder SetGlobalValueIfGreater(string name, string tag, int value) {
         Do((op, simu) => simu.GetGlobalValue(name).SetIfGreater(tag, value));
         return this;
     }
-    public OperatorSkillBuilder SetValue(AggregateValue aggregateValue, string tag, double value) {
+    public OperatorSkillBuilder SetValue(AggregateValue aggregateValue, string tag, int value) {
         Do((op, simu) => aggregateValue.SetValue(tag, value));
         return this;
     }
-    public OperatorSkillBuilder SetValueIfGreater(AggregateValue aggregateValue, string tag, double value) {
+    public OperatorSkillBuilder SetValueIfGreater(AggregateValue aggregateValue, string tag, int value) {
         Do((op, simu) => aggregateValue.SetIfGreater(tag, value));
         return this;
     }
-    public OperatorSkillBuilder SetValueIfLesser(AggregateValue aggregateValue, string tag, double value) {
+    public OperatorSkillBuilder SetValueIfLesser(AggregateValue aggregateValue, string tag, int value) {
         Do((op, simu) => aggregateValue.SetIfLesser(tag, value));
         return this;
     }

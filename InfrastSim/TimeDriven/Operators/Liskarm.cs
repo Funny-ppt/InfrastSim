@@ -6,7 +6,7 @@ internal class Liskarm : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is PowerStation power && !IsTired) {
-            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.2 : 0.15);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 20 : 15);
         }
     }
 }

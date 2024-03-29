@@ -6,14 +6,14 @@ internal class Earthspirit : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Office office && !IsTired) {
-            EfficiencyModifier.SetValue(Name, Upgraded >= 1 ? 0.45 : 0.3);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 1 ? 45 : 30);
             if (Upgraded >= 1) {
-                MoodConsumeRate.SetValue(Name, 2);
+                MoodConsumeRate.SetValue(Name, 200);
             }
         }
         if (Facility is ManufacturingStation manufacturing && !IsTired && Upgraded >= 1) {
             if (manufacturing.IsProduceOriginStone()) {
-                EfficiencyModifier.SetValue(Name, 0.35);
+                EfficiencyModifier.SetValue(Name, 35);
             }
         }
     }

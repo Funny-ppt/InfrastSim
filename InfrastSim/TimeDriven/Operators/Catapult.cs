@@ -6,8 +6,8 @@ internal class Catapult : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.3);
-            MoodConsumeRate.SetValue(Name, -0.25);
+            EfficiencyModifier.SetValue(Name, 30);
+            MoodConsumeRate.SetValue(Name, -25);
         }
 
         // TODO: missing skill 2

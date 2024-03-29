@@ -6,12 +6,12 @@ internal class Vendela : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is Dormitory dorm) {
-            dorm.SetDormMoodModifier(-0.15);
+            dorm.SetDormMoodModifier(-15);
 
             if (Upgraded >= 2) {
                 foreach (var op in Facility.Operators) {
                     if (op.MoodTicks <= 18 * 360000) {
-                        op.MoodConsumeRate.SetIfLesser("芬芳疗养beta", -0.1);
+                        op.MoodConsumeRate.SetIfLesser("芬芳疗养beta", -10);
                     }
                 }
             }

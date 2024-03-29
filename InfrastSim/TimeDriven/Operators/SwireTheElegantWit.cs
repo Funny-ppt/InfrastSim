@@ -9,13 +9,13 @@ internal class SwireTheElegantWit : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is TradingStation trading && !IsTired) {
-            EfficiencyModifier.SetValue(Name, 0.2);
+            EfficiencyModifier.SetValue(Name, 20);
 
             if (Upgraded >= 2) {
                 simu.Delay(simu => {
                     var diff = trading.Capacity - trading.BaseCapacity;
-                    EfficiencyModifier.AddValue(Name, diff * 0.04);
-                });
+                    EfficiencyModifier.AddValue(Name, diff * 4);
+                }, Priority.Swire);
             }
         }
     }

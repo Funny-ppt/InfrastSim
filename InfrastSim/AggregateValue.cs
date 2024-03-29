@@ -2,23 +2,14 @@ using System.Text.Json;
 
 namespace InfrastSim;
 
-public class AggregateValue : IJsonSerializable {
-    double _baseValue;
-    double _value = new();
-    readonly Dictionary<string, double> _additionValues = new();
-    readonly HashSet<string> _disables = new();
+public class AggregateValue(int baseValue = 0, int min = int.MinValue, int max = int.MaxValue, bool displayAsPercentage = false) : IJsonSerializable {
+    int _baseValue = baseValue;
+    int _value = 0;
+    readonly Dictionary<string, int> _additionValues = [];
+    readonly HashSet<string> _disables = [];
     bool _upToDate = false;
 
-    public AggregateValue(double baseValue = 0.0, double min = double.MinValue, double max = double.MaxValue) {
-        _baseValue = baseValue;
-        MinValue = min;
-        MaxValue = max;
-    }
-
-    public bool UpToDate {
-        get => _upToDate;
-    }
-    public double CalculatedValue {
+    public int CalculatedValue {
         get {
             if (_upToDate) return _value;
             _upToDate = true;
@@ -28,88 +19,89 @@ public class AggregateValue : IJsonSerializable {
             return _value = Math.Clamp(_baseValue + additions, MinValue, MaxValue);
         }
     }
-    public double BaseValue => _baseValue;
-    public double MinValue { get; set; }
-    public double MaxValue { get; set; }
+    public int BaseValue => _baseValue;
+    public int MinValue { get; set; } = min;
+    public int MaxValue { get; set; } = max;
 
-    public IEnumerable<KeyValuePair<string, double>> EnumerateValues() {
+    public IEnumerable<KeyValuePair<string, int>> EnumerateValues() {
         return _additionValues
             .ExceptBy(_disables, p => p.Key);
     }
 
-    public double GetValue(string name)
-        => _additionValues.GetValueOrDefault(name);
-    public double SetValue(string name, double value) {
+    public int GetValue(string name) => _additionValues.GetValueOrDefault(name);
+    public int SetValue(string name, int value) {
         var oldValue = GetValue(name);
-        if (Util.Equals(value, oldValue)) {
+        if (value == oldValue)
             return oldValue;
-        }
-        if (!_disables.Contains(name)) _upToDate = false;
+        if (!_disables.Contains(name))
+            _upToDate = false;
         return _additionValues[name] = value;
     }
-    public double AddValue(string name, double value) {
+    public int AddValue(string name, int value) {
         return SetValue(name, value + GetValue(name));
     }
-    public double SetIfGreater(string name, double value) {
+    public int SetIfGreater(string name, int value) {
         return SetValue(name, Math.Max(value, GetValue(name)));
     }
-    public double SetIfLesser(string name, double value) {
+    public int SetIfLesser(string name, int value) {
         return SetValue(name, Math.Min(value, GetValue(name)));
     }
-    public double SetValue(NamedValue namedValue) {
-        return SetValue(namedValue.Name, namedValue.Value);
-    }
-    public double AddValue(NamedValue namedValue) {
-        return AddValue(namedValue.Name, namedValue.Value);
-    }
-    public double SetIfGreater(NamedValue namedValue) {
-        return SetIfGreater(namedValue.Name, namedValue.Value);
-    }
-    public double SetIfLesser(NamedValue namedValue) {
-        return SetIfLesser(namedValue.Name, namedValue.Value);
-    }
+    public int SetValue(int value) => SetValue("common", value);
+    public int AddValue(int value) => AddValue("common", value);
+    public int SetIfGreater(int value) => SetIfGreater("common", value);
+    public int SetIfLesser(int value) => SetIfLesser("common", value);
 
     public void Disable(string name) {
-        if (!_disables.Contains(name)) {
-            if (!Util.Equals(GetValue(name), 0)) _upToDate = false;
-            _disables.Add(name);
+        if (_disables.Add(name)) {
+            if (GetValue(name) != 0) _upToDate = false;
         }
     }
     public void Enable(string name) {
-        if (_disables.Contains(name)) {
-            if (!Util.Equals(GetValue(name), 0)) _upToDate = false;
-            _disables.Remove(name);
+        if (_disables.Remove(name)) {
+            if (GetValue(name) != 0) _upToDate = false;
         }
     }
-
     public void Remove(string name) {
-        if (!Util.Equals(GetValue(name), 0)) {
+        if (GetValue(name) != 0) {
             _upToDate = false;
         }
         _additionValues.Remove(name);
     }
     public void Clear() {
         _disables.Clear();
-        foreach (var key in _additionValues.Keys) {
-            _additionValues[key] = 0;
-        }
+        // BENCHMARK REQUIRED: use Clear() or manually set value to 0?
+        _additionValues.Clear();
+        //foreach (var key in _additionValues.Keys) { 
+        //    _additionValues[key] = 0;
+        //}
         _upToDate = true;
         _value = _baseValue;
     }
 
     public void ToJson(Utf8JsonWriter writer, bool detailed = false) {
         writer.WriteStartObject();
-        writer.WriteNumber("value", CalculatedValue);
-        writer.WriteNumber("base-value", BaseValue);
-        writer.WriteNumber("min-value", MinValue);
-        writer.WriteNumber("max-value", MaxValue);
+        if (displayAsPercentage) {
+            writer.WriteNumber("value", CalculatedValue / 100.0);
+            writer.WriteNumber("base-value", BaseValue / 100.0);
+            writer.WriteNumber("min-value", MinValue / 100.0);
+            writer.WriteNumber("max-value", MaxValue / 100.0);
+        } else {
+            writer.WriteNumber("value", CalculatedValue);
+            writer.WriteNumber("base-value", BaseValue);
+            writer.WriteNumber("min-value", MinValue);
+            writer.WriteNumber("max-value", MaxValue);
+        }
 
         writer.WritePropertyName("details");
         writer.WriteStartArray();
         foreach (var kvp in _additionValues) {
             writer.WriteStartObject();
             writer.WriteString("tag", kvp.Key);
-            writer.WriteNumber("value", kvp.Value);
+            if (displayAsPercentage) {
+                writer.WriteNumber("value", kvp.Value / 100.0);
+            } else {
+                writer.WriteNumber("value", kvp.Value);
+            }
             writer.WriteBoolean("disabled", _disables.Contains(kvp.Key));
             writer.WriteEndObject();
         }
@@ -118,7 +110,7 @@ public class AggregateValue : IJsonSerializable {
         writer.WriteEndObject();
     }
 
-    public static implicit operator double(AggregateValue aggregateValue) {
+    public static implicit operator int(AggregateValue aggregateValue) {
         return aggregateValue.CalculatedValue;
     }
 }

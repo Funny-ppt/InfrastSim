@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace InfrastSim.TimeDriven.WebHelper;
+namespace InfrastSim.TimeDriven.Enumerate;
 public class OpEnumData {
     [JsonIgnore(Condition = JsonIgnoreCondition.Always)]
     public int id { get; set; }

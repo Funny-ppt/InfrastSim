@@ -10,7 +10,7 @@ internal class Ptilopsis : OperatorBase {
         base.Resolve(simu);
 
         if (Facility is ManufacturingStation manufacturing && !IsTired) {
-            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 0.25 : 0.15);
+            EfficiencyModifier.SetValue(Name, Upgraded >= 2 ? 25 : 15);
         }
     }
 }
