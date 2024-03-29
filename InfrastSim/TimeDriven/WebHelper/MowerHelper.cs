@@ -84,9 +84,9 @@ public class MowerHelper {
             ["name"] = op["name"]!.DeepClone(),
             ["morale"] = op["mood"]!.DeepClone(),
             ["efficiency"] = op["efficiency"]!.DeepClone()
-            ["is_working"] = simuOp.Facility != null && simuOp.Facility is not Dormitory
         };
 
+        newop["is_working"] = simuOp.Facility != null && simuOp.Facility is not Dormitory;
         if (simuOp.Facility != null) {
             newop["facility-index"] = Array.IndexOf(simu.Facilities, simuOp.Facility);
         }
