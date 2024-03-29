@@ -64,9 +64,7 @@ jobs:
     - name: Publish CDLL for ${{ matrix.runtime }}
       run: |
         dotnet publish -c Release -r ${{ matrix.runtime }} InfrastSimExports
-        if [ "${{ matrix.runtime }}" == "linux-x64" ]; then
-          cp InfrastSimExports/bin/Release/net8.0/${{ matrix.runtime }}/publish/InfrastSimExports.so InfrastSimExports/bin/Release/net8.0/${{ matrix.runtime }}/publish/InfrastSim.so
-        fi
+        cp InfrastSimExports/bin/Release/net8.0/${{ matrix.runtime }}/publish/InfrastSimExports.so InfrastSimExports/bin/Release/net8.0/${{ matrix.runtime }}/publish/InfrastSim.so
     - name: Upload CLib for ${{ matrix.runtime }}
       uses: actions/upload-artifact@v3
       with:
