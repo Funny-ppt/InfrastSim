@@ -47,10 +47,17 @@ jobs:
         dotnet publish -c Release -r linux-x64 InfrastSimExports
         cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.* pub/
 
+    - name: Upload Clib
     - uses: actions/upload-artifact@v3
       with:
         name: InfrastSim-clib-linux
         path: pub/*
+        
+    - name: Upload Wasm AppBundle
+      uses: actions/upload-artifact@v3
+      with:
+        name: AppBundle
+        path: InfrastSimWasm/bin/Release/net8.0/browser-wasm/AppBundle/
 
         
   build-windows:
@@ -88,6 +95,7 @@ jobs:
         dotnet publish -c Release -r win-x64 InfrastSimExports
         cp InfrastSimExports/bin/Release/net8.0/win-x64/publish/InfrastSimExports.* pub/
 
+    - name: Upload Clib
     - uses: actions/upload-artifact@v3
       with:
         name: InfrastSim-clib-win
