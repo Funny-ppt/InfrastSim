@@ -46,7 +46,6 @@ jobs:
         mkdir pub
         dotnet publish -c Release -r linux-x64 InfrastSimExports
         cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.so pub/InfrastSim.so
-        cp InfrastSimExports/bin/Release/net8.0/linux-x64/publish/InfrastSimExports.pdb pub/InfrastSim.pdb
         
     - name: Publish Wasm
       run: |
@@ -99,7 +98,6 @@ jobs:
         mkdir pub
         dotnet publish -c Release -r win-x64 InfrastSimExports
         cp InfrastSimExports/bin/Release/net8.0/win-x64/publish/InfrastSimExports.dll pub/InfrastSim.dll
-        cp InfrastSimExports/bin/Release/net8.0/win-x64/publish/InfrastSimExports.pdb pub/InfrastSim.pdb
 
     - name: Upload Clib
       uses: actions/upload-artifact@v3
