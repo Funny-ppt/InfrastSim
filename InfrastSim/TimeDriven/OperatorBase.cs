@@ -81,7 +81,7 @@ public abstract class OperatorBase : ITimeDrivenObject, IJsonSerializable {
             if (Facility is not Dormitory && !IsTired) {
                 foreach (var threshold in WorkingTimeThresholds) {
                     if (threshold > WorkingTime) {
-                        seconds = Math.Min(seconds, (threshold - WorkingTime).TotalSeconds());
+                        seconds = Math.Min(seconds, threshold.TotalSeconds() - WorkingTime.TotalSeconds());
                         break;
                     }
                 }
