@@ -91,8 +91,12 @@ public class ManufacturingStation : FacilityBase, IApplyDrones {
         writer.WriteNumber("progress", Progress);
 
         if (detailed) {
-            if (Product != null) writer.WriteString("product", Product.Name);
-            else writer.WriteNull("product");
+            if (Product != null) {
+                writer.WriteString("product", Product.Name);
+                writer.WriteNumber("progress-percentage", (double)Progress / Product.ProduceTicks);
+            } else {
+                writer.WriteNull("product");
+            }
             writer.WriteNumber("remains", (RemainTicks + TicksHelper.TicksPerSecond - 1) / TicksHelper.TicksPerSecond);
             writer.WriteNumber("base-capacity", BaseCapacity);
             writer.WriteNumber("capacity", Capacity);
