@@ -96,7 +96,7 @@ jobs:
         cp InfrastSimExports/bin/Release/net8.0/win-x64/publish/InfrastSimExports.* pub/
 
     - name: Upload Clib
-    - uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
         name: InfrastSim-clib-win
         path: pub/*
